@@ -63,9 +63,9 @@ public class DiaryListActivity extends AppCompatActivity {
         recyclerDiary.setAdapter(diaryAdapter);
 
         // 새 일기 작성
-        fabAddDiary.setOnClickListener(v -> openDiary(getTodayDate(), "", ""));
+        fabAddDiary.setOnClickListener(v -> openDiary(getTodayDate(), ""));
 
-        // 선택 삭제 버튼: 처음 누르면 선택 모드, 선택 모드에서는 체크된 일기 삭제
+        // 선택 삭제 버튼: 처음 누르면 선택 모드, 선택 모드에서는 체크한 일기 삭제
         btnSelectDelete.setOnClickListener(v -> handleSelectDelete());
 
         // 평소에는 모두 삭제, 선택 모드에서는 선택 취소
@@ -90,10 +90,9 @@ public class DiaryListActivity extends AppCompatActivity {
         return sdf.format(new Date());
     }
 
-    private void openDiary(String date, String weather, String content) {
+    private void openDiary(String date, String content) {
         Intent intent = new Intent(DiaryListActivity.this, DiaryDetailActivity.class);
         intent.putExtra("date", date);
-        intent.putExtra("weather", weather);
         intent.putExtra("content", content);
         startActivity(intent);
     }
@@ -107,12 +106,11 @@ public class DiaryListActivity extends AppCompatActivity {
         try {
             JSONArray jsonArray = new JSONArray(json);
 
-            // 최근 일기가 위에 보이도록 역순으로 추가
+            // 최근에 쓴 일기가 위에 보이도록 역순으로 추가
             for (int i = jsonArray.length() - 1; i >= 0; i--) {
                 JSONObject obj = jsonArray.getJSONObject(i);
                 diaryList.add(new DiaryItem(
                         obj.optString("date", ""),
-                        obj.optString("weather", ""),
                         obj.optString("content", "")
                 ));
             }
@@ -206,12 +204,11 @@ public class DiaryListActivity extends AppCompatActivity {
         JSONArray jsonArray = new JSONArray();
 
         try {
-            // SharedPreferences에는 원래 저장 순서로 다시 저장
+            // SharedPreferences에는 원래 저장 순서로 다시 저장한다.
             for (int i = diaryList.size() - 1; i >= 0; i--) {
                 DiaryItem item = diaryList.get(i);
                 JSONObject obj = new JSONObject();
                 obj.put("date", item.date);
-                obj.put("weather", item.weather);
                 obj.put("content", item.content);
                 jsonArray.put(obj);
             }
@@ -224,13 +221,11 @@ public class DiaryListActivity extends AppCompatActivity {
 
     private static class DiaryItem {
         private final String date;
-        private final String weather;
         private final String content;
         private boolean selected;
 
-        DiaryItem(String date, String weather, String content) {
+        DiaryItem(String date, String content) {
             this.date = date;
-            this.weather = weather;
             this.content = content;
         }
     }
@@ -268,7 +263,7 @@ public class DiaryListActivity extends AppCompatActivity {
                     item.selected = !item.selected;
                     notifyItemChanged(holder.getBindingAdapterPosition());
                 } else {
-                    openDiary(item.date, item.weather, item.content);
+                    openDiary(item.date, item.content);
                 }
             });
         }

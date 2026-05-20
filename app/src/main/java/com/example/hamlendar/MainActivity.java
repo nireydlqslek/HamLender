@@ -9,13 +9,10 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -29,10 +26,18 @@ import com.prolificinteractive.materialcalendarview.DayViewDecorator;
 import com.prolificinteractive.materialcalendarview.DayViewFacade;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String PREF_NAME = "diary_pref";
+    private static final String KEY_DIARY_LIST = "diary_list";
 
     private MaterialCalendarView calendarView;
     private TextView nameTitle;
@@ -55,16 +60,15 @@ public class MainActivity extends AppCompatActivity {
         settingIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
 
-        // 하단 일기 아이콘 클릭 -> 일기 목록 화면으로 이동
-        btnDiary.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
+        // 하단 일기 아이콘 클릭 -> 오늘 날짜의 일기 화면으로 이동
+        btnDiary.setOnClickListener(v -> openDiaryForDate(getTodayDiaryDate()));
 
         // 달력 모양과 요일 색상 설정
         setupCalendar();
 
-        // 날짜 클릭 -> 해당 날짜 일정 추가 다이얼로그 표시
+        // 날짜 클릭 -> 해당 날짜에 저장된 일기가 있으면 내용을 보여주고, 없으면 새 일기 작성
         calendarView.setOnDateChangedListener((widget, date, selected) ->
-                showAddScheduleDialog(formatDate(date)));
+                openDiaryForDate(formatDiaryDate(date)));
 
         // 상태바/내비게이션바 영역과 화면 내용이 겹치지 않도록 여백 적용
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -90,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
         String greeting = userName + "님, 안녕하세요!";
         SpannableString spannableGreeting = new SpannableString(greeting);
 
-        int nameColor = ContextCompat.getColor(this, R.color.maincolor);
-        int greetingColor = ContextCompat.getColor(this, R.color.namecolor);
+        int nameColor = ContextCompat.getColor(this, R.color.namecolor);
+        int greetingColor = ContextCompat.getColor(this, R.color.maincolor);
 
         // 이름 부분만 다른 색으로 표시
         spannableGreeting.setSpan(
@@ -101,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         );
 
-        // 이름 뒤의 인사말은 기존 메인 컬러로 표시
         spannableGreeting.setSpan(
                 new ForegroundColorSpan(greetingColor),
                 userName.length(),
@@ -146,37 +149,43 @@ public class MainActivity extends AppCompatActivity {
         calendarView.addDecorator(new DayOfWeekDecorator(Calendar.SATURDAY, Color.BLUE));
     }
 
-    private String formatDate(CalendarDay date) {
-        // 선택한 날짜를 저장하기 쉬운 yyyy-MM-dd 형태로 변환
-        return String.format(Locale.US, "%04d-%02d-%02d",
-                date.getYear(), date.getMonth() + 1, date.getDay());
+    private String getTodayDiaryDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
+        return sdf.format(new Date());
     }
 
-    private void showAddScheduleDialog(String date) {
-        // 일정 내용을 입력받는 다이얼로그 생성
-        EditText editText = new EditText(this);
-        editText.setHint("일정을 입력하세요");
+    private String formatDiaryDate(CalendarDay date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(date.getYear(), date.getMonth(), date.getDay());
 
-        new AlertDialog.Builder(this)
-                .setTitle(date + " 일정 추가")
-                .setView(editText)
-                .setPositiveButton("저장", (dialog, which) -> {
-                    String schedule = editText.getText().toString().trim();
-                    if (TextUtils.isEmpty(schedule)) {
-                        Toast.makeText(this, "일정이 비어 있습니다", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    saveSchedule(date, schedule);
-                    Toast.makeText(this, "일정 저장 완료", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("취소", null)
-                .show();
+        SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
+        return sdf.format(calendar.getTime());
     }
 
-    private void saveSchedule(String date, String schedule) {
-        // 날짜를 key로 사용해서 일정 내용 저장
-        SharedPreferences prefs = getSharedPreferences("schedule", MODE_PRIVATE);
-        prefs.edit().putString(date, schedule).apply();
+    private void openDiaryForDate(String date) {
+        Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
+        intent.putExtra("date", date);
+        intent.putExtra("content", findDiaryContent(date));
+        startActivity(intent);
+    }
+
+    private String findDiaryContent(String date) {
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_DIARY_LIST, "[]");
+
+        try {
+            JSONArray diaries = new JSONArray(json);
+            for (int i = 0; i < diaries.length(); i++) {
+                JSONObject diary = diaries.getJSONObject(i);
+                if (date.equals(diary.optString("date"))) {
+                    return diary.optString("content", "");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     private static class DayOfWeekDecorator implements DayViewDecorator {

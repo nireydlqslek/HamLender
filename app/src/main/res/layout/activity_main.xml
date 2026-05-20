@@ -14,10 +14,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
-        android:fontFamily="@font/dangdang"
+        android:fontFamily="@font/moyamoya"
         android:text="사용자님, 안녕하세요!"
         android:textColor="@color/maincolor"
-        android:textSize="20sp"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -27,7 +27,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="14dp"
-        android:contentDescription="menu"
+        android:contentDescription="메뉴"
         app:layout_constraintBottom_toBottomOf="@id/nameTitle"
         app:layout_constraintEnd_toStartOf="@id/setting_icon"
         app:layout_constraintTop_toTopOf="@id/nameTitle"
@@ -39,7 +39,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="28dp"
-        android:contentDescription="setting"
+        android:contentDescription="설정"
         app:layout_constraintBottom_toBottomOf="@id/nameTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/nameTitle"
@@ -78,7 +78,7 @@
             android:id="@+id/img_main_home"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:contentDescription="home"
+            android:contentDescription="홈"
             android:src="@drawable/hamicon" />
 
         <ImageView
@@ -87,14 +87,14 @@
             android:layout_height="34dp"
             android:layout_marginStart="56dp"
             android:layout_marginEnd="56dp"
-            android:contentDescription="calendar"
+            android:contentDescription="캘린더"
             android:src="@drawable/hamcircle_w" />
 
         <ImageView
             android:id="@+id/img_main_diary"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:contentDescription="diary"
+            android:contentDescription="일기"
             android:src="@drawable/hamicon" />
     </LinearLayout>
 
