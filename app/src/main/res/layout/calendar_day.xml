@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="vertical"
+    android:padding="6dp"
+    android:gravity="top|start"
+    android:background="@drawable/calendar_border">
+
+    <!-- 날짜 (tvDate) -->
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:text="1"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- 일정들 (원래 쓰시던 구조 그대로 유지) -->
+    <TextView
+        android:id="@+id/tvEvent1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#333333"/>
+
+    <TextView
+        android:id="@+id/tvEvent2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#333333"/>
+
+    <TextView
+        android:id="@+id/tvEvent3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#333333"/>
+
+    <TextView
+        android:id="@+id/tvEvent4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#333333"/>
+
+    <TextView
+        android:id="@+id/tvEvent5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#333333"/>
+
+    <!-- +N -->
+    <TextView
+        android:id="@+id/tvMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textColor="#888888"/>
+
+</LinearLayout>

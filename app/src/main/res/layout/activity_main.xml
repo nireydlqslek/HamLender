@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://tools.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ham_background"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/nameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="36dp"
+        android:fontFamily="@font/dangdang"
+        android:text="사용자님, 안녕하세요!"
+        android:textColor="@color/ham_brown"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/menu_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="menu"
+        app:layout_constraintBottom_toBottomOf="@id/nameTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.905"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/nameTitle"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/menu_24px"
+        app:tint="@color/maincolor" />
+
+    <LinearLayout
+        android:id="@+id/calendarContainer"
+        android:layout_width="358dp"
+        android:layout_height="570dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_calendar_outer"
+        android:orientation="vertical"
+        android:padding="2dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nameTitle">
+
+        <!-- 달력 알맹이 (헤더와 요일, 날짜가 모두 여기에 포함되어 큰 상자 안에 들어가게 됩니다) -->
+        <com.kizitonwose.calendar.view.CalendarView
+            android:id="@+id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:cv_daySize="seventhWidth"
+            app:cv_dayViewResource="@layout/calendar_day"
+            app:cv_monthHeaderResource="@layout/month_header" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/img_main_home"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="home"
+            android:src="@drawable/hamicon" />
+
+        <ImageView
+            android:id="@+id/img_main_cal"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="56dp"
+            android:layout_marginEnd="56dp"
+            android:contentDescription="calendar"
+            android:src="@drawable/hamcircle_w" />
+
+        <ImageView
+            android:id="@+id/img_main_diary"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="diary"
+            android:src="@drawable/hamicon" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

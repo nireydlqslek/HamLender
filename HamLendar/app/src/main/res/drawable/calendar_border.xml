@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. 일단 배경 전체를 테두리로 쓸 연한 회색(#E0E0E0)으로 채웁니다. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E0E0E0" />
+        </shape>
+    </item>
+
+    <!-- 2. 🌟 핵심: 하얀색 상자를 얹을 때, 위쪽만 1dp(선 두께)를 남겨두고
+            왼쪽, 오른쪽, 아래쪽은 -2dp씩 밖으로 삐져나가게 밀어서 회색 테두리를 완전히 가려버립니다! -->
+    <item
+        android:top="1dp"
+        android:left="-2dp"
+        android:right="-2dp"
+        android:bottom="-2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" /> <!-- 알맹이 배경색 -->
+        </shape>
+    </item>
+
+</layer-list>
