@@ -7,24 +7,12 @@
     android:background="@color/background_w"
     tools:context=".DiaryListActivity">
 
-    <ImageView
-        android:id="@+id/menuIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="28dp"
-        android:contentDescription="menu"
-        android:src="@drawable/menu_24px"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/maincolor" />
-
     <TextView
         android:id="@+id/txtMainTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="76dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/dangdang"
         android:text="내 일기 보기"
         android:textColor="@color/black"

@@ -59,8 +59,58 @@ public class DiaryListActivity extends AppCompatActivity {
 
         // RecyclerView 연결
         diaryAdapter = new DiaryAdapter();
-        recyclerDiary.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager =
+                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+
+        recyclerDiary.setLayoutManager(layoutManager);
         recyclerDiary.setAdapter(diaryAdapter);
+
+// 위아래 padding 추가해서 가운데 정렬 느낌
+        recyclerDiary.setClipToPadding(false);
+        recyclerDiary.setPadding(0, 300, 0, 300);
+
+// 스크롤 시 확대/축소 효과
+        recyclerDiary.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                int recyclerCenterY = recyclerView.getHeight() / 2;
+
+                for (int i = 0; i < recyclerView.getChildCount(); i++) {
+
+                    View child = recyclerView.getChildAt(i);
+
+                    int childCenterY =
+                            (child.getTop() + child.getBottom()) / 2;
+
+                    // RecyclerView 중앙과 거리 계산
+                    float distance =
+                            Math.abs(recyclerCenterY - childCenterY);
+
+                    // 최대 거리
+                    float maxDistance = recyclerCenterY;
+
+                    // scale 계산
+                    float scale =
+                            1.0f - (distance / maxDistance) * 0.2f;
+
+                    // 최소 크기 제한
+                    scale = Math.max(scale, 0.8f);
+
+                    child.setScaleX(scale);
+                    child.setScaleY(scale);
+
+                    // 투명도도 같이 조절하면 더 자연스러움
+                    float alpha =
+                            1.0f - (distance / maxDistance) * 0.5f;
+
+                    alpha = Math.max(alpha, 0.5f);
+
+                    child.setAlpha(alpha);
+                }
+            }
+        });
 
         // 새 일기 작성
         fabAddDiary.setOnClickListener(v -> openDiary(getTodayDate(), ""));
@@ -83,6 +133,14 @@ public class DiaryListActivity extends AppCompatActivity {
         super.onResume();
         loadDiaryList();
         clearSelectionMode();
+
+        // 추가
+        RecyclerView recyclerDiary = findViewById(R.id.recyclerDiary);
+
+        recyclerDiary.post(() -> {
+            recyclerDiary.scrollBy(0, 1);
+            recyclerDiary.scrollBy(0, -1);
+        });
     }
 
     private String getTodayDate() {
