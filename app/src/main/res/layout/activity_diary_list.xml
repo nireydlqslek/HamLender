@@ -86,7 +86,7 @@
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="22dp"
         android:clipToPadding="false"
-        android:overScrollMode="ifContentScrolls"
+        android:overScrollMode="never"
         android:paddingStart="2dp"
         android:paddingEnd="2dp"
         android:paddingBottom="88dp"

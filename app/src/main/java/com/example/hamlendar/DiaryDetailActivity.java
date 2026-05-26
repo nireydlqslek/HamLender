@@ -47,11 +47,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         originalContent = content == null ? "" : content;
 
-        // 목록에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
+        // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
         txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
         editContent.setText(originalContent);
 
-        // 뒤로가기 버튼 클릭 -> 수정한 내용이 저장되지 않았으면 안내하고, 아니면 나간다.
+        // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
         btnBack.setOnClickListener(v -> handleBack());
 
         // 날짜 클릭 -> 일기 목록 화면으로 이동
@@ -77,7 +77,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
     }
 
     private String getCurrentDate() {
-        // 오늘 날짜를 일기에서 쓰는 형식으로 변환
         SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
         return sdf.format(new Date());
     }
@@ -119,7 +118,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
     }
 
     private boolean saveDiary() {
-        // 화면에 입력된 날짜와 일기 내용을 가져온다.
         String date = txtDate.getText().toString();
         String content = editContent.getText().toString().trim();
 
@@ -137,7 +135,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
             newDiary.put("date", date);
             newDiary.put("content", content);
 
-            // 같은 날짜의 일기가 이미 있으면 새 내용으로 덮어쓴다.
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
                 if (date.equals(diary.optString("date"))) {
@@ -148,7 +145,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 }
             }
 
-            // 같은 날짜가 없으면 새 일기로 추가한다.
             diaries.put(newDiary);
             prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
             Toast.makeText(this, "일기가 저장되었습니다", Toast.LENGTH_SHORT).show();
@@ -178,7 +174,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
             JSONArray diaries = new JSONArray(json);
             JSONArray newDiaries = new JSONArray();
 
-            // 삭제할 날짜와 다른 일기만 새 배열에 다시 담는다.
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
                 if (!date.equals(diary.optString("date"))) {

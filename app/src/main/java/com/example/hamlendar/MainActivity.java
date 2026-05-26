@@ -1,81 +1,348 @@
 package com.example.hamlendar;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.prolificinteractive.materialcalendarview.CalendarDay;
-import com.prolificinteractive.materialcalendarview.DayViewDecorator;
-import com.prolificinteractive.materialcalendarview.DayViewFacade;
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.kizitonwose.calendar.core.CalendarDay;
+import com.kizitonwose.calendar.core.CalendarMonth;
+import com.kizitonwose.calendar.core.DayPosition;
+import com.kizitonwose.calendar.view.CalendarView;
+import com.kizitonwose.calendar.view.MonthDayBinder;
+import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
+import com.kizitonwose.calendar.view.ViewContainer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String PREF_NAME = "diary_pref";
+    private static final String DIARY_PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
 
-    private MaterialCalendarView calendarView;
+    private CalendarView calendarView;
     private TextView nameTitle;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
+
+    class ScheduleItem {
+        String id;
+        String title;
+        String category;
+        String memo;
+
+        ScheduleItem(String id, String title, String category, String memo) {
+            this.id = id;
+            this.title = title;
+            this.category = category;
+            this.memo = memo;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        nameTitle = findViewById(R.id.nameTitle);
-        ImageView settingIcon = findViewById(R.id.setting_icon);
-        ImageView btnDiary = findViewById(R.id.img_main_diary);
         calendarView = findViewById(R.id.calendarView);
+        nameTitle = findViewById(R.id.nameTitle);
 
-        // 회원가입 때 저장한 이름으로 인사말 표시
-        setGreetingName();
+        ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnDiary = findViewById(R.id.img_main_diary);
 
-        // 설정 아이콘 클릭 -> 설정 화면으로 이동
-        settingIcon.setOnClickListener(v ->
+        menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
 
-        // 하단 일기 아이콘 클릭 -> 오늘 날짜의 일기 화면으로 이동
-        btnDiary.setOnClickListener(v -> openDiaryForDate(getTodayDiaryDate()));
+        // 하단 일기 버튼은 오늘 날짜 일기를 연다.
+        btnDiary.setOnClickListener(v -> openDiaryForDate(LocalDate.now()));
 
-        // 달력 모양과 요일 색상 설정
+        setGreetingName();
+        loadSchedulesFromFirebase();
         setupCalendar();
+    }
 
-        // 날짜 클릭 -> 해당 날짜에 저장된 일기가 있으면 내용을 보여주고, 없으면 새 일기 작성
-        calendarView.setOnDateChangedListener((widget, date, selected) ->
-                openDiaryForDate(formatDiaryDate(date)));
+    private void setupCalendar() {
+        YearMonth currentMonth = YearMonth.now();
 
-        // 상태바/내비게이션바 영역과 화면 내용이 겹치지 않도록 여백 적용
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        calendarView.setup(
+                currentMonth.minusMonths(12),
+                currentMonth.plusMonths(12),
+                DayOfWeek.SUNDAY
+        );
+
+        calendarView.setDayBinder(new MonthDayBinder<DayViewContainer>() {
+            @Override
+            public DayViewContainer create(View view) {
+                return new DayViewContainer(view);
+            }
+
+            @Override
+            public void bind(DayViewContainer container, CalendarDay day) {
+                container.day = day;
+
+                container.tvEvent1.setText("");
+                container.tvEvent2.setText("");
+                container.tvEvent3.setText("");
+                container.tvEvent4.setText("");
+                container.tvEvent5.setText("");
+                container.tvMore.setText("");
+
+                if (day.getPosition() != DayPosition.MonthDate) {
+                    container.tvDate.setText("");
+                    return;
+                }
+
+                container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
+
+                List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
+                if (todaySchedules == null || todaySchedules.isEmpty()) {
+                    return;
+                }
+
+                int size = todaySchedules.size();
+                if (size >= 1) container.tvEvent1.setText("• " + todaySchedules.get(0).title);
+                if (size >= 2) container.tvEvent2.setText("• " + todaySchedules.get(1).title);
+                if (size >= 3) container.tvEvent3.setText("• " + todaySchedules.get(2).title);
+                if (size >= 4) container.tvEvent4.setText("• " + todaySchedules.get(3).title);
+                if (size >= 5) container.tvEvent5.setText("• " + todaySchedules.get(4).title);
+                if (size > 5) container.tvMore.setText("+" + (size - 5));
+            }
         });
+
+        calendarView.setMonthHeaderBinder(new MonthHeaderFooterBinder<MonthHeaderContainer>() {
+            @Override
+            public MonthHeaderContainer create(View view) {
+                return new MonthHeaderContainer(view);
+            }
+
+            @Override
+            public void bind(MonthHeaderContainer container, CalendarMonth month) {
+                YearMonth yearMonth = month.getYearMonth();
+                container.tvMonth.setText(yearMonth.getYear() + "년 " + yearMonth.getMonthValue() + "월");
+
+                container.btnPrev.setOnClickListener(v ->
+                        calendarView.smoothScrollToMonth(yearMonth.minusMonths(1)));
+
+                container.btnNext.setOnClickListener(v ->
+                        calendarView.smoothScrollToMonth(yearMonth.plusMonths(1)));
+            }
+        });
+
+        calendarView.scrollToMonth(currentMonth);
+    }
+
+    private void openDiaryForDate(LocalDate date) {
+        String diaryDate = formatDiaryDate(date);
+        Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
+        intent.putExtra("date", diaryDate);
+        intent.putExtra("content", findDiaryContent(diaryDate));
+        startActivity(intent);
+    }
+
+    private String formatDiaryDate(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일 (E)", Locale.KOREAN);
+        return date.format(formatter);
+    }
+
+    private String findDiaryContent(String date) {
+        SharedPreferences prefs = getSharedPreferences(DIARY_PREF_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_DIARY_LIST, "[]");
+
+        try {
+            JSONArray diaries = new JSONArray(json);
+            for (int i = 0; i < diaries.length(); i++) {
+                JSONObject diary = diaries.getJSONObject(i);
+                if (date.equals(diary.optString("date"))) {
+                    return diary.optString("content", "");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    private void loadSchedulesFromFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid()).collection("schedules")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    schedulesMap.clear();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String id = document.getId();
+                        String dateStr = document.getString("date");
+                        String title = document.getString("title");
+                        String category = document.getString("category");
+                        String memo = document.getString("memo");
+
+                        if (dateStr != null && title != null) {
+                            LocalDate date = LocalDate.parse(dateStr);
+                            if (!schedulesMap.containsKey(date)) {
+                                schedulesMap.put(date, new ArrayList<>());
+                            }
+                            schedulesMap.get(date).add(new ScheduleItem(id, title, category, memo));
+                        }
+                    }
+                    calendarView.notifyCalendarChanged();
+                });
+    }
+
+    private void showScheduleDialog(LocalDate date) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_schedule);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        TextView tvDialogDate = dialog.findViewById(R.id.tvDialogDate);
+        LinearLayout layoutScheduleList = dialog.findViewById(R.id.layoutScheduleList);
+        Button btnAddSchedule = dialog.findViewById(R.id.btnAddSchedule);
+        LinearLayout layoutInputForm = dialog.findViewById(R.id.layoutInputForm);
+
+        EditText etCategory = dialog.findViewById(R.id.etCategory);
+        EditText etTitle = dialog.findViewById(R.id.etTitle);
+        EditText etMemo = dialog.findViewById(R.id.etMemo);
+        Button btnSave = dialog.findViewById(R.id.btnSave);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN);
+        tvDialogDate.setText(date.format(formatter));
+
+        final String[] editDocId = {null};
+
+        layoutScheduleList.removeAllViews();
+        List<ScheduleItem> todaySchedules = schedulesMap.get(date);
+
+        if (todaySchedules != null) {
+            for (ScheduleItem item : todaySchedules) {
+                View itemView = getLayoutInflater().inflate(R.layout.item_schedule, null);
+                TextView tvItemTitle = itemView.findViewById(R.id.tvItemTitle);
+                ImageView ivDelete = itemView.findViewById(R.id.ivDelete);
+
+                tvItemTitle.setText(item.title);
+
+                ivDelete.setOnClickListener(v -> {
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if (user != null) {
+                        db.collection("users").document(user.getUid())
+                                .collection("schedules").document(item.id)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(MainActivity.this, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();
+                                    loadSchedulesFromFirebase();
+                                });
+                    }
+                });
+
+                itemView.setOnClickListener(v -> {
+                    layoutInputForm.setVisibility(View.VISIBLE);
+                    editDocId[0] = item.id;
+                    etCategory.setText(item.category);
+                    etTitle.setText(item.title);
+                    etMemo.setText(item.memo);
+                    btnSave.setText("수정하기");
+                });
+
+                layoutScheduleList.addView(itemView);
+            }
+        }
+
+        btnAddSchedule.setOnClickListener(v -> {
+            if (layoutInputForm.getVisibility() == View.GONE) {
+                layoutInputForm.setVisibility(View.VISIBLE);
+                editDocId[0] = null;
+                etCategory.setText("");
+                etTitle.setText("");
+                etMemo.setText("");
+                btnSave.setText("저장하기");
+            } else {
+                layoutInputForm.setVisibility(View.GONE);
+            }
+        });
+
+        btnSave.setOnClickListener(v -> {
+            String title = etTitle.getText().toString().trim();
+            if (title.isEmpty()) {
+                Toast.makeText(MainActivity.this, "일정을 입력해주세요!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                Map<String, Object> scheduleData = new HashMap<>();
+                scheduleData.put("date", date.toString());
+                scheduleData.put("category", etCategory.getText().toString().trim());
+                scheduleData.put("title", title);
+                scheduleData.put("memo", etMemo.getText().toString().trim());
+                scheduleData.put("timestamp", System.currentTimeMillis());
+
+                if (editDocId[0] == null) {
+                    db.collection("users").document(user.getUid())
+                            .collection("schedules")
+                            .add(scheduleData)
+                            .addOnSuccessListener(documentReference -> {
+                                Toast.makeText(MainActivity.this, "저장 성공!", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                                loadSchedulesFromFirebase();
+                            });
+                } else {
+                    db.collection("users").document(user.getUid())
+                            .collection("schedules").document(editDocId[0])
+                            .update(scheduleData)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(MainActivity.this, "수정 완료!", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                                loadSchedulesFromFirebase();
+                            });
+                }
+            }
+        });
+
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
     }
 
     private void setGreetingName() {
@@ -97,7 +364,6 @@ public class MainActivity extends AppCompatActivity {
         int nameColor = ContextCompat.getColor(this, R.color.namecolor);
         int greetingColor = ContextCompat.getColor(this, R.color.maincolor);
 
-        // 이름 부분만 다른 색으로 표시
         spannableGreeting.setSpan(
                 new ForegroundColorSpan(nameColor),
                 0,
@@ -115,100 +381,52 @@ public class MainActivity extends AppCompatActivity {
         nameTitle.setText(spannableGreeting);
     }
 
-    private void setupCalendar() {
-        // 달력 날짜 칸 높이와 글자 스타일 설정
-        calendarView.setTileHeightDp(56);
-        calendarView.setDateTextAppearance(R.style.CalendarDateText);
-        calendarView.setWeekDayTextAppearance(R.style.CalendarWeekText);
+    class DayViewContainer extends ViewContainer {
+        TextView tvDate;
+        TextView tvEvent1;
+        TextView tvEvent2;
+        TextView tvEvent3;
+        TextView tvEvent4;
+        TextView tvEvent5;
+        TextView tvMore;
+        CalendarDay day;
 
-        // 요일 이름을 한글로 표시
-        calendarView.setWeekDayFormatter(dayOfWeek -> {
-            String[] week = {"일", "월", "화", "수", "목", "금", "토"};
-            return week[dayOfWeek - 1];
-        });
+        DayViewContainer(View view) {
+            super(view);
+            tvDate = view.findViewById(R.id.tvDate);
+            tvEvent1 = view.findViewById(R.id.tvEvent1);
+            tvEvent2 = view.findViewById(R.id.tvEvent2);
+            tvEvent3 = view.findViewById(R.id.tvEvent3);
+            tvEvent4 = view.findViewById(R.id.tvEvent4);
+            tvEvent5 = view.findViewById(R.id.tvEvent5);
+            tvMore = view.findViewById(R.id.tvMore);
 
-        // 모든 날짜 칸에 흰색 배경 적용
-        calendarView.addDecorator(new DayViewDecorator() {
-            @Override
-            public boolean shouldDecorate(CalendarDay day) {
-                return true;
-            }
-
-            @Override
-            public void decorate(DayViewFacade view) {
-                GradientDrawable drawable = new GradientDrawable();
-                drawable.setColor(Color.WHITE);
-                drawable.setCornerRadius(8);
-                view.setBackgroundDrawable(drawable);
-                view.addSpan(new android.text.style.RelativeSizeSpan(0.85f));
-            }
-        });
-
-        // 일요일은 빨간색, 토요일은 파란색으로 표시
-        calendarView.addDecorator(new DayOfWeekDecorator(Calendar.SUNDAY, Color.RED));
-        calendarView.addDecorator(new DayOfWeekDecorator(Calendar.SATURDAY, Color.BLUE));
-    }
-
-    private String getTodayDiaryDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
-        return sdf.format(new Date());
-    }
-
-    private String formatDiaryDate(CalendarDay date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(date.getYear(), date.getMonth(), date.getDay());
-
-        SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
-        return sdf.format(calendar.getTime());
-    }
-
-    private void openDiaryForDate(String date) {
-        Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
-        intent.putExtra("date", date);
-        intent.putExtra("content", findDiaryContent(date));
-        startActivity(intent);
-    }
-
-    private String findDiaryContent(String date) {
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        String json = prefs.getString(KEY_DIARY_LIST, "[]");
-
-        try {
-            JSONArray diaries = new JSONArray(json);
-            for (int i = 0; i < diaries.length(); i++) {
-                JSONObject diary = diaries.getJSONObject(i);
-                if (date.equals(diary.optString("date"))) {
-                    return diary.optString("content", "");
+            view.setOnClickListener(v -> {
+                if (day != null && day.getPosition() == DayPosition.MonthDate) {
+                    openDiaryForDate(day.getDate());
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            });
 
-        return "";
+            view.setOnLongClickListener(v -> {
+                if (day != null && day.getPosition() == DayPosition.MonthDate) {
+                    showScheduleDialog(day.getDate());
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
-    private static class DayOfWeekDecorator implements DayViewDecorator {
-        private final int dayOfWeek;
-        private final int color;
+    class MonthHeaderContainer extends ViewContainer {
+        TextView tvMonth;
+        ImageView btnPrev;
+        ImageView btnNext;
 
-        DayOfWeekDecorator(int dayOfWeek, int color) {
-            this.dayOfWeek = dayOfWeek;
-            this.color = color;
-        }
-
-        @Override
-        public boolean shouldDecorate(CalendarDay day) {
-            // 날짜가 지정한 요일인지 확인
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(day.getYear(), day.getMonth(), day.getDay());
-            return calendar.get(Calendar.DAY_OF_WEEK) == dayOfWeek;
-        }
-
-        @Override
-        public void decorate(DayViewFacade view) {
-            // 해당 요일 날짜 글자색 변경
-            view.addSpan(new android.text.style.ForegroundColorSpan(color));
+        MonthHeaderContainer(View view) {
+            super(view);
+            tvMonth = view.findViewById(R.id.tvMonth);
+            btnPrev = view.findViewById(R.id.btnPrev);
+            btnNext = view.findViewById(R.id.btnNext);
         }
     }
 }

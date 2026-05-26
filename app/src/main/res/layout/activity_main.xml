@@ -46,7 +46,7 @@
         app:srcCompat="@drawable/settings_24px"
         app:tint="@color/maincolor" />
 
-    <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+    <com.kizitonwose.calendar.view.CalendarView
         android:id="@+id/calendarView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -56,6 +56,8 @@
         android:layout_marginBottom="12dp"
         android:background="@drawable/calendar_border"
         android:padding="10dp"
+        app:cv_dayViewResource="@layout/calendar_day"
+        app:cv_monthHeaderResource="@layout/month_header"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

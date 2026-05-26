@@ -35,6 +35,7 @@ public class DiaryListActivity extends AppCompatActivity {
     private TextView txtCurrentDate;
     private Button btnSelectDelete;
     private Button btnDeleteAll;
+    private RecyclerView recyclerDiary;
     private final ArrayList<DiaryItem> diaryList = new ArrayList<>();
     private DiaryAdapter diaryAdapter;
     private boolean selectMode;
@@ -44,7 +45,7 @@ public class DiaryListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diary_list);
 
-        RecyclerView recyclerDiary = findViewById(R.id.recyclerDiary);
+        recyclerDiary = findViewById(R.id.recyclerDiary);
         txtCurrentDate = findViewById(R.id.txtCurrentDate);
         btnSelectDelete = findViewById(R.id.btnSelectDelete);
         btnDeleteAll = findViewById(R.id.btnDeleteAll);
@@ -59,56 +60,25 @@ public class DiaryListActivity extends AppCompatActivity {
 
         // RecyclerView 연결
         diaryAdapter = new DiaryAdapter();
-        LinearLayoutManager layoutManager =
-                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-
-        recyclerDiary.setLayoutManager(layoutManager);
+        recyclerDiary.setLayoutManager(new LinearLayoutManager(this));
         recyclerDiary.setAdapter(diaryAdapter);
 
-// 위아래 padding 추가해서 가운데 정렬 느낌
+        // 위쪽 빈 공간이 크게 생기지 않도록 padding을 작게 둔다.
         recyclerDiary.setClipToPadding(false);
-        recyclerDiary.setPadding(0, 300, 0, 300);
+        recyclerDiary.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        recyclerDiary.setPadding(
+                recyclerDiary.getPaddingLeft(),
+                dpToPx(18),
+                recyclerDiary.getPaddingRight(),
+                dpToPx(88)
+        );
 
-// 스크롤 시 확대/축소 효과
+        // 스크롤 가능한 양일 때만 가운데 카드 확대 효과 적용
         recyclerDiary.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-
-                int recyclerCenterY = recyclerView.getHeight() / 2;
-
-                for (int i = 0; i < recyclerView.getChildCount(); i++) {
-
-                    View child = recyclerView.getChildAt(i);
-
-                    int childCenterY =
-                            (child.getTop() + child.getBottom()) / 2;
-
-                    // RecyclerView 중앙과 거리 계산
-                    float distance =
-                            Math.abs(recyclerCenterY - childCenterY);
-
-                    // 최대 거리
-                    float maxDistance = recyclerCenterY;
-
-                    // scale 계산
-                    float scale =
-                            1.0f - (distance / maxDistance) * 0.2f;
-
-                    // 최소 크기 제한
-                    scale = Math.max(scale, 0.8f);
-
-                    child.setScaleX(scale);
-                    child.setScaleY(scale);
-
-                    // 투명도도 같이 조절하면 더 자연스러움
-                    float alpha =
-                            1.0f - (distance / maxDistance) * 0.5f;
-
-                    alpha = Math.max(alpha, 0.5f);
-
-                    child.setAlpha(alpha);
-                }
+                updateDiaryCardScale();
             }
         });
 
@@ -133,14 +103,63 @@ public class DiaryListActivity extends AppCompatActivity {
         super.onResume();
         loadDiaryList();
         clearSelectionMode();
+        recyclerDiary.post(this::updateDiaryCardScale);
+    }
 
-        // 추가
-        RecyclerView recyclerDiary = findViewById(R.id.recyclerDiary);
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
 
-        recyclerDiary.post(() -> {
-            recyclerDiary.scrollBy(0, 1);
-            recyclerDiary.scrollBy(0, -1);
-        });
+    private boolean canDiaryListScroll() {
+        RecyclerView.LayoutManager manager = recyclerDiary.getLayoutManager();
+        if (!(manager instanceof LinearLayoutManager)) {
+            return false;
+        }
+
+        LinearLayoutManager layoutManager = (LinearLayoutManager) manager;
+        int firstVisible = layoutManager.findFirstVisibleItemPosition();
+        int lastVisible = layoutManager.findLastVisibleItemPosition();
+        int itemCount = diaryAdapter.getItemCount();
+
+        if (itemCount == 0 || firstVisible == RecyclerView.NO_POSITION || lastVisible == RecyclerView.NO_POSITION) {
+            return false;
+        }
+
+        // 모든 일기가 화면에 보이면 두 번째 사진처럼 scale 없이 원래 크기로 둔다.
+        return firstVisible > 0 || lastVisible < itemCount - 1;
+    }
+
+    private void updateDiaryCardScale() {
+        if (!canDiaryListScroll()) {
+            resetDiaryCardScale();
+            return;
+        }
+
+        int recyclerCenterY = recyclerDiary.getHeight() / 2;
+        int maxDistance = Math.max(recyclerCenterY, 1);
+
+        for (int i = 0; i < recyclerDiary.getChildCount(); i++) {
+            View child = recyclerDiary.getChildAt(i);
+            int childCenterY = (child.getTop() + child.getBottom()) / 2;
+            float distance = Math.abs(recyclerCenterY - childCenterY);
+            float percent = Math.min(distance / maxDistance, 1f);
+
+            float scale = 1.0f - (percent * 0.18f);
+            float alpha = 1.0f - (percent * 0.35f);
+
+            child.setScaleX(Math.max(scale, 0.82f));
+            child.setScaleY(Math.max(scale, 0.82f));
+            child.setAlpha(Math.max(alpha, 0.65f));
+        }
+    }
+
+    private void resetDiaryCardScale() {
+        for (int i = 0; i < recyclerDiary.getChildCount(); i++) {
+            View child = recyclerDiary.getChildAt(i);
+            child.setScaleX(1f);
+            child.setScaleY(1f);
+            child.setAlpha(1f);
+        }
     }
 
     private String getTodayDate() {
@@ -188,6 +207,7 @@ public class DiaryListActivity extends AppCompatActivity {
             btnSelectDelete.setText("삭제");
             btnDeleteAll.setText("취소");
             diaryAdapter.notifyDataSetChanged();
+            recyclerDiary.post(this::updateDiaryCardScale);
             return;
         }
 
@@ -255,6 +275,7 @@ public class DiaryListActivity extends AppCompatActivity {
             item.selected = false;
         }
         diaryAdapter.notifyDataSetChanged();
+        recyclerDiary.post(this::updateDiaryCardScale);
     }
 
     private void saveDiaryList() {

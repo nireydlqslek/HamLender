@@ -55,10 +55,24 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
+
+                        // context 명확히
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+
                         finish();
                     } else {
-                        Toast.makeText(this, "이메일 또는 비밀번호가 올바르지 않습니다", Toast.LENGTH_SHORT).show();
+                        // 진짜 원인 출력 (이거 중요)
+                        String errorMsg = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "로그인 실패";
+
+                        Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+
+                        // Logcat에도 출력
+                        if (task.getException() != null) {
+                            task.getException().printStackTrace();
+                        }
                     }
                 });
     }
