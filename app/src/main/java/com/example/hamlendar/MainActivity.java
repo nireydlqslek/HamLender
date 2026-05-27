@@ -120,24 +120,24 @@ public class MainActivity extends AppCompatActivity {
                 container.tvMore.setText("");
 
                 if (day.getPosition() != DayPosition.MonthDate) {
-                    container.tvDate.setText("");
-                    return;
+                    container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
+
+                    List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
+                    if (todaySchedules == null || todaySchedules.isEmpty()) {
+                        int size = todaySchedules.size();
+                        if (size >= 1)
+                            container.tvEvent1.setText("• " + todaySchedules.get(0).title);
+                        if (size >= 2)
+                            container.tvEvent2.setText("• " + todaySchedules.get(1).title);
+                        if (size >= 3)
+                            container.tvEvent3.setText("• " + todaySchedules.get(2).title);
+                        if (size >= 4)
+                            container.tvEvent4.setText("• " + todaySchedules.get(3).title);
+                        if (size >= 5)
+                            container.tvEvent5.setText("• " + todaySchedules.get(4).title);
+                        if (size > 5) container.tvMore.setText("+" + (size - 5));
+                    }
                 }
-
-                container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
-
-                List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
-                if (todaySchedules == null || todaySchedules.isEmpty()) {
-                    return;
-                }
-
-                int size = todaySchedules.size();
-                if (size >= 1) container.tvEvent1.setText("• " + todaySchedules.get(0).title);
-                if (size >= 2) container.tvEvent2.setText("• " + todaySchedules.get(1).title);
-                if (size >= 3) container.tvEvent3.setText("• " + todaySchedules.get(2).title);
-                if (size >= 4) container.tvEvent4.setText("• " + todaySchedules.get(3).title);
-                if (size >= 5) container.tvEvent5.setText("• " + todaySchedules.get(4).title);
-                if (size > 5) container.tvMore.setText("+" + (size - 5));
             }
         });
 
