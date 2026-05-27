@@ -3,12 +3,21 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="background_w">#FCF1EC</color>
-    <color name="background_o">#FAE1D4</color>
+
+
+    <color name="background_w">#F8F9FA</color>
+    <color name="ham_background">#FBF9F7</color>
+    <color name="ham_vrlight_brown" >#C8B2A3 </color>
+    <color name="ham_light_brown" > #8A6A5A</color>
+    <color name="ham_brown">#5A3D33</color>
+    <color name="ham_dark_brown">#2C1B14</color>
+
+
+    <color name="line_o">#f4bfb2 </color>
     <color name="Hamster_g">#FCF1EC</color>
 
-    <color name="green_w">#BCD99B</color>
-    <color name="button_o">#F5BA9D</color>
+    <color name="green_w">#E2F0D9 </color>
+    <color name="button_o">#3D2E27</color>
     <color name="maincolor">#E9692C</color>
     <color name="namecolor">#80361A</color>
     <color name="basey">#FBF9F7</color>

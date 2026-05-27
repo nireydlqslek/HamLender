@@ -28,21 +28,29 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+
+        // ✅ Kotlin DSL에서는 이렇게 써야 함
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
 dependencies {
+
+    // ✅ 이것도 Kotlin DSL 스타일로
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-
+    implementation ("com.google.firebase:firebase-firestore")
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.prolificinteractive:material-calendarview:1.4.3")
+
+    implementation("com.kizitonwose.calendar:view:2.5.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

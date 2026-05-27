@@ -13,7 +13,7 @@
         android:layout_height="40dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
-        android:contentDescription="back"
+        android:contentDescription="뒤로가기"
         android:src="@drawable/arrow_back_24px"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -25,69 +25,44 @@
         android:layout_height="40dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="28dp"
-        android:contentDescription="menu"
+        android:contentDescription="메뉴"
         android:src="@drawable/menu_24px"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/maincolor" />
 
-    <LinearLayout
-        android:id="@+id/dateWeatherBox"
+    <TextView
+        android:id="@+id/txtDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:background="@drawable/edittext_box"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="14dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/danjunghea"
+        android:gravity="center"
+        android:minWidth="160dp"
+        android:paddingStart="16dp"
         android:paddingTop="8dp"
-        android:paddingEnd="14dp"
+        android:paddingEnd="16dp"
         android:paddingBottom="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnBack">
-
-        <TextView
-            android:id="@+id/txtDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/dangdang"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="5월 18일 (월)" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:fontFamily="@font/dangdang"
-            android:text="날씨: "
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/editWeather"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:fontFamily="@font/dangdang"
-            android:inputType="text"
-            android:padding="0dp"
-            android:textColor="@color/black"
-            android:textSize="14sp" />
-    </LinearLayout>
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/menuIcon"
+        app:layout_constraintStart_toEndOf="@+id/btnBack"
+        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        tools:text="5월 19일 (화)" />
 
     <EditText
         android:id="@+id/editContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/edittext_box"
+        android:fontFamily="@font/simplehea"
         android:gravity="top|start"
         android:hint="일기를 입력하세요"
         android:imeOptions="flagNoExtractUi"
@@ -100,7 +75,7 @@
         app:layout_constraintBottom_toTopOf="@id/actionRow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dateWeatherBox" />
+        app:layout_constraintTop_toBottomOf="@id/txtDate" />
 
     <LinearLayout
         android:id="@+id/actionRow"
@@ -121,6 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:backgroundTint="@color/maincolor"
+            android:fontFamily="@font/dangdang"
             android:text="삭제" />
 
         <Button
@@ -128,6 +104,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/maincolor"
+            android:fontFamily="@font/dangdang"
             android:text="저장" />
     </LinearLayout>
 
@@ -147,7 +124,7 @@
         <ImageView
             android:layout_width="30dp"
             android:layout_height="32dp"
-            android:contentDescription="calendar"
+            android:contentDescription="캘린더"
             android:src="@drawable/hamicon" />
 
         <ImageView
@@ -155,13 +132,13 @@
             android:layout_height="34dp"
             android:layout_marginStart="56dp"
             android:layout_marginEnd="56dp"
-            android:contentDescription="home"
+            android:contentDescription="홈"
             android:src="@drawable/hamcircle_w" />
 
         <ImageView
             android:layout_width="34dp"
             android:layout_height="34dp"
-            android:contentDescription="diary"
+            android:contentDescription="일기"
             android:src="@drawable/hamicon" />
     </LinearLayout>
 
