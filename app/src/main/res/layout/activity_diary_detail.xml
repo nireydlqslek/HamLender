@@ -7,30 +7,36 @@
     android:background="@color/background_w"
     tools:context=".DiaryDetailActivity">
 
+<!--좌측 상단 백 버튼-->
     <ImageView
         android:id="@+id/btnBack"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="29dp"
+        android:layout_height="31dp"
+        android:layout_marginStart="16dp"
         android:contentDescription="뒤로가기"
         android:src="@drawable/arrow_back_24px"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline4"
         app:tint="@color/maincolor" />
 
+<!--    우측 상단 메뉴-->
     <ImageView
         android:id="@+id/menuIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="28dp"
+        android:layout_width="29dp"
+        android:layout_height="26dp"
+        android:layout_marginEnd="16dp"
         android:contentDescription="메뉴"
         android:src="@drawable/menu_24px"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline4"
+        app:layout_constraintVertical_bias="0.391"
         app:tint="@color/maincolor" />
 
+<!--    // 상단 중앙 날짜-->
+<!--    // 날짜 글자 특성상 자음의 형태가 복잡 -> 볼드체 시에 다소 뭉게보임 (0527 수정)-->
+<!--    // 차후 라운드 형태로 테두리 라인을 없애는 방향도 고려-->
     <TextView
         android:id="@+id/txtDate"
         android:layout_width="wrap_content"
@@ -46,21 +52,23 @@
         android:paddingEnd="16dp"
         android:paddingBottom="8dp"
         android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="bold"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toStartOf="@+id/menuIcon"
         app:layout_constraintStart_toEndOf="@+id/btnBack"
-        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        app:layout_constraintTop_toTopOf="@+id/guideline4"
         tools:text="5월 19일 (화)" />
 
+
+
+    <!--일기 작성란-->
+<!--    //텍스트 크기 수정 20 -> 12-->
+<!--    //차후 모서리 라운드처리 + 라인 두께 조절 예정-->
     <EditText
         android:id="@+id/editContent"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="16dp"
+        android:layout_width="247dp"
+        android:layout_height="501dp"
+        android:layout_marginStart="18dp"
         android:background="@drawable/edittext_box"
         android:fontFamily="@font/simplehea"
         android:gravity="top|start"
@@ -71,11 +79,50 @@
         android:padding="10dp"
         android:textColor="@color/black"
         android:textColorHint="#777777"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@id/actionRow"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline2"
+        app:layout_constraintEnd_toStartOf="@+id/guideline3"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtDate" />
+        app:layout_constraintTop_toTopOf="@+id/guideline"
+        app:layout_constraintVertical_bias="0.744" />
+
+    <!-- 작은 타임테이블 -->
+
+    <!-- 클릭 전용 투명 레이어 -->
+    <!-- 눌렀을 때 팝업 띄우기용 -->
+    <FrameLayout
+        android:id="@+id/timeTableContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edittext_box"
+
+        app:layout_constraintBottom_toTopOf="@id/guideline2"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintStart_toStartOf="@id/guideline3"
+        app:layout_constraintTop_toTopOf="@+id/guideline">>
+
+        <com.example.hamlendar.TimeTable
+            android:id="@+id/miniTimeTable"
+            android:layout_width="match_parent"
+            android:layout_height="513dp"
+            android:padding="6dp" />
+    </FrameLayout>
+
+
+
+<!--하단 삭제와 저장 부분 레이아웃-->
+    <View
+        android:id="@+id/openTimeTableEditor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <LinearLayout
         android:id="@+id/actionRow"
@@ -90,28 +137,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+<!--    우측 하단 좌측 삭제버튼-->
         <Button
             android:id="@+id/btnDeleteDiary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="77dp"
+            android:layout_height="35dp"
             android:layout_marginEnd="8dp"
             android:backgroundTint="@color/maincolor"
             android:fontFamily="@font/dangdang"
             android:text="삭제" />
 
+<!--        우측 하단 우측 저장 버튼-->
         <Button
             android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="76dp"
+            android:layout_height="35dp"
             android:backgroundTint="@color/maincolor"
             android:fontFamily="@font/dangdang"
             android:text="저장" />
     </LinearLayout>
 
+<!--    하단 메인 버튼 3개-->
     <LinearLayout
         android:id="@+id/bottomNav"
-        android:layout_width="0dp"
-        android:layout_height="54dp"
+        android:layout_width="370dp"
+        android:layout_height="40dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="10dp"
@@ -121,6 +171,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+<!--        홈이 곧 캘린더 임으로 추후 건강으로 바뀔 예정-->
         <ImageView
             android:layout_width="30dp"
             android:layout_height="32dp"
@@ -141,5 +192,35 @@
             android:contentDescription="일기"
             android:src="@drawable/hamicon" />
     </LinearLayout>
+
+<!--    일기와 타임테이블 칸의 공간 분리를 위한 가이드라인-->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="80dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="628dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="276dp" />
+
+<!--    상단의 개방감을 위해 추가됨-->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="31dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

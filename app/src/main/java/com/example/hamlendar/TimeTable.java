@@ -87,8 +87,10 @@ public class TimeTable extends View {
 
         linePaint = new Paint();
         linePaint.setColor(Color.GRAY);
-        linePaint.setStrokeWidth(2f);
+
         linePaint.setStyle(Paint.Style.STROKE);
+
+        linePaint.setStrokeWidth(2f);
     }
 
     // =========================
