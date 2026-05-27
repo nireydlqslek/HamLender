@@ -6,14 +6,15 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:padding="8dp">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
 
         <ImageView
             android:id="@+id/btnPrev"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:contentDescription="이전 달"
             android:src="@android:drawable/ic_media_previous" />
 
@@ -30,15 +31,15 @@
 
         <ImageView
             android:id="@+id/btnNext"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:contentDescription="다음 달"
             android:src="@android:drawable/ic_media_next" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:orientation="horizontal">
 
         <TextView
