@@ -91,38 +91,40 @@
 
     <!-- 클릭 전용 투명 레이어 -->
     <!-- 눌렀을 때 팝업 띄우기용 -->
+
+
+    <!--하단 삭제와 저장 부분 레이아웃-->
+
     <FrameLayout
         android:id="@+id/timeTableContainer"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="10dp"
+        android:layout_width="103dp"
+        android:layout_height="501dp"
+        android:layout_marginStart="18dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="12dp"
         android:background="@drawable/edittext_box"
 
         app:layout_constraintBottom_toTopOf="@id/guideline2"
         app:layout_constraintEnd_toEndOf="parent"
 
+        app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="@id/guideline3"
-        app:layout_constraintTop_toTopOf="@+id/guideline">>
+        app:layout_constraintTop_toTopOf="@+id/guideline"
+        app:layout_constraintVertical_bias="0.714">>
 
         <com.example.hamlendar.TimeTable
             android:id="@+id/miniTimeTable"
-            android:layout_width="match_parent"
-            android:layout_height="513dp"
+            android:layout_width="103dp"
+            android:layout_height="501dp"
             android:padding="6dp" />
     </FrameLayout>
 
-
-
-<!--하단 삭제와 저장 부분 레이아웃-->
     <View
         android:id="@+id/openTimeTableEditor"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent"
         tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp" />
+        tools:layout_editor_absoluteY="16dp" />
 
     <LinearLayout
         android:id="@+id/actionRow"

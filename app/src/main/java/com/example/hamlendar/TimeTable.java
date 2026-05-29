@@ -16,52 +16,40 @@ import java.util.Stack;
 
 public class TimeTable extends View {
 
-    // =========================
-    // GRID SIZE
-    // =========================
+    //가로 세로 10분씩 6칸 1시간씩 24칸
     private static final int COLS = 6;
     private static final int ROWS = 24;
 
-    // =========================
-    // CELL DATA
-    // null = empty
-    // =========================
+    // 각 칸의 색상 저장
+    // null이면 비어있는 칸
     private String[][] cells = new String[ROWS][COLS];
 
-    // =========================
-    // PAINT
-    // =========================
+    // 색칠용 Paint
     private Paint fillPaint;
+
+    // 격자선용 Paint
     private Paint linePaint;
 
-    // =========================
-    // CURRENT COLOR
-    // =========================
+    // 현재 선택된 색상
     private String selectedColor = "#FF5722";
 
-    // =========================
-    // CELL SIZE
-    // =========================
+    // 한 칸 크기
     private float cellWidth;
     private float cellHeight;
 
-    // =========================
-    // DRAG STATE
-    // =========================
+    // 현재 드래그 중인지
     private boolean isDragging = false;
 
-    // 중복 저장 방지
+    // 드래그 중 이미 지나간 칸 체크
     private boolean[][] visited = new boolean[ROWS][COLS];
 
-    // 현재 드래그 변경사항
+    // 현재 드래그에서 변경된 칸들
     private List<CellChange> currentChanges;
 
-    // Undo Stack
+    // Undo(다시) 기능용 스택
     private Stack<List<CellChange>> undoStack = new Stack<>();
 
-    // =========================
-    // CONSTRUCTOR
-    // =========================
+    // 생성자
     public TimeTable(Context context) {
         super(context);
         init();
@@ -72,37 +60,49 @@ public class TimeTable extends View {
         init();
     }
 
-    public TimeTable(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public TimeTable(Context context,
+                     @Nullable AttributeSet attrs,
+                     int defStyleAttr) {
+
         super(context, attrs, defStyleAttr);
         init();
     }
 
-    // =========================
-    // INIT
-    // =========================
+    // 초기 설정
     private void init() {
 
+        // 배경 투명
+        setBackgroundColor(Color.TRANSPARENT);
+
+        // 칸 내부 색칠용
         fillPaint = new Paint();
         fillPaint.setStyle(Paint.Style.FILL);
 
+        // 격자선용
         linePaint = new Paint();
-        linePaint.setColor(Color.GRAY);
 
-        linePaint.setStyle(Paint.Style.STROKE);
+        // 선 색
+        linePaint.setColor(Color.LTGRAY);
 
+        // 선 두께
         linePaint.setStrokeWidth(2f);
+
+        // 매우 중요
+        // 선만 그림
+        linePaint.setStyle(Paint.Style.STROKE);
     }
 
-    // =========================
-    // DRAW
-    // =========================
+
+    // 화면 그리기
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        // 한 칸 크기 계산
         cellWidth = getWidth() / (float) COLS;
         cellHeight = getHeight() / (float) ROWS;
 
+        // 전체 칸 반복
         for (int row = 0; row < ROWS; row++) {
 
             for (int col = 0; col < COLS; col++) {
@@ -112,9 +112,7 @@ public class TimeTable extends View {
                 float right = left + cellWidth;
                 float bottom = top + cellHeight;
 
-                // =========================
-                // CELL FILL
-                // =========================
+                // 색칠된 칸만 내부 색 채우기
                 if (cells[row][col] != null) {
 
                     fillPaint.setColor(
@@ -130,9 +128,7 @@ public class TimeTable extends View {
                     );
                 }
 
-                // =========================
-                // GRID LINE
-                // =========================
+                // 격자선 그리기
                 canvas.drawRect(
                         left,
                         top,
@@ -144,46 +140,56 @@ public class TimeTable extends View {
         }
     }
 
-    // =========================
-    // TOUCH EVENT
-    // =========================
+
+    // 터치 처리
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+        // 현재 터치 위치를 칸 번호로 변환
         int col = (int) (event.getX() / cellWidth);
         int row = (int) (event.getY() / cellHeight);
 
-        // 범위 밖
-        if (col < 0 || col >= COLS || row < 0 || row >= ROWS) {
+        // 범위 밖 방지
+        if (col < 0 || col >= COLS ||
+                row < 0 || row >= ROWS) {
+
             return true;
         }
 
         switch (event.getAction()) {
 
+            // 처음 눌렀을 때
             case MotionEvent.ACTION_DOWN:
 
                 isDragging = true;
 
+                // 방문 기록 초기화
                 clearVisited();
 
+                // 현재 드래그 기록 시작
                 currentChanges = new ArrayList<>();
 
+                // 현재 칸 색칠
                 paintCell(row, col);
 
                 break;
 
+            // 드래그 중
             case MotionEvent.ACTION_MOVE:
 
                 if (isDragging) {
+
                     paintCell(row, col);
                 }
 
                 break;
 
+            // 손 뗐을 때
             case MotionEvent.ACTION_UP:
 
                 isDragging = false;
 
+                // 현재 작업 저장
                 if (currentChanges != null &&
                         !currentChanges.isEmpty()) {
 
@@ -196,17 +202,17 @@ public class TimeTable extends View {
         return true;
     }
 
-
-    // PAINT CELL
+    // 실제 칸 색칠
     private void paintCell(int row, int col) {
 
-        // 이미 처리한 셀
+        // 이미 지나간 칸이면 무시
         if (visited[row][col]) {
             return;
         }
 
         visited[row][col] = true;
 
+        // 이전 색상 저장
         String beforeColor = cells[row][col];
 
         // 이미 같은 색이면 무시
@@ -214,10 +220,10 @@ public class TimeTable extends View {
             return;
         }
 
-        // 변경
+        // 실제 색 변경
         cells[row][col] = selectedColor;
 
-        // undo 저장
+        // Undo 저장용
         CellChange change = new CellChange(
                 row,
                 col,
@@ -227,11 +233,11 @@ public class TimeTable extends View {
 
         currentChanges.add(change);
 
+        // 다시 그리기
         invalidate();
     }
 
-
-    // VISITED RESET
+    // 방문 기록 초기화
     private void clearVisited() {
 
         for (int row = 0; row < ROWS; row++) {
@@ -243,21 +249,23 @@ public class TimeTable extends View {
         }
     }
 
-
-    // SET COLOR
+    // 현재 선택 색상 변경
     public void setSelectedColor(String color) {
-        this.selectedColor = color;
+
+        selectedColor = color;
     }
 
-    // UNDO
+    // 마지막 작업 되돌리기
     public void undoLastAction() {
 
         if (undoStack.isEmpty()) {
             return;
         }
 
+        // 최근 작업 가져오기
         List<CellChange> lastChanges = undoStack.pop();
 
+        // 이전 색으로 복구
         for (CellChange change : lastChanges) {
 
             cells[change.row][change.col]
@@ -267,7 +275,7 @@ public class TimeTable extends View {
         invalidate();
     }
 
-    // CLEAR ALL
+    // 전체 삭제
     public void clearAll() {
 
         for (int row = 0; row < ROWS; row++) {
@@ -283,13 +291,15 @@ public class TimeTable extends View {
         invalidate();
     }
 
-    // GET CELLS
+    // 현재 데이터 가져오기
     public String[][] getCells() {
+
         return cells;
     }
 
-
-    // SET CELLS
+    // =====================================================
+    // 외부 데이터 적용
+    // Firebase 불러오기 등에 사용
     public void setCells(String[][] newCells) {
 
         if (newCells == null) {
@@ -307,13 +317,30 @@ public class TimeTable extends View {
         invalidate();
     }
 
-    // CELL CHANGE MODEL
+    // =====================================================
+    // XML Preview 안정화용
+    // =====================================================
+    @Override
+    protected void onMeasure(int widthMeasureSpec,
+                             int heightMeasureSpec) {
+
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    // =====================================================
+    // 칸 변경 기록 클래스
+    // Undo 기능에 사용
+    // =====================================================
     public static class CellChange {
 
+        // 위치
         public int row;
         public int col;
 
+        // 변경 전 색
         public String beforeColor;
+
+        // 변경 후 색
         public String afterColor;
 
         public CellChange(
@@ -322,8 +349,10 @@ public class TimeTable extends View {
                 String beforeColor,
                 String afterColor
         ) {
+
             this.row = row;
             this.col = col;
+
             this.beforeColor = beforeColor;
             this.afterColor = afterColor;
         }
