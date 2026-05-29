@@ -8,8 +8,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -55,18 +53,20 @@ public class TimeTable extends View {
         init();
     }
 
-    public TimeTable(Context context, @Nullable AttributeSet attrs) {
+    public TimeTable(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
     public TimeTable(Context context,
-                     @Nullable AttributeSet attrs,
+                      AttributeSet attrs,
                      int defStyleAttr) {
 
         super(context, attrs, defStyleAttr);
         init();
     }
+
+
 
     // 초기 설정
     private void init() {

@@ -96,6 +96,7 @@
     <!--하단 삭제와 저장 부분 레이아웃-->
 
     <FrameLayout
+
         android:id="@+id/timeTableContainer"
         android:layout_width="103dp"
         android:layout_height="501dp"
@@ -109,22 +110,26 @@
         app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="@id/guideline3"
         app:layout_constraintTop_toTopOf="@+id/guideline"
-        app:layout_constraintVertical_bias="0.714">>
+        app:layout_constraintVertical_bias="0.714">
 
+<!--        실제 타임테이블-->
         <com.example.hamlendar.TimeTable
             android:id="@+id/miniTimeTable"
             android:layout_width="103dp"
             android:layout_height="501dp"
             android:padding="6dp" />
+
+<!--        클릭 감지용 투명 view-->
+        <View
+            android:id="@+id/openTimeTableEditor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="16dp" />
     </FrameLayout>
 
-    <View
-        android:id="@+id/openTimeTableEditor"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="16dp" />
+
 
     <LinearLayout
         android:id="@+id/actionRow"
