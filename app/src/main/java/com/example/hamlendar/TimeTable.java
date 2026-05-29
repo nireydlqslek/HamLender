@@ -297,7 +297,6 @@ public class TimeTable extends View {
         return cells;
     }
 
-    // =====================================================
     // 외부 데이터 적용
     // Firebase 불러오기 등에 사용
     public void setCells(String[][] newCells) {
@@ -317,9 +316,7 @@ public class TimeTable extends View {
         invalidate();
     }
 
-    // =====================================================
     // XML Preview 안정화용
-    // =====================================================
     @Override
     protected void onMeasure(int widthMeasureSpec,
                              int heightMeasureSpec) {
@@ -327,10 +324,8 @@ public class TimeTable extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    // =====================================================
     // 칸 변경 기록 클래스
     // Undo 기능에 사용
-    // =====================================================
     public static class CellChange {
 
         // 위치
