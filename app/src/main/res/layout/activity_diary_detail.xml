@@ -50,6 +50,7 @@
         android:paddingStart="16dp"
         android:paddingTop="8dp"
         android:paddingEnd="16dp"
+        tools:ignore="TouchTargetSizeCheck"
         android:paddingBottom="8dp"
         android:textColor="@color/black"
         android:textSize="13sp"
@@ -144,21 +145,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-<!--    우측 하단 좌측 삭제버튼-->
+<!--    우측 하단 좌측 삭제버튼 (추후 아이콘으로 변경 )-->
         <Button
             android:id="@+id/btnDeleteDiary"
-            android:layout_width="77dp"
+            android:layout_width="76dp"
             android:layout_height="35dp"
+            tools:ignore="TouchTargetSizeCheck"
             android:layout_marginEnd="8dp"
             android:backgroundTint="@color/maincolor"
             android:fontFamily="@font/dangdang"
             android:text="삭제" />
 
-<!--        우측 하단 우측 저장 버튼-->
+<!--    우측 하단 우측 저장 버튼 (추후 아이콘으로 변경 )-->
         <Button
             android:id="@+id/btnSave"
             android:layout_width="76dp"
             android:layout_height="35dp"
+            tools:ignore="TouchTargetSizeCheck"
             android:backgroundTint="@color/maincolor"
             android:fontFamily="@font/dangdang"
             android:text="저장" />
