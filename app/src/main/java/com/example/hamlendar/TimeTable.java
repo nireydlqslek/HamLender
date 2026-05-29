@@ -14,6 +14,8 @@ import java.util.Stack;
 
 public class TimeTable extends View {
 
+    //변수 선언 시작--------------------------------------------------------------------------
+
     //가로 세로 10분씩 6칸 1시간씩 24칸
     private static final int COLS = 6;
     private static final int ROWS = 24;
@@ -37,6 +39,18 @@ public class TimeTable extends View {
 
     // 현재 드래그 중인지
     private boolean isDragging = false;
+
+    //드래그 완료 리스너
+    private OnDragCompleteListener dragCompleteListener;
+
+    //편집기능
+    private boolean editable = true;
+
+    //변수 선언 끝 --------------------------------------------------------------------------------
+
+
+
+
 
     // 드래그 중 이미 지나간 칸 체크
     private boolean[][] visited = new boolean[ROWS][COLS];
@@ -64,6 +78,15 @@ public class TimeTable extends View {
 
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    // 드래그 완료 이벤트 전달용
+    public interface OnDragCompleteListener {
+        void onDragComplete();
     }
 
 
@@ -145,6 +168,11 @@ public class TimeTable extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+        // 미니 테이블 수정 방지 (오직 확인용 뷰어. 수정은 터치해서 나오는 팝업에서만 가능)
+        if (!editable) {
+            return false;
+        }
+
         // 현재 터치 위치를 칸 번호로 변환
         int col = (int) (event.getX() / cellWidth);
         int row = (int) (event.getY() / cellHeight);
@@ -194,6 +222,11 @@ public class TimeTable extends View {
                         !currentChanges.isEmpty()) {
 
                     undoStack.push(currentChanges);
+
+                    // 드래그 완료 알림
+                    if (dragCompleteListener != null) {
+                        dragCompleteListener.onDragComplete();
+                    }
                 }
 
                 break;
@@ -322,6 +355,11 @@ public class TimeTable extends View {
                              int heightMeasureSpec) {
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    // 드래그 완료 이벤트 전달용
+    public interface OnDragCompleteListener {
+        void onDragComplete();
     }
 
     // 칸 변경 기록 클래스

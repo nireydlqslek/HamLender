@@ -189,4 +189,8 @@ public class DiaryDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "일기를 삭제할 수 없습니다", Toast.LENGTH_SHORT).show();
         }
     }
+
+
+
+
 }
