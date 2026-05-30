@@ -20,6 +20,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.app.Dialog;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import androidx.appcompat.app.AlertDialog;
+
 public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
@@ -73,6 +81,17 @@ public class DiaryDetailActivity extends AppCompatActivity {
             public void handleOnBackPressed() {
                 handleBack();
             }
+        });
+
+        miniTimeTable = findViewById(R.id.miniTimeTable);
+        openTimeTableEditor = findViewById(R.id.openTimeTableEditor);
+
+        // 미니 타임테이블은 보기 전용
+        miniTimeTable.setEditable(false);
+
+        // 미니 타임테이블 클릭 시 큰 팝업 열기
+        openTimeTableEditor.setOnClickListener(v -> {
+            showTimeTableDialog();
         });
     }
 
@@ -190,6 +209,111 @@ public class DiaryDetailActivity extends AppCompatActivity {
         }
     }
 
+    private TimeTable miniTimeTable;
+    private View openTimeTableEditor;
+
+    private void showTimeTableDialog() {
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_timetable);
+
+        Window window = dialog.getWindow();
+
+        if (window != null) {
+            window.setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
+
+            // 뒤 배경 어둡게
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+            WindowManager.LayoutParams params = window.getAttributes();
+
+            // 어두워지는 정도
+            // 0.0 = 안 어두움
+            // 1.0 = 완전 검정
+            params.dimAmount = 0.45f;
+
+            window.setAttributes(params);
+        }
+
+        TimeTable bigTimeTable =
+                dialog.findViewById(R.id.bigTimeTable);
+
+        ImageView btnClose =
+                dialog.findViewById(R.id.btnCloseTimeTable);
+
+        View colorRed =
+                dialog.findViewById(R.id.colorRed);
+
+        View colorOrange =
+                dialog.findViewById(R.id.colorOrange);
+
+        View colorGreen =
+                dialog.findViewById(R.id.colorGreen);
+
+        View colorBlue =
+                dialog.findViewById(R.id.colorBlue);
+
+        // 큰 타임테이블은 편집 가능
+        bigTimeTable.setEditable(true);
+
+        // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
+        bigTimeTable.setCells(miniTimeTable.getCells());
+
+        // 색상 선택
+        colorRed.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#FF5252");
+        });
+
+        colorOrange.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#FF9800");
+        });
+
+        colorGreen.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#4CAF50");
+        });
+
+        colorBlue.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#2196F3");
+        });
+
+        // 드래그 후 다시 / 완료 팝업
+        bigTimeTable.setOnDragCompleteListener(() -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("시간 선택 완료")
+                    .setMessage("다시 하시겠습니까?")
+
+                    .setNegativeButton("다시", (alertDialog, which) -> {
+                        bigTimeTable.undoLastAction();
+                    })
+
+                    .setPositiveButton("완료", (alertDialog, which) -> {
+                        // 아무것도 안 함
+                        // 팝업 유지, 계속 드래그 가능
+                    })
+
+                    .show();
+        });
+
+        // X 버튼 누르면 저장 후 팝업 닫기
+        btnClose.setOnClickListener(v -> {
+
+            // 큰 타임테이블 내용을 미니 타임테이블에 반영
+            miniTimeTable.setCells(bigTimeTable.getCells());
+
+            // 미니 타임테이블은 다시 보기 전용 유지
+            miniTimeTable.setEditable(false);
+
+            // TODO: 여기에 Firebase 저장 코드 추가 가능
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
 
 
 
