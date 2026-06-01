@@ -279,24 +279,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
             bigTimeTable.setSelectedColor("#2196F3");
         });
 
-        // 드래그 후 다시 / 완료 팝업
-        bigTimeTable.setOnDragCompleteListener(() -> {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("시간 선택 완료")
-                    .setMessage("다시 하시겠습니까?")
-
-                    .setNegativeButton("다시", (alertDialog, which) -> {
-                        bigTimeTable.undoLastAction();
-                    })
-
-                    .setPositiveButton("완료", (alertDialog, which) -> {
-                        // 아무것도 안 함
-                        // 팝업 유지, 계속 드래그 가능
-                    })
-
-                    .show();
-        });
 
         // X 버튼 누르면 저장 후 팝업 닫기
         btnClose.setOnClickListener(v -> {

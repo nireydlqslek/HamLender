@@ -71,6 +71,18 @@ public class TimeTable extends View {
     // 드래그 종료 후 팝업 띄우기용
     private OnDragCompleteListener dragCompleteListener;
 
+    // 각 칸이 어떤 드래그 묶음에 속하는지 저장
+// -1이면 묶음 없음
+    private int[][] groupIds = new int[ROWS][COLS];
+
+    // 드래그 묶음 번호
+    private int nextGroupId = 1;
+
+    // 지우개 모드 여부
+    private boolean eraserMode = false;
+
+    private int currentGroupId = -1;
+
     //변수 선언 끝--------------------------------------------------------------------------
 
 
@@ -131,6 +143,12 @@ public class TimeTable extends View {
         textPaint.setTextSize(22f);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setAntiAlias(true);
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                groupIds[row][col] = -1;
+            }
+        }
     }
 
     //초기 설정 끝--------------------------------------------------------------------------
@@ -148,6 +166,16 @@ public class TimeTable extends View {
     // 현재 편집 가능 여부 반환
     public boolean isEditable() {
         return editable;
+    }
+
+    // 일반 색칠 모드
+    public void setDrawMode() {
+        eraserMode = false;
+    }
+
+    // 지우개 모드
+    public void setEraserMode() {
+        eraserMode = true;
     }
 
     //편집 가능 여부 설정 끝--------------------------------------------------------------------------
@@ -281,16 +309,15 @@ public class TimeTable extends View {
             // 처음 눌렀을 때
             case MotionEvent.ACTION_DOWN:
 
-                // 드래그 시작
                 isDragging = true;
 
-                // 방문 기록 초기화
                 clearVisited();
 
-                // 현재 드래그 기록 초기화
                 currentChanges = new ArrayList<>();
 
-                // 현재 칸 색칠
+                // 이번 드래그의 묶음 번호 생성
+                currentGroupId = nextGroupId++;
+
                 paintCell(row, col);
 
                 break;
@@ -321,13 +348,9 @@ public class TimeTable extends View {
                     // Undo 스택 저장
                     undoStack.push(currentChanges);
 
-                    // 드래그 완료 이벤트 전달
-                    // 다시 / 완료 팝업 띄우기용
-                    if (dragCompleteListener != null) {
-
-                        dragCompleteListener.onDragComplete();
-                    }
                 }
+
+                currentGroupId = -1;
 
                 break;
         }
@@ -343,40 +366,47 @@ public class TimeTable extends View {
 
     private void paintCell(int row, int col) {
 
-        // 이미 지나간 칸이면 무시
         if (visited[row][col]) {
             return;
         }
 
-        // 방문 처리
         visited[row][col] = true;
 
-        // 이전 색상 저장
         String beforeColor = cells[row][col];
+        int beforeGroupId = groupIds[row][col];
 
-        // 이미 같은 색이면 종료
+        // 지우개 모드
+        if (eraserMode) {
+
+            if (beforeGroupId == -1) {
+                return;
+            }
+
+            eraseGroup(beforeGroupId);
+            return;
+        }
+
+        // 색칠 모드
         if (selectedColor.equals(beforeColor)) {
             return;
         }
 
-        // 실제 색 변경
         cells[row][col] = selectedColor;
+        groupIds[row][col] = currentGroupId;
 
-        // Undo 저장용 데이터 생성
         CellChange change = new CellChange(
                 row,
                 col,
                 beforeColor,
-                selectedColor
+                selectedColor,
+                beforeGroupId,
+                currentGroupId
         );
 
-        // 현재 드래그 기록 저장
         if (currentChanges != null) {
-
             currentChanges.add(change);
         }
 
-        // 화면 다시 그리기
         invalidate();
     }
 
@@ -439,6 +469,40 @@ public class TimeTable extends View {
 
     //Undo 기능 끝--------------------------------------------------------------------------
 
+    //지우개 함수 시작 ------------------------------------------------
+    private void eraseGroup(int targetGroupId) {
+
+        List<CellChange> eraseChanges = new ArrayList<>();
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+
+                if (groupIds[row][col] == targetGroupId) {
+
+                    CellChange change = new CellChange(
+                            row,
+                            col,
+                            cells[row][col],
+                            null,
+                            groupIds[row][col],
+                            -1
+                    );
+
+                    eraseChanges.add(change);
+
+                    cells[row][col] = null;
+                    groupIds[row][col] = -1;
+                }
+            }
+        }
+
+        if (!eraseChanges.isEmpty()) {
+            undoStack.push(eraseChanges);
+        }
+
+        invalidate();
+    }
+    //지우개 함수 끝---------------------------------------------
 
 
     //전체 삭제 시작--------------------------------------------------------------------------
