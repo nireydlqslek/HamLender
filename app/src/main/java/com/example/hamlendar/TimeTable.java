@@ -1,0 +1,575 @@
+package com.example.hamlendar;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.AttributeSet;
+import android.view.MotionEvent;
+import android.view.View;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+//기능 : 드래그 해서 색칠, 다시하기(직전 저장. undo), 미니테이블을 보기 전용으로, 드래그 완료 이벤트 전달
+
+public class TimeTable extends View {
+
+    //변수 선언 시작--------------------------------------------------------------------------
+
+    //가로 6칸
+    private static final int COLS = 6;
+
+    //세로 24칸
+    private static final int ROWS = 24;
+
+    //시간 표시용 라벨
+    private static final int LABEL_COLS = 1;
+    private static final int LABEL_ROWS = 1;
+
+    private static final int DISPLAY_COLS = COLS + LABEL_COLS;
+    private static final int DISPLAY_ROWS = ROWS + LABEL_ROWS;
+
+    private Paint textPaint;
+
+    // 각 칸의 색상 저장
+    // null이면 비어있는 칸
+    private String[][] cells = new String[ROWS][COLS];
+
+    // 칸 내부 색칠용 Paint
+    private Paint fillPaint;
+
+    // 격자선용 Paint
+    private Paint linePaint;
+
+    // 현재 선택된 색상
+    private String selectedColor = "#FF5722";
+
+    // 한 칸 크기
+    private float cellWidth;
+    private float cellHeight;
+
+    // 현재 드래그 중인지 체크
+    private boolean isDragging = false;
+
+    // 편집 가능 여부
+    // true = 수정 가능
+    // false = 보기 전용
+    private boolean editable = true;
+
+    // 드래그 중 이미 지나간 칸 체크
+    private boolean[][] visited = new boolean[ROWS][COLS];
+
+    // 현재 드래그에서 변경된 칸들 저장
+    private List<CellChange> currentChanges;
+
+    // Undo(다시) 기능용 스택
+    private Stack<List<CellChange>> undoStack = new Stack<>();
+
+    // 드래그 완료 리스너
+    // 드래그 종료 후 팝업 띄우기용
+    private OnDragCompleteListener dragCompleteListener;
+
+    //변수 선언 끝--------------------------------------------------------------------------
+
+
+
+    //생성자 시작--------------------------------------------------------------------------
+
+    // 기본 생성자
+    public TimeTable(Context context) {
+        super(context);
+        init();
+    }
+
+    // XML에서 View 생성 시 사용되는 생성자
+    public TimeTable(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
+
+    // 스타일 포함 생성자
+    public TimeTable(Context context,
+                     AttributeSet attrs,
+                     int defStyleAttr) {
+
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    //생성자 끝--------------------------------------------------------------------------
+
+
+
+    //초기 설정 시작--------------------------------------------------------------------------
+
+    // 초기 설정
+    private void init() {
+
+        // 배경 투명
+        setBackgroundColor(Color.TRANSPARENT);
+
+        // 칸 내부 색칠용 Paint 설정
+        fillPaint = new Paint();
+        fillPaint.setStyle(Paint.Style.FILL);
+
+        // 격자선 Paint 설정
+        linePaint = new Paint();
+
+        // 선 색상
+        linePaint.setColor(Color.LTGRAY);
+
+        // 선 두께
+        linePaint.setStrokeWidth(2f);
+
+        // 선만 그리기
+        linePaint.setStyle(Paint.Style.STROKE);
+
+        textPaint = new Paint();
+        textPaint.setColor(Color.DKGRAY);
+        textPaint.setTextSize(22f);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setAntiAlias(true);
+    }
+
+    //초기 설정 끝--------------------------------------------------------------------------
+
+
+
+    //편집 가능 여부 설정 시작--------------------------------------------------------------------------
+
+    // 편집 가능 여부 변경
+    // 미니 타임테이블은 false 사용
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    // 현재 편집 가능 여부 반환
+    public boolean isEditable() {
+        return editable;
+    }
+
+    //편집 가능 여부 설정 끝--------------------------------------------------------------------------
+
+
+
+    //드래그 완료 리스너 시작--------------------------------------------------------------------------
+
+    // 드래그 완료 리스너 연결
+    public void setOnDragCompleteListener(
+            OnDragCompleteListener listener
+    ) {
+        this.dragCompleteListener = listener;
+    }
+
+    // 드래그 완료 이벤트 인터페이스
+    public interface OnDragCompleteListener {
+
+        // 드래그 완료 시 호출
+        void onDragComplete();
+    }
+
+    //드래그 완료 리스너 끝--------------------------------------------------------------------------
+
+
+
+    //화면 그리기 시작--------------------------------------------------------------------------
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        if (getWidth() <= 0 || getHeight() <= 0) {
+            return;
+        }
+
+        cellWidth = getWidth() / (float) DISPLAY_COLS;
+        cellHeight = getHeight() / (float) DISPLAY_ROWS;
+
+        // 전체 격자 그리기
+        for (int row = 0; row < DISPLAY_ROWS; row++) {
+            for (int col = 0; col < DISPLAY_COLS; col++) {
+
+                float left = col * cellWidth;
+                float top = row * cellHeight;
+                float right = left + cellWidth;
+                float bottom = top + cellHeight;
+
+                // 실제 데이터 영역만 색칠
+                if (row > 0 && col > 0) {
+                    String color = cells[row - 1][col - 1];
+
+                    if (color != null) {
+                        try {
+                            fillPaint.setColor(Color.parseColor(color));
+                        } catch (Exception e) {
+                            fillPaint.setColor(Color.GRAY);
+                        }
+
+                        canvas.drawRect(left, top, right, bottom, fillPaint);
+                    }
+                }
+
+                // 격자선
+                canvas.drawRect(left, top, right, bottom, linePaint);
+            }
+        }
+
+        // 상단 분 표시
+        String[] minutes = {"0", "10", "20", "30", "40", "50"};
+
+        for (int col = 1; col < DISPLAY_COLS; col++) {
+            float x = col * cellWidth + cellWidth / 2f;
+            float y = cellHeight / 2f - ((textPaint.descent() + textPaint.ascent()) / 2f);
+
+            canvas.drawText(minutes[col - 1], x, y, textPaint);
+        }
+
+        // 좌측 시간 표시
+        for (int row = 1; row < DISPLAY_ROWS; row++) {
+            float x = cellWidth / 2f;
+            float y = row * cellHeight + cellHeight / 2f
+                    - ((textPaint.descent() + textPaint.ascent()) / 2f);
+
+            canvas.drawText(String.valueOf(row - 1), x, y, textPaint);
+        }
+    }
+
+
+    //화면 그리기 끝--------------------------------------------------------------------------
+
+
+
+    //터치 처리 시작--------------------------------------------------------------------------
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        // 미니 타임테이블 수정 방지
+        // false면 편집 불가능
+        if (!editable) {
+            return false;
+        }
+
+        // 칸 크기 계산 전이면 종료
+        if (cellWidth <= 0 || cellHeight <= 0) {
+            return true;
+        }
+
+        // 현재 터치 위치를 칸 번호로 변환
+        int displayCol = (int) (event.getX() / cellWidth);
+        int displayRow = (int) (event.getY() / cellHeight);
+
+// 라벨 영역 터치 무시
+        if (displayCol <= 0 || displayRow <= 0) {
+            return true;
+        }
+
+        int col = displayCol - 1;
+        int row = displayRow - 1;
+
+        // 범위 밖 방지
+        if (col < 0 || col >= COLS ||
+                row < 0 || row >= ROWS) {
+
+            return true;
+        }
+
+        switch (event.getAction()) {
+
+            // 처음 눌렀을 때
+            case MotionEvent.ACTION_DOWN:
+
+                // 드래그 시작
+                isDragging = true;
+
+                // 방문 기록 초기화
+                clearVisited();
+
+                // 현재 드래그 기록 초기화
+                currentChanges = new ArrayList<>();
+
+                // 현재 칸 색칠
+                paintCell(row, col);
+
+                break;
+
+            // 드래그 중
+            case MotionEvent.ACTION_MOVE:
+
+                if (isDragging) {
+
+                    // 지나가는 칸 색칠
+                    paintCell(row, col);
+                }
+
+                break;
+
+            // 손 뗐을 때
+            case MotionEvent.ACTION_UP:
+
+            case MotionEvent.ACTION_CANCEL:
+
+                // 드래그 종료
+                isDragging = false;
+
+                // 현재 작업 저장
+                if (currentChanges != null &&
+                        !currentChanges.isEmpty()) {
+
+                    // Undo 스택 저장
+                    undoStack.push(currentChanges);
+
+                    // 드래그 완료 이벤트 전달
+                    // 다시 / 완료 팝업 띄우기용
+                    if (dragCompleteListener != null) {
+
+                        dragCompleteListener.onDragComplete();
+                    }
+                }
+
+                break;
+        }
+
+        return true;
+    }
+
+    //터치 처리 끝--------------------------------------------------------------------------
+
+
+
+    //실제 칸 색칠 시작--------------------------------------------------------------------------
+
+    private void paintCell(int row, int col) {
+
+        // 이미 지나간 칸이면 무시
+        if (visited[row][col]) {
+            return;
+        }
+
+        // 방문 처리
+        visited[row][col] = true;
+
+        // 이전 색상 저장
+        String beforeColor = cells[row][col];
+
+        // 이미 같은 색이면 종료
+        if (selectedColor.equals(beforeColor)) {
+            return;
+        }
+
+        // 실제 색 변경
+        cells[row][col] = selectedColor;
+
+        // Undo 저장용 데이터 생성
+        CellChange change = new CellChange(
+                row,
+                col,
+                beforeColor,
+                selectedColor
+        );
+
+        // 현재 드래그 기록 저장
+        if (currentChanges != null) {
+
+            currentChanges.add(change);
+        }
+
+        // 화면 다시 그리기
+        invalidate();
+    }
+
+    //실제 칸 색칠 끝--------------------------------------------------------------------------
+
+
+
+    //방문 기록 초기화 시작--------------------------------------------------------------------------
+
+    private void clearVisited() {
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                visited[row][col] = false;
+            }
+        }
+    }
+
+    //방문 기록 초기화 끝--------------------------------------------------------------------------
+
+
+
+    //색상 변경 시작--------------------------------------------------------------------------
+
+    // 현재 선택 색상 변경
+    public void setSelectedColor(String color) {
+
+        selectedColor = color;
+    }
+
+    //색상 변경 끝--------------------------------------------------------------------------
+
+
+
+    //Undo 기능 시작--------------------------------------------------------------------------
+
+    // 마지막 작업 되돌리기
+    public void undoLastAction() {
+
+        // 되돌릴 작업이 없으면 종료
+        if (undoStack.isEmpty()) {
+            return;
+        }
+
+        // 최근 작업 가져오기
+        List<CellChange> lastChanges = undoStack.pop();
+
+        // 이전 색으로 복구
+        for (CellChange change : lastChanges) {
+
+            cells[change.row][change.col]
+                    = change.beforeColor;
+        }
+
+        // 화면 다시 그리기
+        invalidate();
+    }
+
+    //Undo 기능 끝--------------------------------------------------------------------------
+
+
+
+    //전체 삭제 시작--------------------------------------------------------------------------
+
+    // 전체 칸 삭제
+    public void clearAll() {
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                cells[row][col] = null;
+            }
+        }
+
+        // Undo 기록 삭제
+        undoStack.clear();
+
+        // 화면 다시 그리기
+        invalidate();
+    }
+
+    //전체 삭제 끝--------------------------------------------------------------------------
+
+
+
+    //데이터 반환 시작--------------------------------------------------------------------------
+
+    // 현재 셀 데이터 반환
+    public String[][] getCells() {
+
+        return copyCells(cells);
+    }
+
+    //데이터 반환 끝--------------------------------------------------------------------------
+
+
+
+    //데이터 적용 시작--------------------------------------------------------------------------
+
+    // 외부 데이터 적용
+    // Firebase 불러오기 등에 사용
+    public void setCells(String[][] newCells) {
+
+        if (newCells == null) {
+            return;
+        }
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                cells[row][col] = newCells[row][col];
+            }
+        }
+
+        // 화면 다시 그리기
+        invalidate();
+    }
+
+    //데이터 적용 끝--------------------------------------------------------------------------
+
+
+
+    //배열 복사 시작--------------------------------------------------------------------------
+
+    // 배열 깊은 복사용
+    private String[][] copyCells(String[][] source) {
+
+        String[][] copied =
+                new String[ROWS][COLS];
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                copied[row][col] = source[row][col];
+            }
+        }
+
+        return copied;
+    }
+
+    //배열 복사 끝--------------------------------------------------------------------------
+
+
+
+    //XML Preview 안정화용 시작--------------------------------------------------------------------------
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec,
+                             int heightMeasureSpec) {
+
+        super.onMeasure(widthMeasureSpec,
+                heightMeasureSpec);
+    }
+
+    //XML Preview 안정화용 끝--------------------------------------------------------------------------
+
+
+
+    //Undo 데이터 저장 클래스 시작--------------------------------------------------------------------------
+
+    // 칸 변경 기록 클래스
+    // Undo 기능에 사용
+    public static class CellChange {
+
+        // 위치
+        public int row;
+        public int col;
+
+        // 변경 전 색상
+        public String beforeColor;
+
+        // 변경 후 색상
+        public String afterColor;
+
+        public CellChange(
+                int row,
+                int col,
+                String beforeColor,
+                String afterColor
+        ) {
+
+            this.row = row;
+            this.col = col;
+
+            this.beforeColor = beforeColor;
+            this.afterColor = afterColor;
+        }
+    }
+
+    //Undo 데이터 저장 클래스 끝--------------------------------------------------------------------------
+}

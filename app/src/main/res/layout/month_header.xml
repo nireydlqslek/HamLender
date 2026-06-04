@@ -1,19 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <!-- 🔥 상단 (월 + 버튼) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:padding="8dp">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
 
         <ImageView
             android:id="@+id/btnPrev"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="이전 달"
             android:src="@android:drawable/ic_media_previous" />
 
         <TextView
@@ -21,21 +23,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:fontFamily="@font/danjunghea"
             android:gravity="center"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/btnNext"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="다음 달"
             android:src="@android:drawable/ic_media_next" />
     </LinearLayout>
 
-    <!-- 🔥 요일 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:orientation="horizontal">
 
         <TextView

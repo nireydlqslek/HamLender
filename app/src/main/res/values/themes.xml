@@ -20,5 +20,5 @@
         <item name="android:textColor">#666666</item>
         <item name="android:padding">4dp</item>
     </style>
-    <style name="Theme.HamLendar" parent="Base.Theme.HamLendar" />
+    <style name="Theme.HamLendar" parent="Theme.MaterialComponents.DayNight.NoActionBar"/>
 </resources>

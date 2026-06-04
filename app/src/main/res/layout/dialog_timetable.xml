@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_w">
+
+    <!-- 상단 닫기 버튼 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="end|center_vertical"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/btnCloseTimeTable"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="10dp"
+            android:src="@drawable/close_24px"
+            android:contentDescription="닫기" />
+    </LinearLayout>
+
+    <!-- 색상 선택 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/colorRed"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_margin="8dp"
+            android:background="#FF5252" />
+
+        <View
+            android:id="@+id/colorOrange"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_margin="8dp"
+            android:background="#FF9800" />
+
+        <View
+            android:id="@+id/colorGreen"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_margin="8dp"
+            android:background="#4CAF50" />
+
+        <View
+            android:id="@+id/colorBlue"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_margin="8dp"
+            android:background="#2196F3" />
+    </LinearLayout>
+
+    <!-- 큰 타임테이블 -->
+    <com.example.hamlendar.TimeTable
+        android:id="@+id/bigTimeTable"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="16dp" />
+
+</LinearLayout>

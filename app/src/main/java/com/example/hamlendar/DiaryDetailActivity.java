@@ -1,5 +1,6 @@
 package com.example.hamlendar;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
@@ -19,14 +20,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.app.Dialog;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+
 public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
 
     private TextView txtDate;
-    private EditText editWeather;
     private EditText editContent;
+    private String originalContent = "";
     private boolean isSaved;
 
     @Override
@@ -35,51 +42,73 @@ public class DiaryDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_diary_detail);
 
         txtDate = findViewById(R.id.txtDate);
-        editWeather = findViewById(R.id.editWeather);
         editContent = findViewById(R.id.editContent);
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView menuIcon = findViewById(R.id.menuIcon);
         Button btnSave = findViewById(R.id.btnSave);
+        Button btnDeleteDiary = findViewById(R.id.btnDeleteDiary);
 
         String date = getIntent().getStringExtra("date");
-        String weather = getIntent().getStringExtra("weather");
         String content = getIntent().getStringExtra("content");
 
-        // 목록에서 넘어온 일기 데이터가 있으면 표시하고, 없으면 오늘 날짜로 새 일기 작성
-        txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
-        editWeather.setText(weather == null ? "" : weather);
-        editContent.setText(content == null ? "" : content);
+        originalContent = content == null ? "" : content;
 
-        // 뒤로가기 버튼 클릭 -> 저장하지 않고, 저장하지 않았다는 안내만 표시
+        // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
+        txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
+        editContent.setText(originalContent);
+
+        // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
         btnBack.setOnClickListener(v -> handleBack());
 
-        // 저장 버튼 클릭 -> 일기만 저장하고 화면은 그대로 유지
+        // 날짜 클릭 -> 일기 목록 화면으로 이동
+        txtDate.setOnClickListener(v ->
+                startActivity(new Intent(DiaryDetailActivity.this, DiaryListActivity.class)));
+
+        // 저장 버튼 클릭 -> 저장만 하고 현재 화면에 남아 있는다.
         btnSave.setOnClickListener(v -> saveOnly());
+
+        // 삭제 버튼 클릭 -> 현재 일기 삭제
+        btnDeleteDiary.setOnClickListener(v -> confirmDeleteDiary());
 
         // 메뉴 버튼 클릭 -> 저장/삭제 선택
         menuIcon.setOnClickListener(v -> showDiaryMenu());
 
-        // 휴대폰 뒤로가기 버튼도 위의 뒤로가기 버튼과 똑같이 처리
+        // 휴대폰 기본 뒤로가기도 화면의 뒤로가기 버튼과 똑같이 처리한다.
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 handleBack();
             }
         });
+
+        miniTimeTable = findViewById(R.id.miniTimeTable);
+        openTimeTableEditor = findViewById(R.id.openTimeTableEditor);
+
+        // 미니 타임테이블은 보기 전용
+        miniTimeTable.setEditable(false);
+
+        // 미니 타임테이블 클릭 시 큰 팝업 열기
+        openTimeTableEditor.setOnClickListener(v -> {
+            showTimeTableDialog();
+        });
     }
 
     private String getCurrentDate() {
-        // 오늘 날짜를 일기에서 쓰는 형식으로 변환
         SimpleDateFormat sdf = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN);
         return sdf.format(new Date());
     }
 
     private void handleBack() {
-        if (isSaved) {
+        if (isSaved || !hasChanged()) {
             finish();
         } else {
             Toast.makeText(this, "저장 버튼을 눌러주세요", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private boolean hasChanged() {
+        String currentContent = editContent.getText().toString().trim();
+        return !currentContent.equals(originalContent);
     }
 
     private void showDiaryMenu() {
@@ -98,27 +127,18 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void saveAndClose() {
-        if (saveDiary()) {
-            isSaved = true;
-            finish();
-        }
-    }
-
     private void saveOnly() {
         if (saveDiary()) {
             isSaved = true;
+            originalContent = editContent.getText().toString().trim();
         }
     }
 
     private boolean saveDiary() {
-        // 화면에 입력된 날짜, 날씨, 일기 내용 가져오기
         String date = txtDate.getText().toString();
-        String weather = editWeather.getText().toString().trim();
         String content = editContent.getText().toString().trim();
 
-        // 아무 내용도 없으면 저장하지 않음
-        if (weather.isEmpty() && content.isEmpty()) {
+        if (content.isEmpty()) {
             Toast.makeText(this, "일기 내용을 입력하세요", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -130,21 +150,18 @@ public class DiaryDetailActivity extends AppCompatActivity {
             JSONArray diaries = new JSONArray(json);
             JSONObject newDiary = new JSONObject();
             newDiary.put("date", date);
-            newDiary.put("weather", weather);
             newDiary.put("content", content);
 
-            // 같은 날짜의 일기가 이미 있으면 새 내용으로 덮어쓰기
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
                 if (date.equals(diary.optString("date"))) {
                     diaries.put(i, newDiary);
                     prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
-                    Toast.makeText(this, "일기가 저장되었습니다", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "일기가 수정되었습니다", Toast.LENGTH_SHORT).show();
                     return true;
                 }
             }
 
-            // 같은 날짜가 없으면 새 일기로 추가
             diaries.put(newDiary);
             prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
             Toast.makeText(this, "일기가 저장되었습니다", Toast.LENGTH_SHORT).show();
@@ -174,7 +191,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
             JSONArray diaries = new JSONArray(json);
             JSONArray newDiaries = new JSONArray();
 
-            // 삭제할 날짜와 다른 일기만 새 배열에 다시 담기
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
                 if (!date.equals(diary.optString("date"))) {
@@ -190,4 +206,95 @@ public class DiaryDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "일기를 삭제할 수 없습니다", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private TimeTable miniTimeTable;
+    private View openTimeTableEditor;
+
+    private void showTimeTableDialog() {
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_timetable);
+
+        Window window = dialog.getWindow();
+
+        if (window != null) {
+            window.setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
+
+            // 뒤 배경 어둡게
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+            WindowManager.LayoutParams params = window.getAttributes();
+
+            // 어두워지는 정도
+            // 0.0 = 안 어두움
+            // 1.0 = 완전 검정
+            params.dimAmount = 0.45f;
+
+            window.setAttributes(params);
+        }
+
+        TimeTable bigTimeTable =
+                dialog.findViewById(R.id.bigTimeTable);
+
+        ImageView btnClose =
+                dialog.findViewById(R.id.btnCloseTimeTable);
+
+        View colorRed =
+                dialog.findViewById(R.id.colorRed);
+
+        View colorOrange =
+                dialog.findViewById(R.id.colorOrange);
+
+        View colorGreen =
+                dialog.findViewById(R.id.colorGreen);
+
+        View colorBlue =
+                dialog.findViewById(R.id.colorBlue);
+
+        // 큰 타임테이블은 편집 가능
+        bigTimeTable.setEditable(true);
+
+        // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
+        bigTimeTable.setCells(miniTimeTable.getCells());
+
+        // 색상 선택
+        colorRed.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#FF5252");
+        });
+
+        colorOrange.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#FF9800");
+        });
+
+        colorGreen.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#4CAF50");
+        });
+
+        colorBlue.setOnClickListener(v -> {
+            bigTimeTable.setSelectedColor("#2196F3");
+        });
+
+
+        // X 버튼 누르면 저장 후 팝업 닫기
+        btnClose.setOnClickListener(v -> {
+
+            // 큰 타임테이블 내용을 미니 타임테이블에 반영
+            miniTimeTable.setCells(bigTimeTable.getCells());
+
+            // 미니 타임테이블은 다시 보기 전용 유지
+            miniTimeTable.setEditable(false);
+
+            // TODO: 여기에 Firebase 저장 코드 추가 가능
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+
+
 }

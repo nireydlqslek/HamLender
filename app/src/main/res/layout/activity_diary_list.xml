@@ -7,76 +7,114 @@
     android:background="@color/background_w"
     tools:context=".DiaryListActivity">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/txtMainTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/txtCurrentDate"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/dangdang"
+        android:text="내 일기 보기"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/menuIcon">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/txtMainTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/dangdang"
-            android:text="내 일기 보기"
-            android:textColor="@color/black"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/txtCurrentDate"
+    <LinearLayout
+        android:id="@+id/dateActionRow"
         android:layout_width="0dp"
         android:layout_height="44dp"
-        android:layout_marginStart="56dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="56dp"
-        android:background="@drawable/edittext_box"
-        android:elevation="1dp"
-        android:fontFamily="@font/dangdang"
+        android:layout_marginEnd="32dp"
         android:gravity="center_vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:textColor="@color/black"
-        android:textSize="13sp"
-        android:textStyle="bold"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relativeLayout"
-        tools:text="5월 4일 (월)" />
+        app:layout_constraintTop_toBottomOf="@id/txtMainTitle">
+
+        <TextView
+            android:id="@+id/txtCurrentDate"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/edittext_box"
+            android:elevation="1dp"
+            android:fontFamily="@font/danjunghea"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="5월 19일 (화)" />
+
+        <Button
+            android:id="@+id/btnSelectDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/maincolor"
+            android:fontFamily="@font/dangdang"
+            android:minWidth="0dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="선택 삭제"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnDeleteAll"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:backgroundTint="@color/maincolor"
+            android:fontFamily="@font/dangdang"
+            android:minWidth="0dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="모두 삭제"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerDiary"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="22dp"
-        android:layout_weight="1"
         android:clipToPadding="false"
-        android:overScrollMode="ifContentScrolls"
+        android:overScrollMode="never"
         android:paddingStart="2dp"
         android:paddingEnd="2dp"
         android:paddingBottom="88dp"
         android:scrollbarThumbVertical="@color/maincolor"
         android:scrollbarTrackVertical="@android:color/transparent"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtCurrentDate"
+        app:layout_constraintTop_toBottomOf="@id/dateActionRow"
         tools:listitem="@layout/item_diary" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddDiary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="add diary"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/maincolor"
+        app:elevation="6dp"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toBottomOf="@id/recyclerDiary"
+        app:layout_constraintEnd_toEndOf="@id/recyclerDiary"
+        app:tint="@color/white" />
+
     <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="match_parent"
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
         android:layout_height="54dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
@@ -109,32 +147,5 @@
             android:contentDescription="diary"
             android:src="@drawable/hamicon" />
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/menuIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="28dp"
-        android:layout_marginBottom="3dp"
-        android:contentDescription="menu"
-        android:src="@drawable/menu_24px"
-        app:layout_constraintBottom_toTopOf="@+id/relativeLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/maincolor" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddDiary"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="add diary"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/maincolor"
-        app:elevation="6dp"
-        app:fabSize="normal"
-        app:layout_constraintBottom_toBottomOf="@+id/recyclerDiary"
-        app:layout_constraintEnd_toEndOf="@+id/recyclerDiary"
-        app:tint="@color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

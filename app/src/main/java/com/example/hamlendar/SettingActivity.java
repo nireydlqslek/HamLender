@@ -30,6 +30,7 @@ public class SettingActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.back_icon);
         TextView btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
         TextView btnLogout = findViewById(R.id.btnLogout);
+        TextView btnCategory = findViewById(R.id.btnCategory);
 
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
@@ -47,6 +48,9 @@ public class SettingActivity extends AppCompatActivity {
         });
         // 회원 탈퇴 클릭 -> 비밀번호 확인 다이얼로그 표시
         btnDeleteAccount.setOnClickListener(v -> showDeleteDialog());
+
+        btnCategory.setOnClickListener(v -> startActivity
+                (new Intent(SettingActivity.this, CategoryActivity.class)));
     }
 
     private void showDeleteDialog() {
