@@ -78,7 +78,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:id="@+id/img_main_home"
+            android:id="@+id/img_main_health"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="홈"

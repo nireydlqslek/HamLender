@@ -80,10 +80,15 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+
+        // 왼쪽 메인 버튼 -> 건강 화면
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
 
         // 하단 일기 버튼은 오늘 날짜 일기를 연다.
         btnDiary.setOnClickListener(v -> openDiaryForDate(LocalDate.now()));
