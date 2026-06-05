@@ -78,6 +78,8 @@ public class HealthActivity extends AppCompatActivity {
     private Button btnCancelRoutine;
     private LinearLayout sectionHealth;
     private LinearLayout sectionRoutine;
+    private RecyclerView recyclerHealth;
+    private RecyclerView recyclerRoutine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,8 +95,8 @@ public class HealthActivity extends AppCompatActivity {
         btnCancelRoutine = findViewById(R.id.btnCancelRoutine);
         sectionHealth = findViewById(R.id.sectionHealth);
         sectionRoutine = findViewById(R.id.sectionRoutine);
-        RecyclerView recyclerHealth = findViewById(R.id.recyclerHealth);
-        RecyclerView recyclerRoutine = findViewById(R.id.recyclerRoutine);
+        recyclerHealth = findViewById(R.id.recyclerHealth);
+        recyclerRoutine = findViewById(R.id.recyclerRoutine);
 
         btnBack.setOnClickListener(v -> finish());
         btnDeleteHealth.setOnClickListener(v -> enterDeleteMode(DeleteTarget.HEALTH));
@@ -167,29 +169,40 @@ public class HealthActivity extends AppCompatActivity {
 
     private void refreshLists() {
         updateDeleteButtons();
-        updateSectionHeights();
         healthAdapter.notifyDataSetChanged();
         routineAdapter.notifyDataSetChanged();
+        updateSectionHeights();
     }
 
     private void updateSectionHeights() {
-        updateSectionHeight(sectionHealth, healthItems.size());
-        updateSectionHeight(sectionRoutine, routineItems.size());
+        updateSectionHeight(
+                sectionHealth,
+                recyclerHealth,
+                healthAdapter.getItemCount()
+        );
+        updateSectionHeight(
+                sectionRoutine,
+                recyclerRoutine,
+                routineAdapter.getItemCount()
+        );
     }
 
-    private void updateSectionHeight(LinearLayout sectionView, int itemCount) {
-        int visibleSlots = itemCount < MAX_SECTION_ITEMS
-                ? itemCount + 1
-                : itemCount;
-        int sectionHeight;
-        if (visibleSlots > 4) {
-            sectionHeight = 292;
-        } else if (visibleSlots > 2) {
-            sectionHeight = 204;
-        } else {
-            sectionHeight = 116;
-        }
+    private void updateSectionHeight(
+            LinearLayout sectionView,
+            RecyclerView recyclerView,
+            int visibleSlots
+    ) {
+        int rowCount = Math.max(1, (visibleSlots + 1) / 2);
+        int recyclerHeight = rowCount * 100;
+        int sectionHeight = recyclerHeight + 28;
+
+        ViewGroup.LayoutParams recyclerParams = recyclerView.getLayoutParams();
+        recyclerParams.height = dp(recyclerHeight);
+        recyclerView.setLayoutParams(recyclerParams);
+
         sectionView.setMinimumHeight(dp(sectionHeight));
+        recyclerView.requestLayout();
+        sectionView.requestLayout();
     }
 
     private void updateDeleteButtons() {
