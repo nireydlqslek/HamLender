@@ -63,7 +63,7 @@
             android:text="↶" />
 
         <Button
-            android:id="@+id/btnEraserTimeTable"
+            android:id="@+id/btnClearAllTimeTable"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:text="⌫" />

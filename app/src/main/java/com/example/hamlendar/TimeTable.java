@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import java.util.HashMap;
+import java.util.Map;
+
 //기능 : 드래그 해서 색칠, 다시하기(직전 저장. undo), 미니테이블을 보기 전용으로, 드래그 완료 이벤트 전달
 
 public class TimeTable extends View {
@@ -72,7 +75,7 @@ public class TimeTable extends View {
     private OnDragCompleteListener dragCompleteListener;
 
     // 각 칸이 어떤 드래그 묶음에 속하는지 저장
-// -1이면 묶음 없음
+    // -1이면 묶음 없음
     private int[][] groupIds = new int[ROWS][COLS];
 
     // 드래그 묶음 번호
@@ -85,6 +88,9 @@ public class TimeTable extends View {
 
     // 전체 삭제 요청 리스너
     private OnRequestClearAllListener requestClearAllListener;
+
+    // 드래그 묶음별 라벨 저장
+    private Map<Integer, String> groupLabels = new HashMap<>();
 
     //변수 선언 끝--------------------------------------------------------------------------
 
@@ -198,7 +204,7 @@ public class TimeTable extends View {
     public interface OnDragCompleteListener {
 
         // 드래그 완료 시 호출
-        void onDragComplete();
+        void onDragComplete(int groupId);
     }
 
     // 전체 삭제 요청 이벤트 인터페이스
@@ -272,6 +278,49 @@ public class TimeTable extends View {
 
             canvas.drawText(String.valueOf(row - 1), x, y, textPaint);
         }
+
+        // 드래그 묶음 라벨 표시
+        for (Integer groupId : groupLabels.keySet()) {
+
+            String label = groupLabels.get(groupId);
+
+            if (label == null || label.isEmpty()) {
+                continue;
+            }
+
+            int[] firstCell = findFirstCellOfGroup(groupId);
+
+            if (firstCell == null) {
+                continue;
+            }
+
+            int row = firstCell[0];
+            int col = firstCell[1];
+
+            float x = (col + 1) * cellWidth + cellWidth / 2f;
+            float y = (row + 1) * cellHeight + cellHeight / 2f
+                    - ((textPaint.descent() + textPaint.ascent()) / 2f);
+
+            canvas.drawText(label, x, y, textPaint);
+        }
+
+
+    }
+
+    // 해당 묶음의 첫 번째 칸 찾기
+    private int[] findFirstCellOfGroup(int targetGroupId) {
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                if (groupIds[row][col] == targetGroupId) {
+                    return new int[]{row, col};
+                }
+            }
+        }
+
+        return null;
     }
 
 
@@ -345,24 +394,28 @@ public class TimeTable extends View {
 
             // 손 뗐을 때
             case MotionEvent.ACTION_UP:
-
             case MotionEvent.ACTION_CANCEL:
 
-                // 드래그 종료
                 isDragging = false;
 
-                // 현재 작업 저장
-                if (currentChanges != null &&
-                        !currentChanges.isEmpty()) {
-
-                    undoStack.push(currentChanges);
-                }
-
-                // 지우개 모드에서 전체 칸을 지나갔으면 전체 삭제 여부 요청
                 if (eraserMode && isEnoughCellsVisitedForClearAll()) {
 
                     if (requestClearAllListener != null) {
                         requestClearAllListener.onRequestClearAll();
+                    }
+
+                    currentGroupId = -1;
+                    break;
+                }
+
+                if (currentChanges != null &&
+                        !currentChanges.isEmpty()) {
+
+                    undoStack.push(currentChanges);
+
+                    // 지우개 모드가 아닐 때만 라벨 입력 요청
+                    if (!eraserMode && dragCompleteListener != null) {
+                        dragCompleteListener.onDragComplete(currentGroupId);
                     }
                 }
 
@@ -479,6 +532,21 @@ public class TimeTable extends View {
 
     //색상 변경 끝--------------------------------------------------------------------------
 
+    // 드래그 묶음 라벨 저장
+    public void setGroupLabel(int groupId, String label) {
+
+        if (groupId == -1) {
+            return;
+        }
+
+        if (label == null || label.trim().isEmpty()) {
+            groupLabels.remove(groupId);
+        } else {
+            groupLabels.put(groupId, label.trim());
+        }
+
+        invalidate();
+    }
 
 
     //Undo 기능 시작--------------------------------------------------------------------------
@@ -538,6 +606,8 @@ public class TimeTable extends View {
             undoStack.push(eraseChanges);
         }
 
+        groupLabels.remove(targetGroupId);
+
         invalidate();
     }
     //지우개 함수 끝---------------------------------------------
@@ -558,6 +628,7 @@ public class TimeTable extends View {
         }
 
         undoStack.clear();
+        groupLabels.clear();
         nextGroupId = 1;
         currentGroupId = -1;
 

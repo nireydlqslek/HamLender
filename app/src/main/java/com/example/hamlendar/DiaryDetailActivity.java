@@ -28,6 +28,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import androidx.appcompat.app.AlertDialog;
 
+import android.widget.EditText;
+import android.widget.Button;
+
 public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
@@ -264,13 +267,10 @@ public class DiaryDetailActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setTitle("전체 삭제")
                     .setMessage("타임테이블을 전체 삭제하시겠습니까?")
-
                     .setNegativeButton("취소", null)
-
-                    .setPositiveButton("삭제", (alertDialog, which) -> {
+                    .setPositiveButton("삭제", (dialogInterface, which) -> {
                         bigTimeTable.clearAll();
                     })
-
                     .show();
         });
 
@@ -299,7 +299,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 dialog.findViewById(R.id.btnUndoTimeTable);
 
         Button btnEraser =
-                dialog.findViewById(R.id.btnEraserTimeTable);
+                dialog.findViewById(R.id.btnClearAllTimeTable);
 
 
         //되돌리기
@@ -344,6 +344,43 @@ public class DiaryDetailActivity extends AppCompatActivity {
         });
 
         dialog.show();
+
+        bigTimeTable.setOnDragCompleteListener(groupId -> {
+
+            EditText input = new EditText(this);
+            input.setHint("예: 수업, 운동, 알바");
+
+            new AlertDialog.Builder(this)
+                    .setTitle("라벨 입력")
+                    .setView(input)
+
+                    .setNegativeButton("건너뛰기", null)
+
+                    .setPositiveButton("저장", (dialogInterface, which) -> {
+                        String label = input.getText().toString().trim();
+                        bigTimeTable.setGroupLabel(groupId, label);
+                    })
+
+                    .show();
+        });
+
+        Button btnClearAll =
+                dialog.findViewById(R.id.btnClearAllTimeTable);
+
+        btnClearAll.setOnClickListener(v -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("전체 삭제")
+                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+
+                    .setNegativeButton("취소", null)
+
+                    .setPositiveButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.clearAll();
+                    })
+
+                    .show();
+        });
     }
 
 
