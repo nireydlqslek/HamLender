@@ -15,6 +15,9 @@
             android:name=".DiaryDetailActivity"
             android:exported="false" />
         <activity
+            android:name=".HealthActivity"
+            android:exported="false" />
+        <activity
             android:name=".DiaryListActivity"
             android:exported="false" />
         <activity

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ham_background"
+    tools:context=".HealthActivity">
+
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:contentDescription="뒤로가기"
+        android:src="@drawable/arrow_back_24px"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/green_w" />
+
+    <TextView
+        android:id="@+id/txtHealthTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="74dp"
+        android:fontFamily="@font/dangdang"
+        android:text="건강"
+        android:textColor="@color/black"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnDeleteHealth"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="#F4F4F4"
+        android:contentDescription="건강 삭제"
+        android:drawableTop="@drawable/delete_24px"
+        app:layout_constraintBottom_toBottomOf="@id/txtHealthTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txtHealthTitle" />
+
+    <Button
+        android:id="@+id/btnConfirmHealth"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="#F4F4F4"
+        android:contentDescription="선택한 건강 일정 삭제"
+        android:drawableTop="@drawable/delete_24px"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/txtHealthTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txtHealthTitle" />
+
+    <Button
+        android:id="@+id/btnCancelHealth"
+        android:layout_width="80dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/white"
+        android:minWidth="0dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:singleLine="true"
+        android:text="취소"
+        android:textColor="@color/maincolor"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/txtHealthTitle"
+        app:layout_constraintEnd_toStartOf="@id/btnConfirmHealth"
+        app:layout_constraintTop_toTopOf="@id/txtHealthTitle" />
+
+    <ScrollView
+        android:id="@+id/scrollHealth"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="14dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtHealthTitle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/sectionHealth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_dialog_rounded"
+                android:minHeight="116dp"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerHealth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_health" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="22dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/txtRoutineTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/dangdang"
+                    android:text="루틴"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnDeleteRoutine"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:backgroundTint="#F4F4F4"
+                    android:contentDescription="루틴 삭제"
+                    android:drawableTop="@drawable/delete_24px" />
+
+                <Button
+                    android:id="@+id/btnCancelRoutine"
+                    android:layout_width="80dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="@color/white"
+                    android:minWidth="0dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:singleLine="true"
+                    android:text="취소"
+                    android:textColor="@color/maincolor"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/btnConfirmRoutine"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:backgroundTint="#F4F4F4"
+                    android:contentDescription="선택한 루틴 삭제"
+                    android:drawableTop="@drawable/delete_24px"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sectionRoutine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_dialog_rounded"
+                android:minHeight="116dp"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerRoutine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_health" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="건강"
+            android:src="@drawable/hamicon" />
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="56dp"
+            android:layout_marginEnd="56dp"
+            android:contentDescription="달력"
+            android:src="@drawable/hamcircle_w" />
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="일기"
+            android:src="@drawable/hamicon" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
