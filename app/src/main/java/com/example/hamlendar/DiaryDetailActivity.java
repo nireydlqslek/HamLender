@@ -259,6 +259,21 @@ public class DiaryDetailActivity extends AppCompatActivity {
         // 큰 타임테이블은 편집 가능
         bigTimeTable.setEditable(true);
 
+        bigTimeTable.setOnRequestClearAllListener(() -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("전체 삭제")
+                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+
+                    .setNegativeButton("취소", null)
+
+                    .setPositiveButton("삭제", (alertDialog, which) -> {
+                        bigTimeTable.clearAll();
+                    })
+
+                    .show();
+        });
+
         // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
         bigTimeTable.setCells(miniTimeTable.getCells());
 
@@ -277,6 +292,40 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         colorBlue.setOnClickListener(v -> {
             bigTimeTable.setSelectedColor("#2196F3");
+        });
+
+        //색칠모드
+        Button btnUndo =
+                dialog.findViewById(R.id.btnUndoTimeTable);
+
+        Button btnEraser =
+                dialog.findViewById(R.id.btnEraserTimeTable);
+
+
+        //되돌리기
+        colorRed.setOnClickListener(v -> {
+            bigTimeTable.setDrawMode();
+            bigTimeTable.setSelectedColor("#FF5252");
+        });
+
+        colorOrange.setOnClickListener(v -> {
+            bigTimeTable.setDrawMode();
+            bigTimeTable.setSelectedColor("#FF9800");
+        });
+
+        colorGreen.setOnClickListener(v -> {
+            bigTimeTable.setDrawMode();
+            bigTimeTable.setSelectedColor("#4CAF50");
+        });
+
+        colorBlue.setOnClickListener(v -> {
+            bigTimeTable.setDrawMode();
+            bigTimeTable.setSelectedColor("#2196F3");
+        });
+
+        //지우개
+        btnUndo.setOnClickListener(v -> {
+            bigTimeTable.undoLastAction();
         });
 
 

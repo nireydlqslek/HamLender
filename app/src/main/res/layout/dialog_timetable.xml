@@ -55,6 +55,18 @@
             android:layout_height="42dp"
             android:layout_margin="8dp"
             android:background="#2196F3" />
+
+        <Button
+            android:id="@+id/btnUndoTimeTable"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="↶" />
+
+        <Button
+            android:id="@+id/btnEraserTimeTable"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="⌫" />
     </LinearLayout>
 
     <!-- 큰 타임테이블 -->

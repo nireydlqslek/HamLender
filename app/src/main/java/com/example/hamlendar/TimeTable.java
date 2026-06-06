@@ -83,6 +83,9 @@ public class TimeTable extends View {
 
     private int currentGroupId = -1;
 
+    // 전체 삭제 요청 리스너
+    private OnRequestClearAllListener requestClearAllListener;
+
     //변수 선언 끝--------------------------------------------------------------------------
 
 
@@ -196,6 +199,13 @@ public class TimeTable extends View {
 
         // 드래그 완료 시 호출
         void onDragComplete();
+    }
+
+    // 전체 삭제 요청 이벤트 인터페이스
+    public interface OnRequestClearAllListener {
+
+        // 전체 삭제 요청 시 호출
+        void onRequestClearAll();
     }
 
     //드래그 완료 리스너 끝--------------------------------------------------------------------------
@@ -345,9 +355,15 @@ public class TimeTable extends View {
                 if (currentChanges != null &&
                         !currentChanges.isEmpty()) {
 
-                    // Undo 스택 저장
                     undoStack.push(currentChanges);
+                }
 
+                // 지우개 모드에서 전체 칸을 지나갔으면 전체 삭제 여부 요청
+                if (eraserMode && isEnoughCellsVisitedForClearAll()) {
+
+                    if (requestClearAllListener != null) {
+                        requestClearAllListener.onRequestClearAll();
+                    }
                 }
 
                 currentGroupId = -1;
@@ -428,6 +444,28 @@ public class TimeTable extends View {
     }
 
     //방문 기록 초기화 끝--------------------------------------------------------------------------
+
+    // 전체 칸을 지나갔는지 확인
+    // 전체 칸 중 일정 비율 이상 지나갔는지 확인
+    private boolean isEnoughCellsVisitedForClearAll() {
+
+        int visitedCount = 0;
+        int totalCount = ROWS * COLS;
+
+        for (int row = 0; row < ROWS; row++) {
+
+            for (int col = 0; col < COLS; col++) {
+
+                if (visited[row][col]) {
+                    visitedCount++;
+                }
+            }
+        }
+
+        float ratio = visitedCount / (float) totalCount;
+
+        return ratio >= 0.8f;
+    }
 
 
 
@@ -515,14 +553,22 @@ public class TimeTable extends View {
             for (int col = 0; col < COLS; col++) {
 
                 cells[row][col] = null;
+                groupIds[row][col] = -1;
             }
         }
 
-        // Undo 기록 삭제
         undoStack.clear();
+        nextGroupId = 1;
+        currentGroupId = -1;
 
-        // 화면 다시 그리기
         invalidate();
+    }
+
+    // 전체 삭제 요청 리스너 연결
+    public void setOnRequestClearAllListener(
+            OnRequestClearAllListener listener
+    ) {
+        this.requestClearAllListener = listener;
     }
 
     //전체 삭제 끝--------------------------------------------------------------------------
@@ -610,21 +656,22 @@ public class TimeTable extends View {
     // Undo 기능에 사용
     public static class CellChange {
 
-        // 위치
         public int row;
         public int col;
 
-        // 변경 전 색상
         public String beforeColor;
-
-        // 변경 후 색상
         public String afterColor;
+
+        public int beforeGroupId;
+        public int afterGroupId;
 
         public CellChange(
                 int row,
                 int col,
                 String beforeColor,
-                String afterColor
+                String afterColor,
+                int beforeGroupId,
+                int afterGroupId
         ) {
 
             this.row = row;
@@ -632,6 +679,9 @@ public class TimeTable extends View {
 
             this.beforeColor = beforeColor;
             this.afterColor = afterColor;
+
+            this.beforeGroupId = beforeGroupId;
+            this.afterGroupId = afterGroupId;
         }
     }
 
