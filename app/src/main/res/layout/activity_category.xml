@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/viewFlipper"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_add_category"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/edit03"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/close_24px" />
+
+        <ImageView
+            android:id="@+id/btnDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/edit03"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            app:srcCompat="@drawable/menu_24px" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="카테고리 추가"
+            android:textSize="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/edit03"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.147"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <EditText
+            android:id="@+id/edit03"
+            android:layout_width="match_parent"
+            android:layout_height="47dp"
+            android:layout_marginTop="32dp"
+            android:background="#EAEFEF"
+            android:hint="카테고리 이름 입력"
+            android:paddingStart="12dp"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="색상 설정"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/edit03" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView4">
+
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_red" />
+
+            <ImageButton
+                android:id="@+id/imageButton2"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_orange" />
+
+            <ImageButton
+                android:id="@+id/imageButton3"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_yellow" />
+
+            <ImageButton
+                android:id="@+id/imageButton4"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_green" />
+
+            <ImageButton
+                android:id="@+id/imageButton5"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_blue" />
+
+            <ImageButton
+                android:id="@+id/imageButton6"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_purple" />
+
+            <ImageButton
+                android:id="@+id/imageButton7"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_pink" />
+
+            <ImageButton
+                android:id="@+id/imageButton8"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/circle_grey" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button"
+            android:layout_width="283dp"
+            android:layout_height="41dp"
+            android:layout_marginTop="32dp"
+            android:background="#EAEFEF"
+            android:text="완료"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button2"
+            android:layout_width="283dp"
+            android:layout_height="41dp"
+            android:layout_marginTop="8dp"
+            android:background="#EAEFEF"
+            android:text="취소"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_category_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/btnBackToInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/arrow_back_24px" />
+
+        <TextView
+            android:id="@+id/txtListTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="카테고리 목록"
+            android:textSize="16dp"
+            app:layout_constraintBottom_toBottomOf="@id/btnBackToInput"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnBackToInput" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCategoryList"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnBackToInput" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ViewFlipper>

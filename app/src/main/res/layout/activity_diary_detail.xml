@@ -7,7 +7,7 @@
     android:background="@color/background_w"
     tools:context=".DiaryDetailActivity">
 
-<!--좌측 상단 백 버튼-->
+    <!--좌측 상단 백 버튼-->
     <ImageView
         android:id="@+id/btnBack"
         android:layout_width="29dp"
@@ -20,7 +20,7 @@
         app:layout_constraintTop_toTopOf="@+id/guideline4"
         app:tint="@color/maincolor" />
 
-<!--    우측 상단 메뉴-->
+    <!--    우측 상단 메뉴-->
     <ImageView
         android:id="@+id/menuIcon"
         android:layout_width="29dp"
@@ -34,9 +34,9 @@
         app:layout_constraintVertical_bias="0.391"
         app:tint="@color/maincolor" />
 
-<!--    // 상단 중앙 날짜-->
-<!--    // 날짜 글자 특성상 자음의 형태가 복잡 -> 볼드체 시에 다소 뭉게보임 (0527 수정)-->
-<!--    // 차후 라운드 형태로 테두리 라인을 없애는 방향도 고려-->
+    <!--    // 상단 중앙 날짜-->
+    <!--    // 날짜 글자 특성상 자음의 형태가 복잡 -> 볼드체 시에 다소 뭉게보임 (0527 수정)-->
+    <!--    // 차후 라운드 형태로 테두리 라인을 없애는 방향도 고려-->
     <TextView
         android:id="@+id/txtDate"
         android:layout_width="wrap_content"
@@ -63,8 +63,8 @@
 
 
     <!--일기 작성란-->
-<!--    //텍스트 크기 수정 20 -> 12-->
-<!--    //차후 모서리 라운드처리 + 라인 두께 조절 예정-->
+    <!--    //텍스트 크기 수정 20 -> 12-->
+    <!--    //차후 모서리 라운드처리 + 라인 두께 조절 예정-->
     <EditText
         android:id="@+id/editContent"
         android:layout_width="247dp"
@@ -113,14 +113,14 @@
         app:layout_constraintTop_toTopOf="@+id/guideline"
         app:layout_constraintVertical_bias="0.714">
 
-<!--        실제 타임테이블-->
+        <!--        실제 타임테이블-->
         <com.example.hamlendar.TimeTable
             android:id="@+id/miniTimeTable"
             android:layout_width="103dp"
             android:layout_height="501dp"
             android:padding="6dp" />
 
-<!--        클릭 감지용 투명 view-->
+        <!--        클릭 감지용 투명 view-->
         <View
             android:id="@+id/openTimeTableEditor"
             android:layout_width="match_parent"
@@ -145,7 +145,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-<!--    우측 하단 좌측 삭제버튼 (추후 아이콘으로 변경 )-->
+        <!--    우측 하단 좌측 삭제버튼 (추후 아이콘으로 변경 )-->
         <Button
             android:id="@+id/btnDeleteDiary"
             android:layout_width="76dp"
@@ -156,7 +156,7 @@
             android:fontFamily="@font/dangdang"
             android:text="삭제" />
 
-<!--    우측 하단 우측 저장 버튼 (추후 아이콘으로 변경 )-->
+        <!--    우측 하단 우측 저장 버튼 (추후 아이콘으로 변경 )-->
         <Button
             android:id="@+id/btnSave"
             android:layout_width="76dp"
@@ -167,7 +167,7 @@
             android:text="저장" />
     </LinearLayout>
 
-<!--    하단 메인 버튼 3개-->
+    <!--    하단 메인 버튼 3개-->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="370dp"
@@ -181,7 +181,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-<!--        홈이 곧 캘린더 임으로 추후 건강으로 바뀔 예정-->
+        <!--        홈이 곧 캘린더 임으로 추후 건강으로 바뀔 예정-->
         <ImageView
             android:layout_width="30dp"
             android:layout_height="32dp"
@@ -203,7 +203,7 @@
             android:src="@drawable/hamicon" />
     </LinearLayout>
 
-<!--    일기와 타임테이블 칸의 공간 분리를 위한 가이드라인-->
+    <!--    일기와 타임테이블 칸의 공간 분리를 위한 가이드라인-->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
         android:layout_width="wrap_content"
@@ -225,7 +225,7 @@
         android:orientation="vertical"
         app:layout_constraintGuide_begin="276dp" />
 
-<!--    상단의 개방감을 위해 추가됨-->
+    <!--    상단의 개방감을 위해 추가됨-->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline4"
         android:layout_width="wrap_content"

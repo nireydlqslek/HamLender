@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical">
+
+    <View
+        android:id="@+id/viewColorCircle"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/circle_grey" />
+
+    <TextView
+    android:id="@+id/txtCategoryName"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:text="카테고리 이름"
+    android:textColor="#333333"
+    android:textSize="16sp" />
+
+</LinearLayout>

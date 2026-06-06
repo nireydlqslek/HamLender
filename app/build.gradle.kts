@@ -38,6 +38,7 @@ android {
 
 dependencies {
 
+    implementation(libs.recyclerview)
     // ✅ 이것도 Kotlin DSL 스타일로
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 

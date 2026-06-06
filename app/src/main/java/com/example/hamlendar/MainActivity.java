@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,8 +21,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat; // 🌟 필수 추가: 안전하게 색상을 입혀 크래시를 방지하는 도구
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,22 +58,26 @@ public class MainActivity extends AppCompatActivity {
 
     private CalendarView calendarView;
     private TextView nameTitle;
+
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
+    // 🌟 일정을 통째로 보관할 클래스 (아이디, 제목, 카테고리, 메모)
     class ScheduleItem {
         String id;
         String title;
         String category;
         String memo;
 
-        ScheduleItem(String id, String title, String category, String memo) {
+        public ScheduleItem(String id, String title, String category, String memo) {
             this.id = id;
             this.title = title;
             this.category = category;
             this.memo = memo;
         }
     }
+
+    // 🔥 단순 String이 아니라, ScheduleItem 전체를 담아두는 맵
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,18 +88,13 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
-        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
 
-        // 왼쪽 메인 버튼 -> 건강 화면
-        btnHealth.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
-
-        // 하단 일기 버튼은 오늘 날짜 일기를 연다.
-        btnDiary.setOnClickListener(v -> openDiaryForDate(LocalDate.now()));
+        btnDiary.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
 
         setGreetingName();
         setupCalendar();
@@ -124,25 +127,27 @@ public class MainActivity extends AppCompatActivity {
                 container.tvEvent5.setText("");
                 container.tvMore.setText("");
 
-                if (day.getPosition() != DayPosition.MonthDate) {
+                if (day.getPosition() == DayPosition.MonthDate) {
+                    container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
+
+                    List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
+
+                    if (todaySchedules != null && !todaySchedules.isEmpty()) {
+                        int size = todaySchedules.size();
+
+                        if (size >= 1) container.tvEvent1.setText("• " + todaySchedules.get(0).title);
+                        if (size >= 2) container.tvEvent2.setText("• " + todaySchedules.get(1).title);
+                        if (size >= 3) container.tvEvent3.setText("• " + todaySchedules.get(2).title);
+                        if (size >= 4) container.tvEvent4.setText("• " + todaySchedules.get(3).title);
+                        if (size >= 5) container.tvEvent5.setText("• " + todaySchedules.get(4).title);
+
+                        if (size > 5) {
+                            container.tvMore.setText("+" + (size - 5));
+                        }
+                    }
+                } else {
                     container.tvDate.setText("");
-                    return;
                 }
-
-                container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
-
-                List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
-                if (todaySchedules == null || todaySchedules.isEmpty()) {
-                    return;
-                }
-
-                int size = todaySchedules.size();
-                if (size >= 1) container.tvEvent1.setText("- " + todaySchedules.get(0).title);
-                if (size >= 2) container.tvEvent2.setText("- " + todaySchedules.get(1).title);
-                if (size >= 3) container.tvEvent3.setText("- " + todaySchedules.get(2).title);
-                if (size >= 4) container.tvEvent4.setText("- " + todaySchedules.get(3).title);
-                if (size >= 5) container.tvEvent5.setText("- " + todaySchedules.get(4).title);
-                if (size > 5) container.tvMore.setText("+" + (size - 5));
             }
         });
 
@@ -158,48 +163,21 @@ public class MainActivity extends AppCompatActivity {
                 container.tvMonth.setText(yearMonth.getYear() + "년 " + yearMonth.getMonthValue() + "월");
 
                 container.btnPrev.setOnClickListener(v ->
-                        calendarView.smoothScrollToMonth(yearMonth.minusMonths(1)));
+                        calendarView.smoothScrollToMonth(yearMonth.minusMonths(1))
+                );
 
                 container.btnNext.setOnClickListener(v ->
-                        calendarView.smoothScrollToMonth(yearMonth.plusMonths(1)));
+                        calendarView.smoothScrollToMonth(yearMonth.plusMonths(1))
+                );
             }
         });
 
         calendarView.scrollToMonth(currentMonth);
     }
 
-    private void openDiaryForDate(LocalDate date) {
-        String diaryDate = formatDiaryDate(date);
-        Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
-        intent.putExtra("date", diaryDate);
-        intent.putExtra("content", findDiaryContent(diaryDate));
-        startActivity(intent);
-    }
-
-    private String formatDiaryDate(LocalDate date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일 (E)", Locale.KOREAN);
-        return date.format(formatter);
-    }
-
-    private String findDiaryContent(String date) {
-        SharedPreferences prefs = getSharedPreferences(DIARY_PREF_NAME, MODE_PRIVATE);
-        String json = prefs.getString(KEY_DIARY_LIST, "[]");
-
-        try {
-            JSONArray diaries = new JSONArray(json);
-            for (int i = 0; i < diaries.length(); i++) {
-                JSONObject diary = diaries.getJSONObject(i);
-                if (date.equals(diary.optString("date"))) {
-                    return diary.optString("content", "");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return "";
-    }
-
+    // =========================
+    // 🔥 파이어베이스에서 내 일정 불러오기
+    // =========================
     private void loadSchedulesFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
@@ -227,6 +205,9 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    // =========================
+    // 🔥 일정 다이얼로그 띄우기 (목록, 추가, 수정, 삭제)
+    // =========================
     private void showScheduleDialog(LocalDate date) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -245,15 +226,16 @@ public class MainActivity extends AppCompatActivity {
         EditText etTitle = dialog.findViewById(R.id.etTitle);
         EditText etMemo = dialog.findViewById(R.id.etMemo);
         Button btnSave = dialog.findViewById(R.id.btnSave);
+        LinearLayout layoutCategoryChips = dialog.findViewById(R.id.layoutCategoryChips);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일");
         tvDialogDate.setText(date.format(formatter));
 
         final String[] editDocId = {null};
 
+        // [기존 일정 세팅 로직]
         layoutScheduleList.removeAllViews();
         List<ScheduleItem> todaySchedules = schedulesMap.get(date);
-
         if (todaySchedules != null) {
             for (ScheduleItem item : todaySchedules) {
                 View itemView = getLayoutInflater().inflate(R.layout.item_schedule, null);
@@ -261,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
                 ImageView ivDelete = itemView.findViewById(R.id.ivDelete);
 
                 tvItemTitle.setText(item.title);
-
                 ivDelete.setOnClickListener(v -> {
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     if (user != null) {
@@ -269,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
                                 .collection("schedules").document(item.id)
                                 .delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(MainActivity.this, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "삭제되었습니다.", Toast.LENGTH_SHORT).show();
                                     dialog.dismiss();
                                     loadSchedulesFromFirebase();
                                 });
@@ -284,16 +265,135 @@ public class MainActivity extends AppCompatActivity {
                     etMemo.setText(item.memo);
                     btnSave.setText("수정하기");
                 });
-
                 layoutScheduleList.addView(itemView);
             }
         }
 
+        // 🌟 [안전화 완료] 파이어베이스 카테고리 불러오기 및 실시간 칩 연동 로직
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            db.collection("users").document(user.getUid()).collection("categories")
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        layoutCategoryChips.removeAllViews();
+                        List<CategoryItem> serverCategories = new ArrayList<>();
+
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            serverCategories.add(doc.toObject(CategoryItem.class));
+                        }
+
+                        int totalSize = serverCategories.size();
+                        int displayCount = Math.min(totalSize, 3);
+
+                        // 상위 3개 카테고리 자동 칩 생성 (오류 우회형 동적 생성)
+                        for (int i = 0; i < displayCount; i++) {
+                            CategoryItem cat = serverCategories.get(i);
+
+                            // 💡 버튼 대신 item_category.xml 도면 레이아웃을 인플레이트하여 일관성 보장 및 튕김 해결!
+                            View chipView = getLayoutInflater().inflate(R.layout.item_category, layoutCategoryChips, false);
+                            View viewColorCircle = chipView.findViewById(R.id.viewColorCircle);
+                            TextView txtCategoryName = chipView.findViewById(R.id.txtCategoryName);
+
+                            txtCategoryName.setText(cat.getName());
+
+                            // DrawableCompat을 통해 안전하게 백그라운드 원형에 파이어베이스 색상 주입 🌟
+                            Drawable bgDrawable = viewColorCircle.getBackground();
+                            if (bgDrawable != null && cat.getColorCode() != null) {
+                                try {
+                                    Drawable wrappedDrawable = DrawableCompat.wrap(bgDrawable.mutate());
+                                    DrawableCompat.setTint(wrappedDrawable, Color.parseColor(cat.getColorCode()));
+                                    viewColorCircle.setBackground(wrappedDrawable);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            params.setMargins(0, 0, 16, 0);
+                            chipView.setLayoutParams(params);
+
+                            // 칩 터치 시 타겟 입력창 데이터 동기화
+                            chipView.setOnClickListener(v -> {
+                                etCategory.setText(cat.getName());
+
+                                // 입력 폼의 etCategory 배경색도 안전하게 변경하기 위한 로직
+                                Drawable etBg = etCategory.getBackground();
+                                if (etBg != null) {
+                                    try {
+                                        Drawable wrappedEtBg = DrawableCompat.wrap(etBg.mutate());
+                                        DrawableCompat.setTint(wrappedEtBg, Color.parseColor(cat.getColorCode()));
+                                        etCategory.setBackground(wrappedEtBg);
+                                    } catch (Exception e) {
+                                        etCategory.setBackgroundColor(Color.parseColor(cat.getColorCode()));
+                                    }
+                                } else {
+                                    etCategory.setBackgroundColor(Color.parseColor(cat.getColorCode()));
+                                }
+                                etCategory.setTextColor(Color.WHITE);
+                            });
+                            layoutCategoryChips.addView(chipView);
+                        }
+
+                        // 3개 이상일 때 혹은 목록 관리를 위한 [+ 더보기(etc)] 버튼 생성
+                        if (totalSize > 0) {
+                            Button moreBtn = new Button(MainActivity.this);
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            moreBtn.setLayoutParams(params);
+                            moreBtn.setText("+ etc");
+                            moreBtn.setTextSize(12);
+                            moreBtn.setBackgroundColor(Color.parseColor("#7F7F7F"));
+                            moreBtn.setTextColor(Color.WHITE);
+
+                            moreBtn.setOnClickListener(v -> {
+                                String[] catNames = new String[totalSize + 1];
+                                for (int k = 0; k < totalSize; k++) {
+                                    catNames[k] = serverCategories.get(k).getName();
+                                }
+                                catNames[totalSize] = "새 카테고리 추가하러 가기";
+
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("카테고리 선택")
+                                        .setItems(catNames, (dialogInterface, which) -> {
+                                            if (which == totalSize) {
+                                                Intent intent = new Intent(MainActivity.this, CategoryActivity.class);
+                                                startActivity(intent);
+                                                dialog.dismiss();
+                                            } else {
+                                                CategoryItem selectedCat = serverCategories.get(which);
+                                                etCategory.setText(selectedCat.getName());
+
+                                                Drawable etBg = etCategory.getBackground();
+                                                if (etBg != null) {
+                                                    try {
+                                                        Drawable wrappedEtBg = DrawableCompat.wrap(etBg.mutate());
+                                                        DrawableCompat.setTint(wrappedEtBg, Color.parseColor(selectedCat.getColorCode()));
+                                                        etCategory.setBackground(wrappedEtBg);
+                                                    } catch (Exception e) {
+                                                        etCategory.setBackgroundColor(Color.parseColor(selectedCat.getColorCode()));
+                                                    }
+                                                } else {
+                                                    etCategory.setBackgroundColor(Color.parseColor(selectedCat.getColorCode()));
+                                                }
+                                                etCategory.setTextColor(Color.WHITE);
+                                            }
+                                        })
+                                        .show();
+                            });
+                            layoutCategoryChips.addView(moreBtn);
+                        }
+                    });
+        }
+
+        // [추가하기 및 저장 처리 버튼 로직]
         btnAddSchedule.setOnClickListener(v -> {
             if (layoutInputForm.getVisibility() == View.GONE) {
                 layoutInputForm.setVisibility(View.VISIBLE);
                 editDocId[0] = null;
                 etCategory.setText("");
+                etCategory.setBackgroundColor(Color.parseColor("#F5F5F5"));
+                etCategory.setTextColor(Color.BLACK);
                 etTitle.setText("");
                 etMemo.setText("");
                 btnSave.setText("저장하기");
@@ -309,7 +409,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user != null) {
                 Map<String, Object> scheduleData = new HashMap<>();
                 scheduleData.put("date", date.toString());
@@ -319,17 +418,15 @@ public class MainActivity extends AppCompatActivity {
                 scheduleData.put("timestamp", System.currentTimeMillis());
 
                 if (editDocId[0] == null) {
-                    db.collection("users").document(user.getUid())
-                            .collection("schedules")
+                    db.collection("users").document(user.getUid()).collection("schedules")
                             .add(scheduleData)
                             .addOnSuccessListener(documentReference -> {
-                                Toast.makeText(MainActivity.this, "저장 성공!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "저장 완료!", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                                 loadSchedulesFromFirebase();
                             });
                 } else {
-                    db.collection("users").document(user.getUid())
-                            .collection("schedules").document(editDocId[0])
+                    db.collection("users").document(user.getUid()).collection("schedules").document(editDocId[0])
                             .update(scheduleData)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(MainActivity.this, "수정 완료!", Toast.LENGTH_SHORT).show();
@@ -341,12 +438,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         dialog.show();
-
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            );
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
@@ -366,8 +459,8 @@ public class MainActivity extends AppCompatActivity {
         String greeting = userName + "님, 안녕하세요!";
         SpannableString spannableGreeting = new SpannableString(greeting);
 
-        int nameColor = ContextCompat.getColor(this, R.color.namecolor);
-        int greetingColor = ContextCompat.getColor(this, R.color.maincolor);
+        int nameColor = ContextCompat.getColor(this, R.color.maincolor);
+        int greetingColor = ContextCompat.getColor(this, R.color.namecolor);
 
         spannableGreeting.setSpan(
                 new ForegroundColorSpan(nameColor),
@@ -386,17 +479,16 @@ public class MainActivity extends AppCompatActivity {
         nameTitle.setText(spannableGreeting);
     }
 
+    // =========================
+    // ViewContainer 클래스들
+    // =========================
+
     class DayViewContainer extends ViewContainer {
         TextView tvDate;
-        TextView tvEvent1;
-        TextView tvEvent2;
-        TextView tvEvent3;
-        TextView tvEvent4;
-        TextView tvEvent5;
-        TextView tvMore;
+        TextView tvEvent1, tvEvent2, tvEvent3, tvEvent4, tvEvent5, tvMore;
         CalendarDay day;
 
-        DayViewContainer(View view) {
+        public DayViewContainer(View view) {
             super(view);
             tvDate = view.findViewById(R.id.tvDate);
             tvEvent1 = view.findViewById(R.id.tvEvent1);
@@ -427,11 +519,27 @@ public class MainActivity extends AppCompatActivity {
         ImageView btnPrev;
         ImageView btnNext;
 
-        MonthHeaderContainer(View view) {
+        public MonthHeaderContainer(View view) {
             super(view);
             tvMonth = view.findViewById(R.id.tvMonth);
             btnPrev = view.findViewById(R.id.btnPrev);
             btnNext = view.findViewById(R.id.btnNext);
         }
+    }
+
+    // =========================
+// 일기 화면 열기
+// =========================
+    private void openDiaryForDate(LocalDate date) {
+
+        Intent intent =
+                new Intent(MainActivity.this,
+                        DiaryDetailActivity.class);
+
+        // 선택한 날짜 전달
+        intent.putExtra("selectedDate",
+                date.toString());
+
+        startActivity(intent);
     }
 }

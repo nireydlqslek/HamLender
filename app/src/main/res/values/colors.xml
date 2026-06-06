@@ -5,8 +5,8 @@
 
 
 
-    <color name="background_w">#F8F9FA</color>
-    <color name="ham_background">#FBF9F7</color>
+    <color name="background_w">#FFF9D6</color>
+    <color name="ham_background">#FFFDF8</color>
     <color name="ham_vrlight_brown" >#C8B2A3 </color>
     <color name="ham_light_brown" > #8A6A5A</color>
     <color name="ham_brown">#5A3D33</color>
@@ -18,8 +18,11 @@
 
     <color name="green_w">#E2F0D9 </color>
     <color name="button_o">#3D2E27</color>
-    <color name="maincolor">#E9692C</color>
+    <color name="maincolor">#7A5C4D</color>
     <color name="namecolor">#80361A</color>
     <color name="basey">#FBF9F7</color>
+
+
+
 
 </resources>

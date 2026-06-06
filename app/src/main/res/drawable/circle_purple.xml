@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- 안쪽 원 -->
+    <path
+        android:fillColor="#C47BE4"
+        android:pathData="M50,50 m-25,0 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0"/>
+
+    <!-- 바깥 테두리 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#85409D"
+        android:strokeWidth="8"
+        android:pathData="M50,50 m-25,0 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0"/>
+
+</vector>

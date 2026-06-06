@@ -28,41 +28,40 @@ public class LoginActivity extends AppCompatActivity {
         Button loginBtn = findViewById(R.id.loginbutton);
         TextView registerMove = findViewById(R.id.register_textView);
 
-        // Firebase 로그인 기능 사용을 위한 객체 생성
         mAuth = FirebaseAuth.getInstance();
 
-        // 로그인 버튼 클릭 -> 입력한 이메일/비밀번호로 로그인 시도
         loginBtn.setOnClickListener(v -> login());
 
-        // 회원가입 하러가기 클릭 -> 회원가입 화면으로 이동
         registerMove.setOnClickListener(v ->
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
     private void login() {
-        // 사용자가 입력한 이메일과 비밀번호 가져오기
+
         String userEmail = email.getText().toString().trim();
         String userPassword = password.getText().toString().trim();
 
-        // 빈칸이 있으면 로그인 시도하지 않고 안내 문구 출력
         if (TextUtils.isEmpty(userEmail) || TextUtils.isEmpty(userPassword)) {
             Toast.makeText(this, "이메일과 비밀번호를 입력하세요", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Firebase에 이메일/비밀번호 로그인 요청
         mAuth.signInWithEmailAndPassword(userEmail, userPassword)
-                .addOnCompleteListener(task -> {
+                .addOnCompleteListener(this, task -> {
+
                     if (task.isSuccessful()) {
+
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show();
 
-                        // context 명확히
+                        // ✅ context 명확히
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
 
                         finish();
+
                     } else {
-                        // 진짜 원인 출력 (이거 중요)
+
+                        // 🔥 진짜 원인 출력 (이거 중요)
                         String errorMsg = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "로그인 실패";
