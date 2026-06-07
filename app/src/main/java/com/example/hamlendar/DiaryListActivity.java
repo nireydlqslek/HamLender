@@ -302,7 +302,7 @@ public class DiaryListActivity extends AppCompatActivity {
         prefs.edit().putString(KEY_DIARY_LIST, jsonArray.toString()).apply();
     }
 
-    private static class DiaryItem {
+    static final class DiaryItem {
         private final String date;
         private final String content;
         private boolean selected;
