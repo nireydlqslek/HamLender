@@ -40,7 +40,8 @@ dependencies {
 
     // ✅ 이것도 Kotlin DSL 스타일로
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-
+    //이거 넣어야 프로필에 사진 보임
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

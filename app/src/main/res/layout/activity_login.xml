@@ -1,324 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ham_background"
-    android:fillViewport="true"
+    android:background="@color/background_w"
     tools:context=".LoginActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/textview01"
+        android:layout_width="200dp"
+        android:layout_height="68dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/moyamoya"
+        android:text="햄린더"
+        android:textColor="@color/maincolor"
+        android:textSize="40sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView01"
+        android:layout_width="304dp"
+        android:layout_height="292dp"
+        android:contentDescription="hamster"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview01"
+        app:srcCompat="@drawable/hamcircle_w" />
+
+    <TextView
+        android:id="@+id/id_textView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        android:paddingStart="40dp"
-        android:paddingEnd="40dp">
+        android:layout_marginStart="24dp"
+        android:text="ID"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageView01" />
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="햄린더"
-            android:textSize="40dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_tools_mockUpLayout="@layout/calendar_day"
-            app:layout_constraintTop_toTopOf="parent"
-            android:textColor="@color/maincolor"
-            android:fontFamily="@font/moyamoya" />
+    <EditText
+        android:id="@+id/logintext"
+        android:layout_width="0dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/edittext_box"
+        android:ems="10"
+        android:inputType="textEmailAddress"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/id_textView" />
 
-        <FrameLayout
-            android:id="@+id/profileFrame"
-            android:layout_width="150dp"
-            android:layout_height="170dp"
-            android:layout_marginStart="0dp"
-            android:background="@drawable/profile_border"
-            android:padding="3dp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title"
-            app:layout_tools_mockUpLayout="@layout/calendar_day">
+    <TextView
+        android:id="@+id/pw_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="PW"
+        app:layout_constraintStart_toStartOf="@id/id_textView"
+        app:layout_constraintTop_toBottomOf="@id/logintext" />
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/profileCardView"
-                android:layout_width="150dp"
-                android:layout_height="166dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp" />
-        </FrameLayout>
+    <EditText
+        android:id="@+id/passwordtext"
+        android:layout_width="0dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/edittext_box"
+        android:ems="10"
+        android:inputType="textPassword"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pw_textView" />
 
-        <TextView
-            android:id="@+id/tv_name_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="이름"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toEndOf="@id/profileFrame"
-            app:layout_constraintTop_toTopOf="@id/profileFrame" />
+    <TextView
+        android:id="@+id/register_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/simplehea"
+        android:text="회원가입 하러가기"
+        android:textColor="@color/maincolor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/passwordtext" />
 
-        <EditText
-            android:id="@+id/et_name"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="textPersonName"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/tv_name_label"
-            app:layout_constraintTop_toBottomOf="@id/tv_name_label" />
+    <!-- =============================================================
+         🌟 핵심 변경: 아이디 찾기 / 비밀번호 찾기 영역 레이아웃 세트
+         ============================================================= -->
 
-        <TextView
-            android:id="@+id/tv_phone_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="전화번호"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="@id/et_name"
-            app:layout_constraintTop_toBottomOf="@id/et_name" />
+    <!-- [1] 아이디 찾기 텍스트 -->
+    <TextView
+        android:id="@+id/findId_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/simplehea"
+        android:text="아이디 찾기"
+        android:textColor="@color/ham_light_brown"
+        android:textSize="14sp"
+        android:padding="4dp"
+        app:layout_constraintEnd_toStartOf="@id/find_divider"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_textView" />
 
-        <EditText
-            android:id="@+id/et_phone"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="phone"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/tv_phone_label"
-            app:layout_constraintTop_toBottomOf="@id/tv_phone_label" />
+    <!-- [2] 중간 구분선 기호 (|) -->
+    <TextView
+        android:id="@+id/find_divider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="|"
+        android:textColor="@color/ham_vrlight_brown"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/findId_textView"
+        app:layout_constraintEnd_toStartOf="@id/findPw_textView"
+        app:layout_constraintStart_toEndOf="@id/findId_textView"
+        app:layout_constraintTop_toTopOf="@id/findId_textView" />
 
-        <TextView
-            android:id="@+id/tv_birth_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="생일 (EX: 2026.06.01)"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="@+id/et_phone"
-            app:layout_constraintTop_toBottomOf="@+id/et_phone" />
+    <!-- [3] 비밀번호 찾기 텍스트 -->
+    <TextView
+        android:id="@+id/findPw_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/simplehea"
+        android:text="비밀번호 찾기"
+        android:textColor="@color/ham_light_brown"
+        android:textSize="14sp"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="@id/findId_textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/find_divider"
+        app:layout_constraintTop_toTopOf="@id/findId_textView" />
 
-        <EditText
-            android:id="@+id/et_birth"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="date"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/tv_birth_label"
-            app:layout_constraintTop_toBottomOf="@id/tv_birth_label"
-            app:layout_constraintBottom_toBottomOf="@id/profileFrame" />
+    <!-- ============================================================= -->
 
+    <!-- 로그인 버튼 (기존 마진 88dp가 찾기 메뉴 밑으로 오도록 정렬 최적화!) -->
+    <Button
+        android:id="@+id/loginbutton"
+        android:layout_width="168dp"
+        android:layout_height="49dp"
+        android:layout_marginTop="36dp"
+        android:backgroundTint="@color/maincolor"
+        android:fontFamily="@font/dangdang"
+        android:text="로그인"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/findId_textView" />
 
-        <TextView
-            android:id="@+id/tv_nickname_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="별명"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profileFrame" />
-
-        <EditText
-            android:id="@+id/et_nickname"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="text"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_nickname_label" />
-
-        <TextView
-            android:id="@+id/tv_email_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="이메일 주소"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_nickname" />
-
-        <EditText
-            android:id="@+id/et_email"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="text"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintHorizontal_weight="1.2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_email_at"
-            app:layout_constraintTop_toBottomOf="@id/tv_email_label" />
-
-        <TextView
-            android:id="@+id/tv_email_at"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
-            android:text="@"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintTop_toTopOf="@id/et_email"
-            app:layout_constraintBottom_toBottomOf="@id/et_email"
-            app:layout_constraintStart_toEndOf="@id/et_email"
-            app:layout_constraintEnd_toStartOf="@id/spinner_email_domain" />
-
-        <Spinner
-            android:id="@+id/spinner_email_domain"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:background="@drawable/calendar_border"
-            android:paddingStart="8dp"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/tv_email_at"
-            app:layout_constraintTop_toTopOf="@id/et_email" />
-
-        <TextView
-            android:id="@+id/tv_password_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="비밀번호"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_email" />
-
-        <EditText
-            android:id="@+id/et_password"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="textPassword"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_password_label" />
-
-        <TextView
-            android:id="@+id/tv_password_confirm_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="비밀번호 확인"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_password" />
-
-        <EditText
-            android:id="@+id/et_password_confirm"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="textPassword"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_password_confirm_label" />
-
-        <TextView
-            android:id="@+id/tv_question_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="보안 질문 선정"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_password_confirm" />
-
-        <TextView
-            android:id="@+id/tv_answer_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="당신의 답"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:fontFamily="@font/danjunghea"
-            app:layout_constraintStart_toStartOf="@id/et_answer"
-            app:layout_constraintTop_toTopOf="@id/tv_question_title" />
-
-        <Spinner
-            android:id="@+id/spinner_question"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/calendar_border"
-            android:paddingStart="8dp"
-            app:layout_constraintEnd_toStartOf="@id/et_answer"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_question_title" />
-
-        <EditText
-            android:id="@+id/et_answer"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="text"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@id/spinner_question"
-            app:layout_constraintTop_toTopOf="@id/spinner_question" />
-
-        <Button
-            android:id="@+id/btn_submit"
-            android:layout_width="0dp"
-            android:layout_height="54dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/green_w"
-            android:text="모든 정보가 입력되지 않았습니다"
-            android:textColor="@color/black"
-            android:textSize="15sp"
-            android:fontFamily="@font/dangdang"
-            app:cornerRadius="12dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_answer"
-            tools:ignore="UnusedAttribute" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

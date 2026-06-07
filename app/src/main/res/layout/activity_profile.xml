@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ham_background"
     android:fillViewport="true"
-    tools:context=".RegisterActivity"> <!-- RegisterActivity 로 텍스트 매핑 수정 -->
+    tools:context=".ProfileActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -16,11 +16,26 @@
         android:paddingEnd="40dp"
         android:paddingBottom="24dp">
 
-        <!-- [1] 타이틀 -->
+        <!-- [1] 왼쪽 상단 뒤로가기 아이콘 -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="뒤로가기"
+            android:focusable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/abc_ic_ab_back_material"
+            app:tint="@color/maincolor" />
+
+        <!-- 가입창 구조 복사: 왼쪽 150x170 프로필 액자 -->
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="192dp"
             android:fontFamily="@font/moyamoya"
             android:text="햄린더"
             android:textColor="@color/maincolor"
@@ -44,17 +59,17 @@
                 app:cardCornerRadius="12dp"
                 app:cardPreventCornerOverlap="false" >
 
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                app:srcCompat="@drawable/hampic" />
+                <ImageView
+                    android:id="@+id/iv_my_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/hampic" />
 
             </androidx.cardview.widget.CardView>
-    </FrameLayout>
+        </FrameLayout>
 
-        <!-- [3] 이름 레이블 -->
+        <!-- [3] 이름 레이블 (수정 불가 안내형) -->
         <TextView
             android:id="@+id/tv_name_label"
             android:layout_width="wrap_content"
@@ -67,7 +82,7 @@
             app:layout_constraintStart_toEndOf="@id/profileFrame"
             app:layout_constraintTop_toTopOf="@id/profileFrame" />
 
-        <!-- [4] 이름 입력창 -->
+        <!-- [4] 이름창 (수정 불가 고정 상태) -->
         <EditText
             android:id="@+id/et_name"
             android:layout_width="0dp"
@@ -77,6 +92,8 @@
             android:inputType="textPersonName"
             android:paddingStart="12dp"
             android:textSize="13sp"
+            android:focusable="false"
+            android:clickable="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/tv_name_label"
             app:layout_constraintTop_toBottomOf="@id/tv_name_label" />
@@ -94,7 +111,7 @@
             app:layout_constraintStart_toStartOf="@id/et_name"
             app:layout_constraintTop_toBottomOf="@id/et_name" />
 
-        <!-- [6] 전화번호 입력창 -->
+        <!-- [6] 전화번호창 (수정 불가 고정 상태) -->
         <EditText
             android:id="@+id/et_phone"
             android:layout_width="0dp"
@@ -104,6 +121,8 @@
             android:inputType="phone"
             android:paddingStart="12dp"
             android:textSize="13sp"
+            android:focusable="false"
+            android:clickable="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/tv_phone_label"
             app:layout_constraintTop_toBottomOf="@id/tv_phone_label" />
@@ -115,13 +134,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/danjunghea"
-            android:text="생일 (EX: 2026.06.01)"
+            android:text="생일"
             android:textColor="@color/black"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@+id/et_phone"
             app:layout_constraintTop_toBottomOf="@+id/et_phone" />
 
-        <!-- [8] 생일 입력창 (아래로 당겨지던 오류 조건 완벽 제거!) -->
+        <!-- [8] 생일창 (수정 불가 고정 상태) -->
         <EditText
             android:id="@+id/et_birth"
             android:layout_width="0dp"
@@ -131,11 +150,13 @@
             android:inputType="date"
             android:paddingStart="12dp"
             android:textSize="13sp"
+            android:focusable="false"
+            android:clickable="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/tv_birth_label"
             app:layout_constraintTop_toBottomOf="@id/tv_birth_label" />
 
-        <!-- [9] 별명 레이블 (프로필 프레임 밑이 아니라, 생일 입력창 밑으로 안착!) -->
+        <!-- [9] 별명 레이블 -->
         <TextView
             android:id="@+id/tv_nickname_label"
             android:layout_width="wrap_content"
@@ -148,7 +169,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/profileFrame" />
 
-        <!-- [10] 별명 입력창 -->
+        <!-- [10] 별명창 (수정 불가 고정 상태) -->
         <EditText
             android:id="@+id/et_nickname"
             android:layout_width="0dp"
@@ -158,6 +179,8 @@
             android:inputType="text"
             android:paddingStart="12dp"
             android:textSize="13sp"
+            android:focusable="false"
+            android:clickable="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_nickname_label" />
@@ -175,65 +198,38 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/et_nickname" />
 
-        <!-- [12] 이메일 아이디 입력창 -->
-        <EditText
-            android:id="@+id/et_email"
+        <!-- [12] 이메일 주소 전반 텍스트뷰 형태로 간결하게 노출 (수정창 대신) -->
+        <TextView
+            android:id="@+id/tv_my_email_text"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_marginTop="2dp"
             android:background="@drawable/calendar_border"
-            android:inputType="text"
+            android:gravity="center_vertical"
             android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toStartOf="@id/tv_email_at"
-            app:layout_constraintHorizontal_weight="1.2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_email_label" />
-
-        <!-- [13] 이메일 @ 기호 (누락되었던 text 속성 복구!) -->
-        <TextView
-            android:id="@+id/tv_email_at"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
-            android:text="@"
             android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@id/et_email"
-            app:layout_constraintEnd_toStartOf="@id/spinner_email_domain"
-            app:layout_constraintStart_toEndOf="@id/et_email"
-            app:layout_constraintTop_toTopOf="@id/et_email" />
-
-        <!-- [14] 이메일 도메인 스피너 -->
-        <Spinner
-            android:id="@+id/spinner_email_domain"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:background="@drawable/calendar_border"
-            android:paddingStart="8dp"
+            android:textSize="13sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@id/tv_email_at"
-            app:layout_constraintTop_toTopOf="@id/et_email" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_email_label"
+            tools:text="ham@naver.com" />
 
-        <!-- [15] 비밀번호 레이블 -->
+        <!-- [15] 새 비밀번호 레이블 (★여기서부터 패스워드 수정 영역 스타트!) -->
         <TextView
             android:id="@+id/tv_password_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:fontFamily="@font/danjunghea"
-            android:text="비밀번호"
+            android:text="새 비밀번호"
             android:textColor="@color/black"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_email" />
+            app:layout_constraintTop_toBottomOf="@id/tv_my_email_text" />
 
-        <!-- [16] 비밀번호 입력창 -->
+        <!-- [16] 새 비밀번호 입력창 -->
         <EditText
-            android:id="@+id/et_password"
+            android:id="@+id/et_new_password"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_marginTop="2dp"
@@ -245,22 +241,22 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_password_label" />
 
-        <!-- [17] 비밀번호 확인 레이블 -->
+        <!-- [17] 새 비밀번호 확인 레이블 -->
         <TextView
             android:id="@+id/tv_password_confirm_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:fontFamily="@font/danjunghea"
-            android:text="비밀번호 확인"
+            android:text="새 비밀번호 확인"
             android:textColor="@color/black"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_password" />
+            app:layout_constraintTop_toBottomOf="@id/et_new_password" />
 
-        <!-- [18] 비밀번호 확인 입력창 -->
+        <!-- [18] 새 비밀번호 확인 입력창 -->
         <EditText
-            android:id="@+id/et_password_confirm"
+            android:id="@+id/et_new_password_confirm"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_marginTop="2dp"
@@ -272,76 +268,23 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_password_confirm_label" />
 
-        <!-- [19] 보안 질문 레이블 -->
-        <TextView
-            android:id="@+id/tv_question_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="@font/danjunghea"
-            android:text="보안 질문 선정"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_password_confirm" />
-
-        <!-- [20] 당신의 답 레이블 -->
-        <TextView
-            android:id="@+id/tv_answer_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/danjunghea"
-            android:text="당신의 답"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="@id/et_answer"
-            app:layout_constraintTop_toTopOf="@id/tv_question_title" />
-
-        <!-- [21] 보안 질문 스피너 -->
-        <Spinner
-            android:id="@+id/spinner_question"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/calendar_border"
-            android:paddingStart="8dp"
-            app:layout_constraintEnd_toStartOf="@id/et_answer"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_question_title" />
-
-        <!-- [22] 보안 질문 답변 입력창 -->
-        <EditText
-            android:id="@+id/et_answer"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:background="@drawable/calendar_border"
-            android:inputType="text"
-            android:paddingStart="12dp"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@id/spinner_question"
-            app:layout_constraintTop_toTopOf="@id/spinner_question" />
-
-        <!-- [23] 회원가입 완료 버튼 -->
+        <!-- [23] 하단 상태 스위칭 조작 버튼 -->
         <Button
-            android:id="@+id/register_btn"
+            android:id="@+id/btn_save_profile"
             android:layout_width="0dp"
             android:layout_height="54dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="36dp"
             android:layout_marginBottom="16dp"
             android:backgroundTint="@color/green_w"
             android:fontFamily="@font/dangdang"
-            android:text="모든 정보가 입력되지 않았습니다"
+            android:text="수정가능"
             android:textColor="@color/black"
             android:textSize="15sp"
             app:cornerRadius="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/et_answer"
+            app:layout_constraintTop_toBottomOf="@id/et_new_password_confirm"
             tools:ignore="UnusedAttribute" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

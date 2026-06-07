@@ -27,17 +27,36 @@ public class SettingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
+        // 상단 뒤로가기 및 하단 액션 버튼 바인딩
         ImageView btnBack = findViewById(R.id.back_icon);
         TextView btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
         TextView btnLogout = findViewById(R.id.btnLogout);
 
+        // 친구 관리 버튼 가져오기
+        TextView btnFriend = findViewById(R.id.btnFriend);
+
+        // 🌟 [핵심 연동] XML에서 준비해 둔 '내 정보 열람' 버튼 가져오기!
+        TextView btnMyInfo = findViewById(R.id.btnMyInfo);
+
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
 
-        // 뒤로가기 버튼 클릭 -> 이전 화면으로 돌아가기
+        // 🔙 뒤로가기 버튼 클릭 -> 이전 화면(메인 또는 마이페이지)으로 돌아가기
         btnBack.setOnClickListener(v -> finish());
 
-        // 로그아웃 클릭 -> Firebase 로그아웃 후 첫 화면으로 이동
+        // 🌟 1. 내 정보 열람 클릭 -> 방금 만든 프로필 액티비티(ProfileActivity)로 스르륵 이동!
+        btnMyInfo.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
+
+        // 👥 2. 친구 관리 클릭 -> 친구초대 액티비티(InviteFriendActivity)로 이동
+        btnFriend.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, InviteFriendActivity.class);
+            startActivity(intent);
+        });
+
+        // 🚪 3. 로그아웃 클릭 -> Firebase 로그아웃 후 첫 화면으로 이동
         btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
             Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show();
@@ -45,18 +64,17 @@ public class SettingActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
-        // 회원 탈퇴 클릭 -> 비밀번호 확인 다이얼로그 표시
+
+        // 🚨 4. 회원 탈퇴 클릭 -> 비밀번호 확인 다이얼로그 표시
         btnDeleteAccount.setOnClickListener(v -> showDeleteDialog());
     }
 
     private void showDeleteDialog() {
-        // 로그인된 사용자가 없으면 탈퇴를 진행하지 않음
         if (user == null || user.getEmail() == null) {
             Toast.makeText(this, "로그인된 사용자가 없습니다", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 계정 삭제 전에 비밀번호를 다시 입력받음
         EditText passwordInput = new EditText(this);
         passwordInput.setHint("비밀번호를 다시 입력하세요");
         passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -78,11 +96,9 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     private void deleteAccount(String password) {
-        // Firebase 계정 삭제 전 재인증에 사용할 정보 생성
         String email = user.getEmail();
         AuthCredential credential = EmailAuthProvider.getCredential(email, password);
 
-        // 비밀번호 재확인 후 계정 삭제 진행
         user.reauthenticate(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {

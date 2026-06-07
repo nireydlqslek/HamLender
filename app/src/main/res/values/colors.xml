@@ -5,24 +5,19 @@
 
     <color name="ham_background">#FCF1EC</color>
 
+    <!-- 🌟 다른 레이아웃 파일들이 애타게 찾고 있는 바로 그 색상! -->
+    <color name="background_w">#FDF2ED</color>
 
-    <color name="background_w">FDF2ED</color>
-    <color name="ham_vrlight_brown" >#C8B2A3 </color>
-    <color name="ham_light_brown" > #8A6A5A</color>
+    <color name="ham_vrlight_brown">#C8B2A3</color>
+    <color name="ham_light_brown">#8A6A5A</color>
     <color name="ham_brown">#5A3D33</color>
     <color name="ham_dark_brown">#2C1B14</color>
 
+    <color name="line_o">#f4bfb2</color>
 
-    <color name="line_o">#f4bfb2 </color>
-
-
-    <color name="green_w">#E2F0D9 </color>
+    <color name="green_w">#E2F0D9</color>
     <color name="button_o">#3D2E27</color>
     <color name="maincolor">#E9692C</color>
     <color name="namecolor">#80361A</color>
     <color name="basey">#FBF9F7</color>
-
-
-
-
 </resources>
