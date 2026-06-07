@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://tools.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".InviteFriendActivity"
+    android:background="@color/ham_background">
+
+    <!-- ================= 상단 타이틀 ================= -->
+    <TextView
+        android:id="@+id/nameTitle"
+        android:layout_width="92dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="36dp"
+        android:fontFamily="@font/moyamoya"
+        android:text="햄린더"
+        android:textColor="@color/maincolor"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- ================= 상단 메뉴 아이콘 ================= -->
+    <ImageView
+        android:id="@+id/menu_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="menu"
+        app:layout_constraintBottom_toBottomOf="@id/nameTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.905"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/nameTitle"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/menu_24px"
+        app:tint="@color/maincolor" />
+
+    <!-- =============================================================
+         🌟 핵심: 친구가 추가되면 오른쪽으로 무한히 늘어나는 가로 프로필 라인
+         ============================================================= -->
+    <HorizontalScrollView
+        android:id="@+id/profileScrollView"
+        android:layout_width="0dp"
+        android:layout_height="90dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/nameTitle"
+        app:layout_constraintTop_toBottomOf="@id/nameTitle">
+
+        <!-- 자바 코드에서 원형 프로필들을 쏙쏙 꽂아줄 가로 상자 컨테이너 -->
+        <LinearLayout
+            android:id="@+id/layoutProfileContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- [1] 고정된 '나' 프로필 원 -->
+            <FrameLayout
+                android:id="@+id/plusFrame"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/bg_green_circle">
+
+                <TextView
+                    android:id="@+id/tv_me_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="나"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- [2] 친구 추가 (+) 버튼 원 (친구가 추가되면 이 녀석이 자동으로 오른쪽으로 밀립니다!) -->
+            <FrameLayout
+                android:id="@+id/circleFrame"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/bg_green_circle">
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/new_window_24px" />
+            </FrameLayout>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

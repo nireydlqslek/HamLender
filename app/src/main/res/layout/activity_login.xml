@@ -94,6 +94,48 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginbutton" />
 
+    <TextView
+        android:id="@+id/findId_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/simplehea"
+        android:padding="4dp"
+        android:text="아이디 찾기"
+        android:textColor="@color/ham_light_brown"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toStartOf="@id/findDivider"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_textView" />
+
+    <TextView
+        android:id="@+id/findDivider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="|"
+        android:textColor="@color/ham_vrlight_brown"
+        app:layout_constraintBottom_toBottomOf="@id/findId_textView"
+        app:layout_constraintEnd_toStartOf="@id/findPw_textView"
+        app:layout_constraintStart_toEndOf="@id/findId_textView"
+        app:layout_constraintTop_toTopOf="@id/findId_textView" />
+
+    <TextView
+        android:id="@+id/findPw_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/simplehea"
+        android:padding="4dp"
+        android:text="비밀번호 찾기"
+        android:textColor="@color/ham_light_brown"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/findId_textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/findDivider"
+        app:layout_constraintTop_toTopOf="@id/findId_textView" />
+
     <Button
         android:id="@+id/loginbutton"
         android:layout_width="168dp"

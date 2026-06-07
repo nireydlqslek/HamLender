@@ -39,6 +39,8 @@ android {
 dependencies {
 
     implementation(libs.recyclerview)
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     // ✅ 이것도 Kotlin DSL 스타일로
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 

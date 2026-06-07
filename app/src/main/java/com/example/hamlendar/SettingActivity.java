@@ -31,6 +31,8 @@ public class SettingActivity extends AppCompatActivity {
         TextView btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
         TextView btnLogout = findViewById(R.id.btnLogout);
         TextView btnCategory = findViewById(R.id.btnCategory);
+        TextView btnMyInfo = findViewById(R.id.btnMyInfo);
+        TextView btnFriend = findViewById(R.id.btnFriend);
 
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
@@ -51,6 +53,12 @@ public class SettingActivity extends AppCompatActivity {
 
         btnCategory.setOnClickListener(v -> startActivity
                 (new Intent(SettingActivity.this, CategoryActivity.class)));
+
+        btnMyInfo.setOnClickListener(v ->
+                startActivity(new Intent(SettingActivity.this, ProfileActivity.class)));
+
+        btnFriend.setOnClickListener(v ->
+                startActivity(new Intent(SettingActivity.this, InviteFriendActivity.class)));
     }
 
     private void showDeleteDialog() {
