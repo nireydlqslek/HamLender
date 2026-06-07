@@ -88,10 +88,14 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
 
         btnDiary.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
@@ -439,7 +443,8 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            int dialogWidth = (int) (getResources().getDisplayMetrics().widthPixels * 0.86f);
+            dialog.getWindow().setLayout(dialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
@@ -500,16 +505,8 @@ public class MainActivity extends AppCompatActivity {
 
             view.setOnClickListener(v -> {
                 if (day != null && day.getPosition() == DayPosition.MonthDate) {
-                    openDiaryForDate(day.getDate());
-                }
-            });
-
-            view.setOnLongClickListener(v -> {
-                if (day != null && day.getPosition() == DayPosition.MonthDate) {
                     showScheduleDialog(day.getDate());
-                    return true;
                 }
-                return false;
             });
         }
     }

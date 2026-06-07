@@ -50,7 +50,11 @@ public class DiaryListActivity extends AppCompatActivity {
         btnSelectDelete = findViewById(R.id.btnSelectDelete);
         btnDeleteAll = findViewById(R.id.btnDeleteAll);
         View fabAddDiary = findViewById(R.id.fabAddDiary);
+        ImageView btnHealth = findViewById(R.id.img_diary_health);
         ImageView btnCal = findViewById(R.id.img_diary_cal);
+
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(DiaryListActivity.this, HealthActivity.class)));
 
         btnCal.setOnClickListener(v ->
                 startActivity(new Intent(DiaryListActivity.this, MainActivity.class)));

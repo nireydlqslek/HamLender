@@ -23,8 +23,8 @@
 
     <ImageView
         android:id="@+id/imageView01"
-        android:layout_width="304dp"
-        android:layout_height="292dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:contentDescription="hamster"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
@@ -86,25 +86,27 @@
         android:id="@+id/register_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/simplehea"
         android:text="회원가입 하러가기"
         android:textColor="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordtext" />
+        app:layout_constraintTop_toBottomOf="@+id/loginbutton" />
 
     <Button
         android:id="@+id/loginbutton"
         android:layout_width="168dp"
-        android:layout_height="49dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:backgroundTint="@color/maincolor"
+        android:background="@drawable/bg_button_orange_rounded"
         android:fontFamily="@font/dangdang"
         android:text="로그인"
+        android:textColor="@color/white"
         android:textSize="20sp"
+        app:backgroundTint="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/register_textView" />
+        app:layout_constraintTop_toBottomOf="@+id/passwordtext" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
