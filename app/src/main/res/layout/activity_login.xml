@@ -93,7 +93,7 @@
         android:id="@+id/loginbutton"
         android:layout_width="168dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/bg_button_orange_rounded"
         android:fontFamily="@font/dangdang"
         android:text="로그인"
@@ -102,21 +102,21 @@
         app:backgroundTint="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordtext" />
+        app:layout_constraintTop_toBottomOf="@+id/findId_textView" />
 
     <!-- 8. 정중앙에 위치할 회원가입 하러가기 -->
     <TextView
         android:id="@+id/register_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/simplehea"
         android:padding="8dp"
         android:text="회원가입 하러가기"
         android:textColor="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginbutton" />
+        app:layout_constraintTop_toBottomOf="@+id/passwordtext" />
 
     <!-- 9. 최하단: 회원가입 하러가기 밑에 중앙 정렬로 배치되는 아이디/비밀번호 찾기 -->
     <TextView
