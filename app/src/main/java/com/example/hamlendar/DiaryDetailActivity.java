@@ -226,6 +226,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
         Window window = dialog.getWindow();
 
         if (window != null) {
+
+            // Dialog 바깥 배경 투명 처리
+            window.setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(
+                            android.graphics.Color.TRANSPARENT
+                    )
+            );
+
             window.setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -234,15 +242,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
             // 뒤 배경 어둡게
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-            WindowManager.LayoutParams params = window.getAttributes();
+            WindowManager.LayoutParams params =
+                    window.getAttributes();
 
-            // 어두워지는 정도
-            // 0.0 = 안 어두움
-            // 1.0 = 완전 검정
             params.dimAmount = 0.45f;
 
             window.setAttributes(params);
         }
+
 
         TimeTable bigTimeTable =
                 dialog.findViewById(R.id.bigTimeTable);
