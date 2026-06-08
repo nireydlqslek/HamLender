@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView; // 🌟 TextView 임포트 추가
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -47,6 +48,9 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner spinnerQuestion;
     private EditText etAnswer;
     private Button registerBtn;
+
+    // 🌟 "로그인 하러가기" 텍스트뷰 변수 선언
+    private TextView tvGotoLogin;
 
     private FrameLayout profileFrame;
     private ImageView profileImageView;
@@ -102,6 +106,9 @@ public class RegisterActivity extends AppCompatActivity {
         etAnswer = findViewById(R.id.et_answer);
         registerBtn = findViewById(R.id.register_btn);
 
+        // 🌟 "로그인 하러가기" ID 연결
+        tvGotoLogin = findViewById(R.id.gotologin);
+
         profileFrame = findViewById(R.id.profileFrame);
         profileImageView = findViewById(R.id.imageView3);
 
@@ -112,6 +119,13 @@ public class RegisterActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
             pickImageLauncher.launch(intent);
+        });
+
+        // 🌟 "로그인 하러가기" 버튼 클릭 시 로그인 액티비티로 가는 문 추가
+        tvGotoLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish(); // 로그인 화면으로 가면서 회원가입 화면은 스택에서 완전히 닫아줍니다!
         });
 
         // 이메일 도메인 어댑터 세팅
