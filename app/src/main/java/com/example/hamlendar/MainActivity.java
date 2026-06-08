@@ -63,20 +63,6 @@ public class MainActivity extends AppCompatActivity {
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
     // 🌟 일정을 통째로 보관할 클래스 (아이디, 제목, 카테고리, 메모)
-    static final class ScheduleItem {
-        final String id;
-        final String title;
-        final String category;
-        final String memo;
-
-        public ScheduleItem(String id, String title, String category, String memo) {
-            this.id = id;
-            this.title = title;
-            this.category = category;
-            this.memo = memo;
-        }
-    }
-
     // 🔥 단순 String이 아니라, ScheduleItem 전체를 담아두는 맵
 
     @Override
