@@ -27,6 +27,8 @@ public class LoginActivity extends AppCompatActivity {
         password = findViewById(R.id.passwordtext);
         Button loginBtn = findViewById(R.id.loginbutton);
         TextView registerMove = findViewById(R.id.register_textView);
+        TextView findIdMove = findViewById(R.id.findId_textView);
+        TextView findPwMove = findViewById(R.id.findPw_textView);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -34,6 +36,12 @@ public class LoginActivity extends AppCompatActivity {
 
         registerMove.setOnClickListener(v ->
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
+
+        findIdMove.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, FindIdActivity.class)));
+
+        findPwMove.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, FindPwActivity.class)));
     }
 
     private void login() {
