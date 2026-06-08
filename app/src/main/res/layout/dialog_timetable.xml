@@ -37,27 +37,27 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#FF5252" />
+            android:background="#F9E1D9" />
 
         <View
             android:id="@+id/colorOrange"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#FF9800" />
+            android:background="#FDEECA" />
 
         <View
             android:id="@+id/colorGreen"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="#4CAF50" />
+            android:background="#F0F4CF" />
 
         <View
             android:id="@+id/colorBlue"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#2196F3" />
+            android:background="#EBEEF6" />
 
         <Button
             android:id="@+id/btnEditLabelTimeTable"

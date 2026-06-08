@@ -33,6 +33,7 @@ import android.widget.Button;
 
 import android.text.InputType;
 import android.view.inputmethod.EditorInfo;
+import android.text.InputFilter;
 
 public class DiaryDetailActivity extends AppCompatActivity {
 
@@ -291,6 +292,8 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
         bigTimeTable.setCells(miniTimeTable.getCells());
+        bigTimeTable.setGroupIds(miniTimeTable.getGroupIds());
+        bigTimeTable.setGroupLabels(miniTimeTable.getGroupLabels());
 
         // 색상 선택
         colorRed.setOnClickListener(v -> {
@@ -345,6 +348,8 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
             // 큰 타임테이블 내용을 미니 타임테이블에 반영
             miniTimeTable.setCells(bigTimeTable.getCells());
+            miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
+            miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
 
             // 미니 타임테이블은 다시 보기 전용 유지
             miniTimeTable.setEditable(false);
@@ -402,6 +407,9 @@ public class DiaryDetailActivity extends AppCompatActivity {
         bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
 
             EditText input = new EditText(this);
+            input.setFilters(new InputFilter[]{
+                    new InputFilter.LengthFilter(7)
+            });
             input.setHint("라벨");
             input.setSingleLine(true);
 
@@ -422,6 +430,18 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
                     .setPositiveButton("저장", (dialogInterface, which) -> {
                         String label = input.getText().toString().trim();
+
+                        if (label.length() > 4) {
+
+                            Toast.makeText(
+                                    this,
+                                    "라벨은 최대 7글자까지 가능합니다",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            label = label.substring(0, 4);
+                        }
+
                         bigTimeTable.setGroupLabel(groupId, label);
                     })
 

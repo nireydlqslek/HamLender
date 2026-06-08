@@ -310,16 +310,11 @@ public class TimeTable extends View {
             float centerY = (top + bottom) / 2f
                     - ((textPaint.descent() + textPaint.ascent()) / 2f);
 
-            String displayLabel = fitLabelToWidth(
+            drawSpacedLabel(
+                    canvas,
                     label,
-                    right - left
-            );
-
-            canvas.drawText(
-                    displayLabel,
-                    centerX,
-                    centerY,
-                    textPaint
+                    bounds,
+                    centerY
             );
         }
 
@@ -372,6 +367,55 @@ public class TimeTable extends View {
         }
 
         return ellipsis;
+    }
+
+    private void drawSpacedLabel(
+            Canvas canvas,
+            String label,
+            GroupBounds bounds,
+            float centerY
+    ) {
+        if (label == null || label.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedLabel = label.trim();
+
+        if (trimmedLabel.length() > 7) {
+            trimmedLabel = trimmedLabel.substring(0, 7);
+        }
+
+        int textLength = trimmedLabel.length();
+
+        float left = (bounds.minCol + 1) * cellWidth;
+        float right = (bounds.maxCol + 2) * cellWidth;
+
+        float totalWidth = right - left;
+
+        if (textLength == 1) {
+            canvas.drawText(
+                    trimmedLabel,
+                    left + totalWidth / 2f,
+                    centerY,
+                    textPaint
+            );
+            return;
+        }
+
+        float gap = totalWidth / (textLength - 1 + 2);
+
+        float startX = left + gap;
+
+        for (int i = 0; i < textLength; i++) {
+            float x = startX + gap * i;
+
+            canvas.drawText(
+                    String.valueOf(trimmedLabel.charAt(i)),
+                    x,
+                    centerY,
+                    textPaint
+            );
+        }
     }
 
 
@@ -620,25 +664,37 @@ public class TimeTable extends View {
 
     //Undo 기능 시작--------------------------------------------------------------------------
 
+    private void removeUnusedLabels() {
+
+        List<Integer> unusedLabels = new ArrayList<>();
+
+        for (Integer groupId : groupLabels.keySet()) {
+            if (findGroupBounds(groupId) == null) {
+                unusedLabels.add(groupId);
+            }
+        }
+
+        for (Integer groupId : unusedLabels) {
+            groupLabels.remove(groupId);
+        }
+    }
+
     // 마지막 작업 되돌리기
     public void undoLastAction() {
 
-        // 되돌릴 작업이 없으면 종료
         if (undoStack.isEmpty()) {
             return;
         }
 
-        // 최근 작업 가져오기
         List<CellChange> lastChanges = undoStack.pop();
 
-        // 이전 색으로 복구
         for (CellChange change : lastChanges) {
-
-            cells[change.row][change.col]
-                    = change.beforeColor;
+            cells[change.row][change.col] = change.beforeColor;
+            groupIds[change.row][change.col] = change.beforeGroupId;
         }
 
-        // 화면 다시 그리기
+        removeUnusedLabels();
+
         invalidate();
     }
 
@@ -742,6 +798,22 @@ public class TimeTable extends View {
         return copyCells(cells);
     }
 
+    public int[][] getGroupIds() {
+        int[][] copied = new int[ROWS][COLS];
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                copied[row][col] = groupIds[row][col];
+            }
+        }
+
+        return copied;
+    }
+
+    public Map<Integer, String> getGroupLabels() {
+        return new HashMap<>(groupLabels);
+    }
+
     //데이터 반환 끝--------------------------------------------------------------------------
 
 
@@ -765,6 +837,28 @@ public class TimeTable extends View {
         }
 
         // 화면 다시 그리기
+        invalidate();
+    }
+
+    public void setGroupIds(int[][] newGroupIds) {
+        if (newGroupIds == null) return;
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                groupIds[row][col] = newGroupIds[row][col];
+            }
+        }
+
+        invalidate();
+    }
+
+    public void setGroupLabels(Map<Integer, String> newLabels) {
+        groupLabels.clear();
+
+        if (newLabels != null) {
+            groupLabels.putAll(newLabels);
+        }
+
         invalidate();
     }
 

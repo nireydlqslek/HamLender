@@ -7,6 +7,8 @@
     android:background="@color/background_w"
     tools:context=".DiaryDetailActivity">
 
+
+
     <!--좌측 상단 백 버튼-->
     <ImageView
         android:id="@+id/btnBack"
@@ -54,6 +56,7 @@
         android:paddingBottom="8dp"
         android:textColor="@color/black"
         android:textSize="13sp"
+        android:elevation="2dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toStartOf="@+id/menuIcon"
         app:layout_constraintStart_toEndOf="@+id/btnBack"
@@ -65,11 +68,20 @@
     <!--일기 작성란-->
     <!--    //텍스트 크기 수정 20 -> 12-->
     <!--    //차후 모서리 라운드처리 + 라인 두께 조절 예정-->
+
+    <!-- 작은 타임테이블 -->
+
+    <!-- 클릭 전용 투명 레이어 -->
+    <!-- 눌렀을 때 팝업 띄우기용 -->
+
+
+    <!--하단 삭제와 저장 부분 레이아웃-->
+
     <EditText
         android:id="@+id/editContent"
         android:layout_width="247dp"
         android:layout_height="501dp"
-        android:layout_marginStart="18dp"
+        android:layout_marginStart="15dp"
         android:background="@drawable/edittext_box"
         android:fontFamily="@font/simplehea"
         android:gravity="top|start"
@@ -81,6 +93,7 @@
         android:textColor="@color/black"
         android:textColorHint="#777777"
         android:textSize="12sp"
+        android:elevation="2dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintHorizontal_bias="0.0"
@@ -88,22 +101,16 @@
         app:layout_constraintTop_toTopOf="@+id/guideline"
         app:layout_constraintVertical_bias="0.744" />
 
-    <!-- 작은 타임테이블 -->
-
-    <!-- 클릭 전용 투명 레이어 -->
-    <!-- 눌렀을 때 팝업 띄우기용 -->
-
-
-    <!--하단 삭제와 저장 부분 레이아웃-->
-
     <FrameLayout
 
         android:id="@+id/timeTableContainer"
-        android:layout_width="103dp"
+        android:layout_width="120dp"
         android:layout_height="501dp"
-        android:layout_marginStart="18dp"
+        android:layout_marginStart="15dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/edittext_box"
+        android:elevation="2dp"
+
 
         app:layout_constraintBottom_toTopOf="@id/guideline2"
         app:layout_constraintEnd_toEndOf="parent"
@@ -146,25 +153,30 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <!--    우측 하단 좌측 삭제버튼 (추후 아이콘으로 변경 )-->
-        <Button
-            android:id="@+id/btnDeleteDiary"
-            android:layout_width="76dp"
-            android:layout_height="35dp"
-            tools:ignore="TouchTargetSizeCheck"
-            android:layout_marginEnd="8dp"
-            android:backgroundTint="@color/maincolor"
-            android:fontFamily="@font/dangdang"
-            android:text="삭제" />
 
         <!--    우측 하단 우측 저장 버튼 (추후 아이콘으로 변경 )-->
-        <Button
+
+        <ImageButton
+            android:id="@+id/btnDeleteDiary"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:adjustViewBounds="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="삭제"
+            android:padding="3dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/delete" />
+
+        <ImageButton
             android:id="@+id/btnSave"
-            android:layout_width="76dp"
-            android:layout_height="35dp"
-            tools:ignore="TouchTargetSizeCheck"
-            android:backgroundTint="@color/maincolor"
-            android:fontFamily="@font/dangdang"
-            android:text="저장" />
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="저장"
+            android:padding="3dp"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/upward" />
     </LinearLayout>
 
     <!--    하단 메인 버튼 3개-->
@@ -223,7 +235,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="276dp" />
+        app:layout_constraintGuide_begin="272dp" />
 
     <!--    상단의 개방감을 위해 추가됨-->
     <androidx.constraintlayout.widget.Guideline
