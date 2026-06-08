@@ -31,6 +31,9 @@ import androidx.appcompat.app.AlertDialog;
 import android.widget.EditText;
 import android.widget.Button;
 
+import android.text.InputType;
+import android.view.inputmethod.EditorInfo;
+
 public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
@@ -259,6 +262,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
         View colorBlue =
                 dialog.findViewById(R.id.colorBlue);
 
+        Button btnEditLabel =
+                dialog.findViewById(R.id.btnEditLabelTimeTable);
+
+        final boolean[] isLabelEditMode = {false};
+
         // 큰 타임테이블은 편집 가능
         bigTimeTable.setEditable(true);
 
@@ -279,18 +287,34 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         // 색상 선택
         colorRed.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF5252");
         });
 
         colorOrange.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF9800");
         });
 
         colorGreen.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#4CAF50");
         });
 
         colorBlue.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#2196F3");
         });
 
@@ -302,26 +326,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 dialog.findViewById(R.id.btnClearAllTimeTable);
 
 
-        //되돌리기
-        colorRed.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF5252");
-        });
-
-        colorOrange.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF9800");
-        });
-
-        colorGreen.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#4CAF50");
-        });
-
-        colorBlue.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#2196F3");
-        });
 
         //지우개
         btnUndo.setOnClickListener(v -> {
@@ -345,24 +349,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         dialog.show();
 
-        bigTimeTable.setOnDragCompleteListener(groupId -> {
-
-            EditText input = new EditText(this);
-            input.setHint("예: 수업, 운동, 알바");
-
-            new AlertDialog.Builder(this)
-                    .setTitle("라벨 입력")
-                    .setView(input)
-
-                    .setNegativeButton("건너뛰기", null)
-
-                    .setPositiveButton("저장", (dialogInterface, which) -> {
-                        String label = input.getText().toString().trim();
-                        bigTimeTable.setGroupLabel(groupId, label);
-                    })
-
-                    .show();
-        });
 
         Button btnClearAll =
                 dialog.findViewById(R.id.btnClearAllTimeTable);
@@ -381,6 +367,61 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
                     .show();
         });
+
+
+// 라벨 수정 버튼
+        btnEditLabel.setOnClickListener(v -> {
+
+            isLabelEditMode[0] = !isLabelEditMode[0];
+
+            if (isLabelEditMode[0]) {
+
+                bigTimeTable.setLabelEditMode(true);
+
+                btnEditLabel.setText("수정 완료");
+
+            } else {
+
+                bigTimeTable.setLabelEditMode(false);
+
+                btnEditLabel.setText("라벨 수정");
+            }
+        });
+
+
+
+        bigTimeTable.setLabelEditMode(false);
+
+        bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
+
+            EditText input = new EditText(this);
+            input.setHint("라벨");
+            input.setSingleLine(true);
+
+            if (currentLabel != null) {
+                input.setText(currentLabel);
+                input.setSelection(currentLabel.length());
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("라벨 수정")
+                    .setView(input)
+
+                    .setNegativeButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.setGroupLabel(groupId, "");
+                    })
+
+                    .setNeutralButton("취소", null)
+
+                    .setPositiveButton("저장", (dialogInterface, which) -> {
+                        String label = input.getText().toString().trim();
+                        bigTimeTable.setGroupLabel(groupId, label);
+                    })
+
+                    .show();
+        });
+
+
     }
 
 
