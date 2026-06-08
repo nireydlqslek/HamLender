@@ -4,13 +4,13 @@
     <!-- 배경 -->
     <solid android:color="#FFFFFF" />
 
-    <!-- 둥근 모서리 -->
+    <!-- 라운드 -->
     <corners android:radius="18dp" />
 
-    <!-- 얇은 라인 -->
+    <!-- 얇은 연회색 라인 -->
     <stroke
         android:width="0.6dp"
-        android:color="#F8E1CE" />
+        android:color="#DDDDDD" />
 
     <!-- 내부 여백 -->
     <padding
