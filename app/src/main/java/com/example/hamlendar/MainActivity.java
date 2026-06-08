@@ -74,10 +74,14 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
 
         btnDiary.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
