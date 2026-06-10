@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ham_background"
+    android:fillViewport="true"
+    tools:context=".FindPwActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="40dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="40dp">
+
+        <!-- [1] 왼쪽 상단 뒤로가기 아이콘 -->
+        <ImageView
+            android:id="@+id/btn_back_pw"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="뒤로가기"
+            android:focusable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/abc_ic_ab_back_material"
+            app:tint="@color/maincolor" />
+
+        <!-- [2] 타원형 하얀색 말풍선 도형 영역 -->
+        <FrameLayout
+            android:id="@+id/bubbleFramePw"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_oval_bubble"
+            android:backgroundTint="@color/white"
+            android:paddingStart="24dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_back_pw">
+
+            <TextView
+                android:id="@+id/tv_bubble_text_pw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/danjunghea"
+                android:text="비밀번호를 잊으시다니!\n제가 찾아볼게요!"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:lineSpacingExtra="4dp" />
+        </FrameLayout>
+
+        <!-- [3] 중앙 배열 열쇠 햄스터 이미지 액자 -->
+        <FrameLayout
+            android:id="@+id/profileFramePw"
+            android:layout_width="200dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/profile_border"
+            android:padding="5dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bubbleFramePw">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardPreventCornerOverlap="false">
+
+                <ImageView
+                    android:id="@+id/imageViewPw"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/hampic2" /> <!-- 돋보기나 열쇠 햄스터 이미지 연동 -->
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
+
+        <!-- [4] 별명 레이블 (가운데 정렬) -->
+        <TextView
+            android:id="@+id/tv_nickname_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="별명"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/et_findPw_nickname"
+            app:layout_constraintStart_toStartOf="@id/et_findPw_nickname"
+            app:layout_constraintTop_toBottomOf="@+id/profileFramePw" />
+
+        <!-- [5] 별명 입력창 -->
+        <EditText
+            android:id="@+id/et_findPw_nickname"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="text"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_nickname_label" />
+
+        <!-- [6] 전화번호 레이블 (가운데 정렬) -->
+        <TextView
+            android:id="@+id/tv_phone_label_pw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="전화번호"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/et_findPw_phone"
+            app:layout_constraintStart_toStartOf="@id/et_findPw_phone"
+            app:layout_constraintTop_toBottomOf="@id/et_findPw_nickname" />
+
+        <!-- [7] 전화번호 입력창 -->
+        <EditText
+            android:id="@+id/et_findPw_phone"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="phone"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_phone_label_pw" />
+
+        <!-- [8] 보안 질문 및 당신의 답 레이블 (가운데 배치되도록 묶기) -->
+        <TextView
+            android:id="@+id/tv_question_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="보안 질문 및 당신의 답은?"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_findPw_phone" />
+
+        <!-- [9] 보안 질문 스피너 (가입창처럼 가로 비율 분할 배치) -->
+        <Spinner
+            android:id="@+id/spinner_findPw_question"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/calendar_border"
+            android:paddingStart="8dp"
+            app:layout_constraintEnd_toStartOf="@id/et_findPw_answer"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_question_title" />
+
+        <!-- [10] 당신의 답 입력창 -->
+        <EditText
+            android:id="@+id/et_findPw_answer"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="text"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toEndOf="@id/spinner_findPw_question"
+            app:layout_constraintTop_toTopOf="@id/spinner_findPw_question" />
+
+        <!-- [11] 결과 안내 출력 창 -->
+        <TextView
+            android:id="@+id/tv_findPw_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/simplehea"
+            android:text="조회 결과가 여기에 표시됩니다."
+            android:textColor="@color/namecolor"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/spinner_findPw_question" />
+
+        <!-- [12] 연두색 찾기 완료 버튼 -->
+        <Button
+            android:id="@+id/btn_do_findPw"
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/green_w"
+            android:fontFamily="@font/dangdang"
+            android:text="비밀번호 찾기"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_findPw_result" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

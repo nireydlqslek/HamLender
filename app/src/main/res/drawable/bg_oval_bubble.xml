@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 둥글둥글한 타원형 주머니 모양 정의 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- 바탕색을 완전히 하얀색으로 채우기 -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- 모서리를 아주 많이 깎아서 타원형(알약 모양)으로 만들기 -->
+    <corners android:radius="100dp" />
+
+    <!-- 햄린더 메인 테마색으로 이쁜 테두리선 두르기 (2dp 두께) -->
+    <stroke
+        android:width="2dp"
+        android:color="@color/maincolor" />
+</shape>

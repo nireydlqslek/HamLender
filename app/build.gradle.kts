@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -34,11 +35,15 @@ android {
         // ✅ Kotlin DSL에서는 이렇게 써야 함
         isCoreLibraryDesugaringEnabled = true
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
 
     implementation(libs.recyclerview)
+    implementation(libs.core.ktx)
     // ✅ 이것도 Kotlin DSL 스타일로
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 

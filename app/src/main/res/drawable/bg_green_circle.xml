@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- 안쪽 채우기 색상 -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- 테두리 두께와 색상 (green_w 컬러가 등록되어 있다면 @color/green_w 로 바꾸셔도 좋습니다) -->
+    <stroke
+        android:width="2dp"
+        android:color="@color/green_w" />
+
+</shape>

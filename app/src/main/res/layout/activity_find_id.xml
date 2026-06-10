@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ham_background"
+    android:fillViewport="true"
+    tools:context=".FindIdActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="40dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="40dp">
+
+        <!-- [1] 왼쪽 상단 뒤로가기 아이콘 -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="뒤로가기"
+            android:focusable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/abc_ic_ab_back_material"
+            app:tint="@color/maincolor" />
+
+        <!-- [2] 타원형 하얀색 말풍선 도형 영역 (가로세로 하드코딩 수치를 0dp 체인으로 유연하게 수정!) -->
+        <FrameLayout
+            android:id="@+id/bubbleFrame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_oval_bubble"
+            android:backgroundTint="@color/white"
+            android:paddingStart="24dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_back">
+
+            <TextView
+                android:id="@+id/tv_bubble_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/danjunghea"
+                android:text="아이디를 잊으시다니!\n제가 찾아볼게요!"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:lineSpacingExtra="4dp" />
+        </FrameLayout>
+
+        <!-- [3] 중앙 배열 돋보기 햄스터 이미지 액자 -->
+        <FrameLayout
+            android:id="@+id/profileFrame"
+            android:layout_width="200dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/profile_border"
+            android:padding="5dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bubbleFrame">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardPreventCornerOverlap="false">
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/hamsearch" />
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
+
+        <!-- [4] 이름 레이블 (⭐ 양쪽 제약을 다 걸고 wrap_content로 바꾸어 완벽히 중앙 정렬!) -->
+        <TextView
+            android:id="@+id/tv_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="이름"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/et_name"
+            app:layout_constraintStart_toStartOf="@id/et_name"
+            app:layout_constraintTop_toBottomOf="@+id/profileFrame" />
+
+        <!-- [5] 이름 입력창 -->
+        <EditText
+            android:id="@+id/et_name"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="textPersonName"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_name_label" />
+
+        <!-- [6] 전화번호 레이블 (⭐ 양쪽 제약을 다 걸고 wrap_content로 바꾸어 완벽히 중앙 정렬!) -->
+        <TextView
+            android:id="@+id/tv_phone_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="전화번호"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/et_phone"
+            app:layout_constraintStart_toStartOf="@id/et_phone"
+            app:layout_constraintTop_toBottomOf="@id/et_name" />
+
+        <!-- [7] 전화번호 입력창 -->
+        <EditText
+            android:id="@+id/et_phone"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="phone"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_phone_label" />
+
+        <!-- [8] 생년월일 8자리 레이블 (⭐ 양쪽 제약을 다 걸고 wrap_content로 바꾸어 완벽히 중앙 정렬!) -->
+        <TextView
+            android:id="@+id/tv_birth_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/danjunghea"
+            android:text="생년월일 8자리 (EX: 20260601)"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/et_birth"
+            app:layout_constraintStart_toStartOf="@+id/et_birth"
+            app:layout_constraintTop_toBottomOf="@+id/et_phone" />
+
+        <!-- [9] 생년월일 입력창 (⭐ 주석 태그 오타 수정 및 가독성 최적화) -->
+        <EditText
+            android:id="@+id/et_birth"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/calendar_border"
+            android:inputType="number"
+            android:maxLength="8"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_birth_label" />
+
+        <!-- [10] 결과 안내 출력 창 -->
+        <TextView
+            android:id="@+id/tv_findId_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/simplehea"
+            android:text="조회 결과가 여기에 표시됩니다."
+            android:textColor="@color/namecolor"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_birth" />
+
+        <!-- [11] 초록색 찾기 완료 버튼 (중앙 배치 방해하던 불필요한 바이어스 속성 제거!) -->
+        <Button
+            android:id="@+id/btn_do_findId"
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/green_w"
+            android:fontFamily="@font/dangdang"
+            android:text="아이디 찾기"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_findId_result" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
