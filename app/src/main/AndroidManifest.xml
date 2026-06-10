@@ -22,6 +22,21 @@
             android:name=".DiaryListActivity"
             android:exported="false" />
         <activity
+            android:name=".HealthActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FindPwActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FindIdActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InviteFriendActivity"
+            android:exported="false" />
+        <activity
             android:name=".SettingActivity"
             android:exported="false" />
         <activity

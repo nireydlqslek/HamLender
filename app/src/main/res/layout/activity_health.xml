@@ -198,12 +198,14 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
+            android:id="@+id/img_health_health"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="건강"
             android:src="@drawable/hamicon" />
 
         <ImageView
+            android:id="@+id/img_health_cal"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="56dp"
@@ -212,6 +214,7 @@
             android:src="@drawable/hamcircle_w" />
 
         <ImageView
+            android:id="@+id/img_health_diary"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="일기"

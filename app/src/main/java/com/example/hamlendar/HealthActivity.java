@@ -1,5 +1,6 @@
 package com.example.hamlendar;
 
+import android.content.Intent;
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -87,6 +88,9 @@ public class HealthActivity extends AppCompatActivity {
         setContentView(R.layout.activity_health);
 
         ImageView btnBack = findViewById(R.id.btnBack);
+        ImageView btnHealth = findViewById(R.id.img_health_health);
+        ImageView btnCalendar = findViewById(R.id.img_health_cal);
+        ImageView btnDiary = findViewById(R.id.img_health_diary);
         btnDeleteHealth = findViewById(R.id.btnDeleteHealth);
         btnConfirmHealth = findViewById(R.id.btnConfirmHealth);
         btnCancelHealth = findViewById(R.id.btnCancelHealth);
@@ -99,6 +103,11 @@ public class HealthActivity extends AppCompatActivity {
         recyclerRoutine = findViewById(R.id.recyclerRoutine);
 
         btnBack.setOnClickListener(v -> finish());
+        btnHealth.setOnClickListener(v -> recyclerHealth.smoothScrollToPosition(0));
+        btnCalendar.setOnClickListener(v ->
+                startActivity(new Intent(HealthActivity.this, MainActivity.class)));
+        btnDiary.setOnClickListener(v ->
+                startActivity(new Intent(HealthActivity.this, DiaryListActivity.class)));
         btnDeleteHealth.setOnClickListener(v -> enterDeleteMode(DeleteTarget.HEALTH));
         btnConfirmHealth.setOnClickListener(v -> confirmDeleteSelected(DeleteTarget.HEALTH));
         btnCancelHealth.setOnClickListener(v -> exitDeleteMode());

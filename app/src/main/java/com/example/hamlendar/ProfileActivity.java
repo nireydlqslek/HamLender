@@ -22,6 +22,8 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.File;
+
 public class ProfileActivity extends AppCompatActivity {
 
     private ImageView btnBack;

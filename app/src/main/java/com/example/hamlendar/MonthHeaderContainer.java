@@ -8,9 +8,9 @@ import com.kizitonwose.calendar.view.ViewContainer;
 
 public class MonthHeaderContainer extends ViewContainer {
 
-    TextView tvMonth;
-    ImageView btnPrev;
-    ImageView btnNext;
+    final TextView tvMonth;
+    final ImageView btnPrev;
+    final ImageView btnNext;
 
     public MonthHeaderContainer(View view) {
         super(view);

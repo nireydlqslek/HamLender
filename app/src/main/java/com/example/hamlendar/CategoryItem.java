@@ -2,7 +2,7 @@ package com.example.hamlendar;
 
 import com.google.firebase.firestore.Exclude; // 🌟 추가
 
-public class CategoryItem {
+public final class CategoryItem {
     @Exclude // 파이어베이스에 다시 저장할 때 이 필드는 제외하도록 설정
     private String id;
     private String name;

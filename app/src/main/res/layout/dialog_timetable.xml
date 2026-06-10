@@ -2,8 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     android:orientation="vertical"
-    android:background="@color/background_w">
+
+    android:background="@drawable/bg_round_dialog"
+
+    android:padding="12dp">
 
     <!-- 상단 닫기 버튼 영역 -->
     <LinearLayout
@@ -30,31 +34,48 @@
 
         <View
             android:id="@+id/colorRed"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#FF5252" />
+            android:background="#F9E1D9" />
 
         <View
             android:id="@+id/colorOrange"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#FF9800" />
+            android:background="#FDEECA" />
 
         <View
             android:id="@+id/colorGreen"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_margin="8dp"
-            android:background="#4CAF50" />
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="#F0F4CF" />
 
         <View
             android:id="@+id/colorBlue"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_margin="8dp"
-            android:background="#2196F3" />
+            android:background="#EBEEF6" />
+
+        <Button
+            android:id="@+id/btnEditLabelTimeTable"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:text="라벨" />
+
+        <Button
+            android:id="@+id/btnUndoTimeTable"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:text="↶" />
+
+        <Button
+            android:id="@+id/btnClearAllTimeTable"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:text="⌫" />
     </LinearLayout>
 
     <!-- 큰 타임테이블 -->

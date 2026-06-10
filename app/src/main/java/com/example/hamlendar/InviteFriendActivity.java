@@ -3,6 +3,7 @@ package com.example.hamlendar;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;

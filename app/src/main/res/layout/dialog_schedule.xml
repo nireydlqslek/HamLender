@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:padding="24dp"
     android:layout_margin="16dp"
-    android:background="@drawable/bg_dialog_rounded"> <!-- 👈 아까 만든 예쁜 하얀색 배경을 적용했어요! -->
+    android:background="@drawable/bg_dialog_rounded">
 
     <!-- 선택한 날짜 -->
     <TextView
@@ -21,6 +21,7 @@
         android:id="@+id/layoutScheduleList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="210dp"
         android:orientation="vertical"
         android:layout_marginTop="16dp" />
 
@@ -28,12 +29,16 @@
     <Button
         android:id="@+id/btnAddSchedule"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="44dp"
         android:layout_marginTop="16dp"
-        android:text="+ 새로운 일정 추가하기"
-        android:textColor="@color/white"
+        android:background="@drawable/bg_schedule_add"
+        android:text="+ 일정 추가"
+        android:textColor="#666666"
         android:textStyle="bold"
-        android:backgroundTint="@color/maincolor" />
+        android:stateListAnimator="@null"
+        android:elevation="0dp"
+        android:backgroundTint="#F2F2F2"
+        />
 
     <!-- 일정 입력 폼 -->
     <LinearLayout

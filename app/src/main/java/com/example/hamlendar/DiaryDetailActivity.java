@@ -25,6 +25,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import androidx.appcompat.app.AlertDialog;
+
+import android.widget.EditText;
+import android.widget.Button;
+
+import android.text.InputType;
+import android.view.inputmethod.EditorInfo;
+import android.text.InputFilter;
 
 public class DiaryDetailActivity extends AppCompatActivity {
 
@@ -218,6 +227,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
         Window window = dialog.getWindow();
 
         if (window != null) {
+
+            // Dialog 바깥 배경 투명 처리
+            window.setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(
+                            android.graphics.Color.TRANSPARENT
+                    )
+            );
+
             window.setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -226,15 +243,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
             // 뒤 배경 어둡게
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-            WindowManager.LayoutParams params = window.getAttributes();
+            WindowManager.LayoutParams params =
+                    window.getAttributes();
 
-            // 어두워지는 정도
-            // 0.0 = 안 어두움
-            // 1.0 = 완전 검정
             params.dimAmount = 0.45f;
 
             window.setAttributes(params);
         }
+
 
         TimeTable bigTimeTable =
                 dialog.findViewById(R.id.bigTimeTable);
@@ -254,27 +270,76 @@ public class DiaryDetailActivity extends AppCompatActivity {
         View colorBlue =
                 dialog.findViewById(R.id.colorBlue);
 
+        Button btnEditLabel =
+                dialog.findViewById(R.id.btnEditLabelTimeTable);
+
+        final boolean[] isLabelEditMode = {false};
+
         // 큰 타임테이블은 편집 가능
         bigTimeTable.setEditable(true);
 
+        bigTimeTable.setOnRequestClearAllListener(() -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("전체 삭제")
+                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+                    .setNegativeButton("취소", null)
+                    .setPositiveButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.clearAll();
+                    })
+                    .show();
+        });
+
         // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
         bigTimeTable.setCells(miniTimeTable.getCells());
+        bigTimeTable.setGroupIds(miniTimeTable.getGroupIds());
+        bigTimeTable.setGroupLabels(miniTimeTable.getGroupLabels());
 
         // 색상 선택
         colorRed.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF5252");
         });
 
         colorOrange.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF9800");
         });
 
         colorGreen.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#4CAF50");
         });
 
         colorBlue.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#2196F3");
+        });
+
+        //색칠모드
+        Button btnUndo =
+                dialog.findViewById(R.id.btnUndoTimeTable);
+
+        Button btnEraser =
+                dialog.findViewById(R.id.btnClearAllTimeTable);
+
+
+
+        //지우개
+        btnUndo.setOnClickListener(v -> {
+            bigTimeTable.undoLastAction();
         });
 
 
@@ -283,6 +348,8 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
             // 큰 타임테이블 내용을 미니 타임테이블에 반영
             miniTimeTable.setCells(bigTimeTable.getCells());
+            miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
+            miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
 
             // 미니 타임테이블은 다시 보기 전용 유지
             miniTimeTable.setEditable(false);
@@ -293,6 +360,95 @@ public class DiaryDetailActivity extends AppCompatActivity {
         });
 
         dialog.show();
+
+
+        Button btnClearAll =
+                dialog.findViewById(R.id.btnClearAllTimeTable);
+
+        btnClearAll.setOnClickListener(v -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("전체 삭제")
+                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+
+                    .setNegativeButton("취소", null)
+
+                    .setPositiveButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.clearAll();
+                    })
+
+                    .show();
+        });
+
+
+// 라벨 수정 버튼
+        btnEditLabel.setOnClickListener(v -> {
+
+            isLabelEditMode[0] = !isLabelEditMode[0];
+
+            if (isLabelEditMode[0]) {
+
+                bigTimeTable.setLabelEditMode(true);
+
+                btnEditLabel.setText("수정 완료");
+
+            } else {
+
+                bigTimeTable.setLabelEditMode(false);
+
+                btnEditLabel.setText("라벨 수정");
+            }
+        });
+
+
+
+        bigTimeTable.setLabelEditMode(false);
+
+        bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
+
+            EditText input = new EditText(this);
+            input.setFilters(new InputFilter[]{
+                    new InputFilter.LengthFilter(7)
+            });
+            input.setHint("라벨");
+            input.setSingleLine(true);
+
+            if (currentLabel != null) {
+                input.setText(currentLabel);
+                input.setSelection(currentLabel.length());
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("라벨 수정")
+                    .setView(input)
+
+                    .setNegativeButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.setGroupLabel(groupId, "");
+                    })
+
+                    .setNeutralButton("취소", null)
+
+                    .setPositiveButton("저장", (dialogInterface, which) -> {
+                        String label = input.getText().toString().trim();
+
+                        if (label.length() > 4) {
+
+                            Toast.makeText(
+                                    this,
+                                    "라벨은 최대 7글자까지 가능합니다",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            label = label.substring(0, 4);
+                        }
+
+                        bigTimeTable.setGroupLabel(groupId, label);
+                    })
+
+                    .show();
+        });
+
+
     }
 
 

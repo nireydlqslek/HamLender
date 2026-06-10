@@ -63,22 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
     // 🌟 일정을 통째로 보관할 클래스 (아이디, 제목, 카테고리, 메모)
-    class ScheduleItem {
-        String id;
-        String title;
-        String category;
-        String memo;
-
-        public ScheduleItem(String id, String title, String category, String memo) {
-            this.id = id;
-            this.title = title;
-            this.category = category;
-            this.memo = memo;
-        }
-    }
-
     // 🔥 단순 String이 아니라, ScheduleItem 전체를 담아두는 맵
-    private Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,10 +74,14 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
 
         btnDiary.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
@@ -484,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
     // ViewContainer 클래스들
     // =========================
 
-    class DayViewContainer extends ViewContainer {
+    final class DayViewContainer extends ViewContainer {
         TextView tvDate;
         TextView tvEvent1, tvEvent2, tvEvent3, tvEvent4, tvEvent5, tvMore;
         CalendarDay day;
@@ -515,16 +504,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class MonthHeaderContainer extends ViewContainer {
-        TextView tvMonth;
-        ImageView btnPrev;
-        ImageView btnNext;
+    // =========================
+// 일기 화면 열기
+// =========================
+    private void openDiaryForDate(LocalDate date) {
 
-        public MonthHeaderContainer(View view) {
-            super(view);
-            tvMonth = view.findViewById(R.id.tvMonth);
-            btnPrev = view.findViewById(R.id.btnPrev);
-            btnNext = view.findViewById(R.id.btnNext);
-        }
+        Intent intent =
+                new Intent(MainActivity.this,
+                        DiaryDetailActivity.class);
+
+        // 선택한 날짜 전달
+        intent.putExtra("selectedDate",
+                date.toString());
+
+        startActivity(intent);
     }
 }
