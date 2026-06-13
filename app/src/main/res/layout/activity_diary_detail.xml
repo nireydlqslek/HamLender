@@ -7,6 +7,45 @@
     android:background="@color/background_w"
     tools:context=".DiaryDetailActivity">
 
+    <LinearLayout
+        android:id="@+id/layoutAiSummary"
+        android:layout_width="254dp"
+        android:layout_height="57dp"
+        android:background="@drawable/edittext_box"
+        android:backgroundTint="#F2F9F6"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:layout_editor_absoluteX="15dp"
+        tools:layout_editor_absoluteY="101dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ 하루 요약 ✨"
+            android:textColor="@color/maincolor"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDiarySummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="일기를 저장하면 AI 햄햄이 요약을 생성해 드려요."
+            android:textColor="@color/black"
+            android:textSize="11sp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/btnBack"
         android:layout_width="64dp"
@@ -59,11 +98,12 @@
 
     <EditText
         android:id="@+id/editContent"
-        android:layout_width="247dp"
-        android:layout_height="0dp"
+        android:layout_width="252dp"
+        android:layout_height="452dp"
         android:layout_marginStart="15dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="88dp"
         android:background="@drawable/edittext_box"
+        android:elevation="2dp"
         android:fontFamily="@font/simplehea"
         android:gravity="top|start"
         android:hint="일기를 입력하세요"
@@ -74,60 +114,15 @@
         android:textColor="@color/black"
         android:textColorHint="#777777"
         android:textSize="12sp"
-        android:elevation="2dp"
-        app:layout_constraintBottom_toTopOf="@+id/layoutAiSummary"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.125"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline" />
 
-    <LinearLayout
-        android:id="@+id/layoutAiSummary"
-        android:layout_width="247dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginBottom="12dp"
-        android:background="@drawable/edittext_box"
-        android:backgroundTint="#F2F9F6"
-        android:orientation="vertical"
-        android:padding="10dp"
-        android:elevation="2dp"
-        app:layout_constraintBottom_toTopOf="@+id/actionRow"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="✨ 하루 요약 ✨"
-            android:textColor="@color/maincolor"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvDiarySummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="일기를 저장하면 AI 햄햄이 요약을 생성해 드려요."
-            android:textColor="@color/black"
-            android:textSize="11sp" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="4dp"
-            android:visibility="gone" />
-    </LinearLayout>
-
     <FrameLayout
         android:id="@+id/timeTableContainer"
-        android:layout_width="120dp"
-        android:layout_height="501dp"
+        android:layout_width="121dp"
+        android:layout_height="521dp"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/edittext_box"
