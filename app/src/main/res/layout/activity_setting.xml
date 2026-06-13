@@ -69,14 +69,30 @@
             android:textSize="16sp" />
 
         <!-- 햄햄의 보고서 설정 -->
-        <TextView
+        <RelativeLayout
             android:id="@+id/btnReport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="햄햄의 보고서 설정"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:text="AI ON/OFF"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchAi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                app:thumbTint="@color/maincolor"
+                app:trackTint="@color/green_w" />
+        </RelativeLayout>
 
         <!-- 건강목록 편집 -->
         <TextView

@@ -6,10 +6,18 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.Job;
+import kotlinx.coroutines.BuildersKt;
+
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,11 +47,15 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
+    private static final String KEY_SUMMARY_PREFIX = "summary_";
 
     private TextView txtDate;
     private EditText editContent;
     private String originalContent = "";
     private boolean isSaved;
+
+    private TextView tvDiarySummary;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +64,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         txtDate = findViewById(R.id.txtDate);
         editContent = findViewById(R.id.editContent);
+
+        tvDiarySummary = findViewById(R.id.tvDiarySummary);
+        tvDiarySummary.setText("");
+        progressBar = findViewById(R.id.progressBar);
+
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView menuIcon = findViewById(R.id.menuIcon);
         Button btnSave = findViewById(R.id.btnSave);
@@ -60,11 +77,46 @@ public class DiaryDetailActivity extends AppCompatActivity {
         String date = getIntent().getStringExtra("date");
         String content = getIntent().getStringExtra("content");
 
-        originalContent = content == null ? "" : content;
+        originalContent =
+                content == null ? "" : content;
+
+
+        SharedPreferences settings =
+                getSharedPreferences("AppSettings", MODE_PRIVATE);
+//
+        boolean isAiEnabled =
+                settings.getBoolean("isAiEnabled", true);
+//
+//        if (!isAiEnabled) {
+//            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+//        }
+
 
         // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
         txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
         editContent.setText(originalContent);
+
+
+        String savedSummary =
+                getSharedPreferences(
+                        PREF_NAME,
+                        MODE_PRIVATE
+                )
+                        .getString(
+                                KEY_SUMMARY_PREFIX + txtDate.getText().toString(),
+                                ""
+                        );
+
+        if (isAiEnabled) {
+            if (!savedSummary.isEmpty()) {
+                tvDiarySummary.setText(savedSummary);
+        } else {
+            tvDiarySummary.setText("작성된 요약이 없습니다.");
+        }
+    } else {
+        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+    }
+
 
         // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
         btnBack.setOnClickListener(v -> handleBack());
@@ -111,7 +163,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
         if (isSaved || !hasChanged()) {
             finish();
         } else {
-            Toast.makeText(this, "저장 버튼을 눌러주세요", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "저장 버튼을 눌러 주세요", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -158,25 +210,45 @@ public class DiaryDetailActivity extends AppCompatActivity {
         try {
             JSONArray diaries = new JSONArray(json);
             JSONObject newDiary = new JSONObject();
+
             newDiary.put("date", date);
             newDiary.put("content", content);
 
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
+
                 if (date.equals(diary.optString("date"))) {
                     diaries.put(i, newDiary);
-                    prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
-                    Toast.makeText(this, "일기가 수정되었습니다", Toast.LENGTH_SHORT).show();
+                    prefs.edit().putString(
+                            KEY_DIARY_LIST,
+                            diaries.toString()
+                    ).apply();
+
+                    if (isAiEnabled()) {
+                        generateDiarySummary(content);
+                    } else {
+                        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+                        saveSummary(date, "AI 기능이 OFF 상태입니다.");
+                    }
+
+                    //generateDiarySummary(content);
+
+                    Toast.makeText(this,
+                            "일기가 수정되었습니다.",
+                            Toast.LENGTH_SHORT).show();
                     return true;
                 }
             }
 
             diaries.put(newDiary);
             prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
-            Toast.makeText(this, "일기가 저장되었습니다", Toast.LENGTH_SHORT).show();
+
+            generateDiarySummary(content);
+
+            Toast.makeText(this, "일기가 저장되었습니다.", Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
-            Toast.makeText(this, "일기를 저장할 수 없습니다", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "일기를 저장할 수 없습니다.", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
@@ -208,6 +280,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
             }
 
             prefs.edit().putString(KEY_DIARY_LIST, newDiaries.toString()).apply();
+
+            prefs.edit()
+                    .remove(KEY_SUMMARY_PREFIX + date)
+                    .apply();
+
             isSaved = true;
             Toast.makeText(this, "일기가 삭제되었습니다", Toast.LENGTH_SHORT).show();
             finish();
@@ -336,7 +413,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 dialog.findViewById(R.id.btnClearAllTimeTable);
 
 
-
         //지우개
         btnUndo.setOnClickListener(v -> {
             bigTimeTable.undoLastAction();
@@ -451,6 +527,95 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
     }
 
+    private void saveSummary(
+            String date,
+            String summary
+    ) {
 
+        SharedPreferences prefs =
+                getSharedPreferences(
+                        PREF_NAME,
+                        MODE_PRIVATE
+                );
+
+        prefs.edit()
+                .putString(
+                        KEY_SUMMARY_PREFIX + date,
+                        summary
+                )
+                .apply();
+    }
+
+
+    private boolean isAiEnabled() {
+
+        SharedPreferences settings =
+                getSharedPreferences("AppSettings", MODE_PRIVATE);
+
+        return settings.getBoolean("isAiEnabled", true);
+    }
+
+    private void generateSummary(String content) {
+
+        if (!isAiEnabled()) {
+            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            return;
+        }
+
+        if (content.length() > 30) {
+            tvDiarySummary.setText(
+                    content.substring(0, 30) + "..."
+            );
+        } else {
+            tvDiarySummary.setText(content);
+        }
+    }
+
+    private void generateDiarySummary(String content) {
+
+        if (!isAiEnabled()) {
+
+            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            return;
+        }
+
+
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        GeminiManager.INSTANCE.generateSummary(
+                content,
+                new GeminiManager.SummaryCallback() {
+
+                    @Override
+                    public void onSuccess(String summary) {
+
+                        runOnUiThread(() -> {
+
+                            progressBar.setVisibility(View.GONE);
+
+                            tvDiarySummary.setText(summary);
+
+                            saveSummary(
+                                    txtDate.getText().toString(),
+                                    summary
+                            );
+
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() -> {
+
+                            progressBar.setVisibility(View.GONE);
+                            tvDiarySummary.setText(error);
+
+                        });
+                    }
+                }
+        );
+    }
 
 }
