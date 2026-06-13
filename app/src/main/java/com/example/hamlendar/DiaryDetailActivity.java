@@ -1,47 +1,41 @@
 package com.example.hamlendar;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton; // 🌟 필수 추가: XML 도면의 ImageButton과 연결하기 위한 도구
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.Dispatchers;
-import kotlinx.coroutines.Job;
-import kotlinx.coroutines.BuildersKt;
-
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-
-import android.app.Dialog;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import androidx.appcompat.app.AlertDialog;
-
-import android.widget.EditText;
-import android.widget.Button;
-
-import android.text.InputType;
-import android.view.inputmethod.EditorInfo;
-import android.text.InputFilter;
+import java.util.Map;
 
 public class DiaryDetailActivity extends AppCompatActivity {
 
@@ -57,6 +51,9 @@ public class DiaryDetailActivity extends AppCompatActivity {
     private TextView tvDiarySummary;
     private ProgressBar progressBar;
 
+    private TimeTable miniTimeTable;
+    private View openTimeTableEditor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,75 +61,72 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         txtDate = findViewById(R.id.txtDate);
         editContent = findViewById(R.id.editContent);
-
         tvDiarySummary = findViewById(R.id.tvDiarySummary);
-        tvDiarySummary.setText("");
         progressBar = findViewById(R.id.progressBar);
 
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView menuIcon = findViewById(R.id.menuIcon);
-        Button btnSave = findViewById(R.id.btnSave);
-        Button btnDeleteDiary = findViewById(R.id.btnDeleteDiary);
+
+        // 🌟 [버그 해체] XML 도면과 매칭되도록 일반 Button에서 ImageButton으로 완벽 정정!
+        ImageButton btnSave = findViewById(R.id.btnSave);
+        ImageButton btnDeleteDiary = findViewById(R.id.btnDeleteDiary);
 
         String date = getIntent().getStringExtra("date");
         String content = getIntent().getStringExtra("content");
 
-        originalContent =
-                content == null ? "" : content;
+        originalContent = content == null ? "" : content;
 
-
-        SharedPreferences settings =
-                getSharedPreferences("AppSettings", MODE_PRIVATE);
-//
-        boolean isAiEnabled =
-                settings.getBoolean("isAiEnabled", true);
-//
-//        if (!isAiEnabled) {
-//            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
-//        }
-
+        SharedPreferences settings = getSharedPreferences("AppSettings", MODE_PRIVATE);
+        boolean isAiEnabled = settings.getBoolean("isAiEnabled", true);
 
         // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
-        txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
-        editContent.setText(originalContent);
-
-
-        String savedSummary =
-                getSharedPreferences(
-                        PREF_NAME,
-                        MODE_PRIVATE
-                )
-                        .getString(
-                                KEY_SUMMARY_PREFIX + txtDate.getText().toString(),
-                                ""
-                        );
-
-        if (isAiEnabled) {
-            if (!savedSummary.isEmpty()) {
-                tvDiarySummary.setText(savedSummary);
-        } else {
-            tvDiarySummary.setText("작성된 요약이 없습니다.");
+        if (txtDate != null) {
+            txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
         }
-    } else {
-        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
-    }
+        if (editContent != null) {
+            editContent.setText(originalContent);
+        }
 
+        if (tvDiarySummary != null && txtDate != null) {
+            String savedSummary = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                    .getString(KEY_SUMMARY_PREFIX + txtDate.getText().toString(), "");
+
+            if (isAiEnabled) {
+                if (!savedSummary.isEmpty()) {
+                    tvDiarySummary.setText(savedSummary);
+                } else {
+                    tvDiarySummary.setText("작성된 요약이 없습니다.");
+                }
+            } else {
+                tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            }
+        }
 
         // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
-        btnBack.setOnClickListener(v -> handleBack());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> handleBack());
+        }
 
         // 날짜 클릭 -> 일기 목록 화면으로 이동
-        txtDate.setOnClickListener(v ->
-                startActivity(new Intent(DiaryDetailActivity.this, DiaryListActivity.class)));
+        if (txtDate != null) {
+            txtDate.setOnClickListener(v ->
+                    startActivity(new Intent(DiaryDetailActivity.this, DiaryListActivity.class)));
+        }
 
         // 저장 버튼 클릭 -> 저장만 하고 현재 화면에 남아 있는다.
-        btnSave.setOnClickListener(v -> saveOnly());
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> saveOnly());
+        }
 
         // 삭제 버튼 클릭 -> 현재 일기 삭제
-        btnDeleteDiary.setOnClickListener(v -> confirmDeleteDiary());
+        if (btnDeleteDiary != null) {
+            btnDeleteDiary.setOnClickListener(v -> confirmDeleteDiary());
+        }
 
         // 메뉴 버튼 클릭 -> 저장/삭제 선택
-        menuIcon.setOnClickListener(v -> showDiaryMenu());
+        if (menuIcon != null) {
+            menuIcon.setOnClickListener(v -> showDiaryMenu());
+        }
 
         // 휴대폰 기본 뒤로가기도 화면의 뒤로가기 버튼과 똑같이 처리한다.
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -146,12 +140,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
         openTimeTableEditor = findViewById(R.id.openTimeTableEditor);
 
         // 미니 타임테이블은 보기 전용
-        miniTimeTable.setEditable(false);
+        if (miniTimeTable != null) {
+            miniTimeTable.setEditable(false);
+        }
 
         // 미니 타임테이블 클릭 시 큰 팝업 열기
-        openTimeTableEditor.setOnClickListener(v -> {
-            showTimeTableDialog();
-        });
+        if (openTimeTableEditor != null) {
+            openTimeTableEditor.setOnClickListener(v -> showTimeTableDialog());
+        }
     }
 
     private String getCurrentDate() {
@@ -168,6 +164,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
     }
 
     private boolean hasChanged() {
+        if (editContent == null) return false;
         String currentContent = editContent.getText().toString().trim();
         return !currentContent.equals(originalContent);
     }
@@ -191,11 +188,15 @@ public class DiaryDetailActivity extends AppCompatActivity {
     private void saveOnly() {
         if (saveDiary()) {
             isSaved = true;
-            originalContent = editContent.getText().toString().trim();
+            if (editContent != null) {
+                originalContent = editContent.getText().toString().trim();
+            }
         }
     }
 
     private boolean saveDiary() {
+        if (txtDate == null || editContent == null) return false;
+
         String date = txtDate.getText().toString();
         String content = editContent.getText().toString().trim();
 
@@ -219,23 +220,16 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
                 if (date.equals(diary.optString("date"))) {
                     diaries.put(i, newDiary);
-                    prefs.edit().putString(
-                            KEY_DIARY_LIST,
-                            diaries.toString()
-                    ).apply();
+                    prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
 
                     if (isAiEnabled()) {
                         generateDiarySummary(content);
                     } else {
-                        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+                        if (tvDiarySummary != null) tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
                         saveSummary(date, "AI 기능이 OFF 상태입니다.");
                     }
 
-                    //generateDiarySummary(content);
-
-                    Toast.makeText(this,
-                            "일기가 수정되었습니다.",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "일기가 수정되었습니다.", Toast.LENGTH_SHORT).show();
                     return true;
                 }
             }
@@ -263,6 +257,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
     }
 
     private void deleteDiary() {
+        if (txtDate == null) return;
         String date = txtDate.getText().toString();
 
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
@@ -280,10 +275,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
             }
 
             prefs.edit().putString(KEY_DIARY_LIST, newDiaries.toString()).apply();
-
-            prefs.edit()
-                    .remove(KEY_SUMMARY_PREFIX + date)
-                    .apply();
+            prefs.edit().remove(KEY_SUMMARY_PREFIX + date).apply();
 
             isSaved = true;
             Toast.makeText(this, "일기가 삭제되었습니다", Toast.LENGTH_SHORT).show();
@@ -293,329 +285,206 @@ public class DiaryDetailActivity extends AppCompatActivity {
         }
     }
 
-    private TimeTable miniTimeTable;
-    private View openTimeTableEditor;
-
     private void showTimeTableDialog() {
-
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_timetable);
 
         Window window = dialog.getWindow();
-
         if (window != null) {
-
-            // Dialog 바깥 배경 투명 처리
-            window.setBackgroundDrawable(
-                    new android.graphics.drawable.ColorDrawable(
-                            android.graphics.Color.TRANSPARENT
-                    )
-            );
-
-            window.setLayout(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-            );
-
-            // 뒤 배경 어둡게
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-
-            WindowManager.LayoutParams params =
-                    window.getAttributes();
-
+            WindowManager.LayoutParams params = window.getAttributes();
             params.dimAmount = 0.45f;
-
             window.setAttributes(params);
         }
 
-
-        TimeTable bigTimeTable =
-                dialog.findViewById(R.id.bigTimeTable);
-
-        ImageView btnClose =
-                dialog.findViewById(R.id.btnCloseTimeTable);
-
-        View colorRed =
-                dialog.findViewById(R.id.colorRed);
-
-        View colorOrange =
-                dialog.findViewById(R.id.colorOrange);
-
-        View colorGreen =
-                dialog.findViewById(R.id.colorGreen);
-
-        View colorBlue =
-                dialog.findViewById(R.id.colorBlue);
-
-        Button btnEditLabel =
-                dialog.findViewById(R.id.btnEditLabelTimeTable);
+        TimeTable bigTimeTable = dialog.findViewById(R.id.bigTimeTable);
+        ImageView btnClose = dialog.findViewById(R.id.btnCloseTimeTable);
+        View colorRed = dialog.findViewById(R.id.colorRed);
+        View colorOrange = dialog.findViewById(R.id.colorOrange);
+        View colorGreen = dialog.findViewById(R.id.colorGreen);
+        View colorBlue = dialog.findViewById(R.id.colorBlue);
+        Button btnEditLabel = dialog.findViewById(R.id.btnEditLabelTimeTable);
 
         final boolean[] isLabelEditMode = {false};
 
-        // 큰 타임테이블은 편집 가능
-        bigTimeTable.setEditable(true);
+        if (bigTimeTable != null && miniTimeTable != null) {
+            bigTimeTable.setEditable(true);
+            bigTimeTable.setOnRequestClearAllListener(() -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("전체 삭제")
+                        .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+                        .setNegativeButton("취소", null)
+                        .setPositiveButton("삭제", (dialogInterface, which) -> bigTimeTable.clearAll())
+                        .show();
+            });
 
-        bigTimeTable.setOnRequestClearAllListener(() -> {
+            bigTimeTable.setCells(miniTimeTable.getCells());
+            bigTimeTable.setGroupIds(miniTimeTable.getGroupIds());
+            bigTimeTable.setGroupLabels(miniTimeTable.getGroupLabels());
+        }
 
-            new AlertDialog.Builder(this)
-                    .setTitle("전체 삭제")
-                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
-                    .setNegativeButton("취소", null)
-                    .setPositiveButton("삭제", (dialogInterface, which) -> {
-                        bigTimeTable.clearAll();
-                    })
-                    .show();
-        });
+        if (colorRed != null && bigTimeTable != null && btnEditLabel != null) {
+            colorRed.setOnClickListener(v -> {
+                isLabelEditMode[0] = false;
+                btnEditLabel.setText("라벨 수정");
+                bigTimeTable.setLabelEditMode(false);
+                bigTimeTable.setDrawMode();
+                bigTimeTable.setSelectedColor("#FF5252");
+            });
+        }
+        if (colorOrange != null && bigTimeTable != null && btnEditLabel != null) {
+            colorOrange.setOnClickListener(v -> {
+                isLabelEditMode[0] = false;
+                btnEditLabel.setText("라벨 수정");
+                bigTimeTable.setLabelEditMode(false);
+                bigTimeTable.setDrawMode();
+                bigTimeTable.setSelectedColor("#FF9800");
+            });
+        }
+        if (colorGreen != null && bigTimeTable != null && btnEditLabel != null) {
+            colorGreen.setOnClickListener(v -> {
+                isLabelEditMode[0] = false;
+                btnEditLabel.setText("라벨 수정");
+                bigTimeTable.setLabelEditMode(false);
+                bigTimeTable.setDrawMode();
+                bigTimeTable.setSelectedColor("#4CAF50");
+            });
+        }
+        if (colorBlue != null && bigTimeTable != null && btnEditLabel != null) {
+            colorBlue.setOnClickListener(v -> {
+                isLabelEditMode[0] = false;
+                btnEditLabel.setText("라벨 수정");
+                bigTimeTable.setLabelEditMode(false);
+                bigTimeTable.setDrawMode();
+                bigTimeTable.setSelectedColor("#2196F3");
+            });
+        }
 
-        // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
-        bigTimeTable.setCells(miniTimeTable.getCells());
-        bigTimeTable.setGroupIds(miniTimeTable.getGroupIds());
-        bigTimeTable.setGroupLabels(miniTimeTable.getGroupLabels());
+        Button btnUndo = dialog.findViewById(R.id.btnUndoTimeTable);
+        if (btnUndo != null && bigTimeTable != null) {
+            btnUndo.setOnClickListener(v -> bigTimeTable.undoLastAction());
+        }
 
-        // 색상 선택
-        colorRed.setOnClickListener(v -> {
-            isLabelEditMode[0] = false;
-            btnEditLabel.setText("라벨 수정");
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> {
+                if (miniTimeTable != null && bigTimeTable != null) {
+                    miniTimeTable.setCells(bigTimeTable.getCells());
+                    miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
+                    miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
+                    miniTimeTable.setEditable(false);
+                }
+                dialog.dismiss();
+            });
+        }
+
+        Button btnClearAll = dialog.findViewById(R.id.btnClearAllTimeTable);
+        if (btnClearAll != null && bigTimeTable != null) {
+            btnClearAll.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("전체 삭제")
+                        .setMessage("타임테이블을 전체 삭제하시겠습니까?")
+                        .setNegativeButton("취소", null)
+                        .setPositiveButton("삭제", (dialogInterface, which) -> bigTimeTable.clearAll())
+                        .show();
+            });
+        }
+
+        if (btnEditLabel != null && bigTimeTable != null) {
+            btnEditLabel.setOnClickListener(v -> {
+                isLabelEditMode[0] = !isLabelEditMode[0];
+                if (isLabelEditMode[0]) {
+                    bigTimeTable.setLabelEditMode(true);
+                    btnEditLabel.setText("수정 완료");
+                } else {
+                    bigTimeTable.setLabelEditMode(false);
+                    btnEditLabel.setText("라벨 수정");
+                }
+            });
+        }
+
+        if (bigTimeTable != null) {
             bigTimeTable.setLabelEditMode(false);
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF5252");
-        });
+            bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
+                EditText input = new EditText(this);
+                input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
+                input.setHint("라벨");
+                input.setSingleLine(true);
 
-        colorOrange.setOnClickListener(v -> {
-            isLabelEditMode[0] = false;
-            btnEditLabel.setText("라벨 수정");
-            bigTimeTable.setLabelEditMode(false);
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF9800");
-        });
+                if (currentLabel != null) {
+                    input.setText(currentLabel);
+                    input.setSelection(currentLabel.length());
+                }
 
-        colorGreen.setOnClickListener(v -> {
-            isLabelEditMode[0] = false;
-            btnEditLabel.setText("라벨 수정");
-            bigTimeTable.setLabelEditMode(false);
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#4CAF50");
-        });
-
-        colorBlue.setOnClickListener(v -> {
-            isLabelEditMode[0] = false;
-            btnEditLabel.setText("라벨 수정");
-            bigTimeTable.setLabelEditMode(false);
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#2196F3");
-        });
-
-        //색칠모드
-        Button btnUndo =
-                dialog.findViewById(R.id.btnUndoTimeTable);
-
-        Button btnEraser =
-                dialog.findViewById(R.id.btnClearAllTimeTable);
-
-
-        //지우개
-        btnUndo.setOnClickListener(v -> {
-            bigTimeTable.undoLastAction();
-        });
-
-
-        // X 버튼 누르면 저장 후 팝업 닫기
-        btnClose.setOnClickListener(v -> {
-
-            // 큰 타임테이블 내용을 미니 타임테이블에 반영
-            miniTimeTable.setCells(bigTimeTable.getCells());
-            miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
-            miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
-
-            // 미니 타임테이블은 다시 보기 전용 유지
-            miniTimeTable.setEditable(false);
-
-            // TODO: 여기에 Firebase 저장 코드 추가 가능
-
-            dialog.dismiss();
-        });
+                new AlertDialog.Builder(this)
+                        .setTitle("라벨 수정")
+                        .setView(input)
+                        .setNegativeButton("삭제", (dialogInterface, which) -> bigTimeTable.setGroupLabel(groupId, ""))
+                        .setNeutralButton("취소", null)
+                        .setPositiveButton("저장", (dialogInterface, which) -> {
+                            String label = input.getText().toString().trim();
+                            if (label.length() > 4) {
+                                Toast.makeText(this, "라벨은 최대 7글자까지 가능합니다", Toast.LENGTH_SHORT).show();
+                                label = label.substring(0, 4);
+                            }
+                            bigTimeTable.setGroupLabel(groupId, label);
+                        })
+                        .show();
+            });
+        }
 
         dialog.show();
-
-
-        Button btnClearAll =
-                dialog.findViewById(R.id.btnClearAllTimeTable);
-
-        btnClearAll.setOnClickListener(v -> {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("전체 삭제")
-                    .setMessage("타임테이블을 전체 삭제하시겠습니까?")
-
-                    .setNegativeButton("취소", null)
-
-                    .setPositiveButton("삭제", (dialogInterface, which) -> {
-                        bigTimeTable.clearAll();
-                    })
-
-                    .show();
-        });
-
-
-// 라벨 수정 버튼
-        btnEditLabel.setOnClickListener(v -> {
-
-            isLabelEditMode[0] = !isLabelEditMode[0];
-
-            if (isLabelEditMode[0]) {
-
-                bigTimeTable.setLabelEditMode(true);
-
-                btnEditLabel.setText("수정 완료");
-
-            } else {
-
-                bigTimeTable.setLabelEditMode(false);
-
-                btnEditLabel.setText("라벨 수정");
-            }
-        });
-
-
-
-        bigTimeTable.setLabelEditMode(false);
-
-        bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
-
-            EditText input = new EditText(this);
-            input.setFilters(new InputFilter[]{
-                    new InputFilter.LengthFilter(7)
-            });
-            input.setHint("라벨");
-            input.setSingleLine(true);
-
-            if (currentLabel != null) {
-                input.setText(currentLabel);
-                input.setSelection(currentLabel.length());
-            }
-
-            new AlertDialog.Builder(this)
-                    .setTitle("라벨 수정")
-                    .setView(input)
-
-                    .setNegativeButton("삭제", (dialogInterface, which) -> {
-                        bigTimeTable.setGroupLabel(groupId, "");
-                    })
-
-                    .setNeutralButton("취소", null)
-
-                    .setPositiveButton("저장", (dialogInterface, which) -> {
-                        String label = input.getText().toString().trim();
-
-                        if (label.length() > 4) {
-
-                            Toast.makeText(
-                                    this,
-                                    "라벨은 최대 7글자까지 가능합니다",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-
-                            label = label.substring(0, 4);
-                        }
-
-                        bigTimeTable.setGroupLabel(groupId, label);
-                    })
-
-                    .show();
-        });
-
-
     }
 
-    private void saveSummary(
-            String date,
-            String summary
-    ) {
-
-        SharedPreferences prefs =
-                getSharedPreferences(
-                        PREF_NAME,
-                        MODE_PRIVATE
-                );
-
-        prefs.edit()
-                .putString(
-                        KEY_SUMMARY_PREFIX + date,
-                        summary
-                )
-                .apply();
+    private void saveSummary(String date, String summary) {
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        prefs.edit().putString(KEY_SUMMARY_PREFIX + date, summary).apply();
     }
-
 
     private boolean isAiEnabled() {
-
-        SharedPreferences settings =
-                getSharedPreferences("AppSettings", MODE_PRIVATE);
-
+        SharedPreferences settings = getSharedPreferences("AppSettings", MODE_PRIVATE);
         return settings.getBoolean("isAiEnabled", true);
     }
 
-    private void generateSummary(String content) {
-
-        if (!isAiEnabled()) {
-            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
-            return;
-        }
-
-        if (content.length() > 30) {
-            tvDiarySummary.setText(
-                    content.substring(0, 30) + "..."
-            );
-        } else {
-            tvDiarySummary.setText(content);
-        }
-    }
-
     private void generateDiarySummary(String content) {
-
         if (!isAiEnabled()) {
-
-            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            if (tvDiarySummary != null) tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
             return;
         }
 
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
+        GeminiManager.INSTANCE.generateSummary(content, new GeminiManager.SummaryCallback() {
+            @Override
+            public void onSuccess(String summary) {
+                runOnUiThread(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    if (tvDiarySummary != null) tvDiarySummary.setText(summary);
 
-        progressBar.setVisibility(View.VISIBLE);
+                    if (txtDate != null) {
+                        String diaryDate = txtDate.getText().toString(); // "6월 14일 (일)" 같은 한글 날짜 이름표 추출
+                        saveSummary(diaryDate, summary); // 1. 기존 로컬 캐시 저장
 
-        GeminiManager.INSTANCE.generateSummary(
-                content,
-                new GeminiManager.SummaryCallback() {
-
-                    @Override
-                    public void onSuccess(String summary) {
-
-                        runOnUiThread(() -> {
-
-                            progressBar.setVisibility(View.GONE);
-
-                            tvDiarySummary.setText(summary);
-
-                            saveSummary(
-                                    txtDate.getText().toString(),
-                                    summary
-                            );
-
-                        });
+                        // 🌟 [서버 백업 연동] 친구들이 실시간으로 읽어갈 수 있게 파이어베이스 클라우드에도 동일 이름표로 업로드!
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        if (user != null) {
+                            Map<String, Object> serverDiary = new HashMap<>();
+                            serverDiary.put("summary", summary);
+                            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                                    .collection("summaries").document(diaryDate).set(serverDiary);
+                        }
                     }
+                });
+            }
 
-                    @Override
-                    public void onError(String error) {
-
-                        runOnUiThread(() -> {
-
-                            progressBar.setVisibility(View.GONE);
-                            tvDiarySummary.setText(error);
-
-                        });
-                    }
-                }
-        );
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    if (tvDiarySummary != null) tvDiarySummary.setText(error);
+                });
+            }
+        });
     }
-
 }
