@@ -25,21 +25,19 @@
         android:orientation="vertical"
         android:layout_marginTop="16dp" />
 
-    <!-- 일정 추가 버튼 -->
-    <Button
+    <!-- 🌟 일반 Button에서 AppCompatButton으로 전면 교체! 이제 색깔과 배경이 동시에 완벽 적용됩니다! -->
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnAddSchedule"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_schedule_add"
+        android:backgroundTint="@color/maincolor"
         android:text="+ 일정 추가"
-        android:textColor="#666666"
+        android:textColor="@color/white"
         android:textStyle="bold"
         android:stateListAnimator="@null"
-        android:elevation="0dp"
-        android:backgroundTint="#F2F2F2"
-        />
-
+        android:elevation="0dp" />
     <!-- 일정 입력 폼 -->
     <LinearLayout
         android:id="@+id/layoutInputForm"

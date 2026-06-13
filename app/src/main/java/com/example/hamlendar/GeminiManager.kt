@@ -31,6 +31,10 @@ object GeminiManager {
                 val prompt = """
                     다음 일기를 한 문장으로 간단히 요약해줘.
                     핵심 내용만 20~30자 정도로 작성해.
+                    다, 나, 까 대신 햄이란 말투로 끝내줘
+                    최대한 귀엽게 대답해줘 
+                   
+                   
                     
                     일기:
                     $diaryContent
