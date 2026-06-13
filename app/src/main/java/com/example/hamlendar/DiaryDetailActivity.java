@@ -24,12 +24,18 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class DiaryDetailActivity extends AppCompatActivity {
 
@@ -455,7 +461,20 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     if (tvDiarySummary != null) tvDiarySummary.setText(summary);
-                    if (txtDate != null) saveSummary(txtDate.getText().toString(), summary);
+
+                    if (txtDate != null) {
+                        String diaryDate = txtDate.getText().toString(); // "6월 14일 (일)" 같은 한글 날짜 이름표 추출
+                        saveSummary(diaryDate, summary); // 1. 기존 로컬 캐시 저장
+
+                        // 🌟 [서버 백업 연동] 친구들이 실시간으로 읽어갈 수 있게 파이어베이스 클라우드에도 동일 이름표로 업로드!
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        if (user != null) {
+                            Map<String, Object> serverDiary = new HashMap<>();
+                            serverDiary.put("summary", summary);
+                            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                                    .collection("summaries").document(diaryDate).set(serverDiary);
+                        }
+                    }
                 });
             }
 
