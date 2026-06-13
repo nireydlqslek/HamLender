@@ -1,6 +1,7 @@
 package com.example.hamlendar;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
@@ -27,20 +29,57 @@ public class SettingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
+        // 1. XML 뷰 컴포넌트 바인딩
         ImageView btnBack = findViewById(R.id.back_icon);
-        TextView btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
-        TextView btnLogout = findViewById(R.id.btnLogout);
-        TextView btnCategory = findViewById(R.id.btnCategory);
         TextView btnMyInfo = findViewById(R.id.btnMyInfo);
         TextView btnFriend = findViewById(R.id.btnFriend);
+        TextView btnCategory = findViewById(R.id.btnCategory);
+        TextView btnLogout = findViewById(R.id.btnLogout);
+        TextView btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
+        SwitchCompat switchAi = findViewById(R.id.switchAi);
 
+        // 2. Firebase 인증 객체 초기화
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
 
-        // 뒤로가기 버튼 클릭 -> 이전 화면으로 돌아가기
+        // 3. AI 리포트 스위치 토글 설정 상태 불러오기 & 저장 시스템
+        SharedPreferences sharedPreferences = getSharedPreferences("AppSettings", MODE_PRIVATE);
+        boolean isAiEnabled = sharedPreferences.getBoolean("isAiEnabled", true);
+        switchAi.setChecked(isAiEnabled);
+
+        switchAi.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("isAiEnabled", isChecked);
+            editor.apply();
+
+            String status = isChecked ? "AI 리포트 기능이 켜졌습니다." : "AI 리포트 기능이 꺼졌습니다.";
+            Toast.makeText(SettingActivity.this, status, Toast.LENGTH_SHORT).show();
+        });
+
+        // 4. 클릭 리스너 이벤트 등록 영역 (중복 제거 완료)
+
+        // 🔙 뒤로가기 버튼 클릭
         btnBack.setOnClickListener(v -> finish());
 
-        // 로그아웃 클릭 -> Firebase 로그아웃 후 첫 화면으로 이동
+        // 🌟 내 정보 열람 클릭 -> 프로필 화면 이동
+        btnMyInfo.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
+
+        // 👥 친구 관리 클릭 -> 친구초대 화면 이동
+        btnFriend.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, InviteFriendActivity.class);
+            startActivity(intent);
+        });
+
+        // 📂 카테고리 편집 클릭 -> 카테고리 화면 이동
+        btnCategory.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, CategoryActivity.class);
+            startActivity(intent);
+        });
+
+        // 🚪 로그아웃 클릭 -> 로그아웃 후 첫 화면 이동
         btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
             Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show();
@@ -48,27 +87,18 @@ public class SettingActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
-        // 회원 탈퇴 클릭 -> 비밀번호 확인 다이얼로그 표시
+
+        // 🚨 회원 탈퇴 클릭 -> 비밀번호 확인 다이얼로그 표시
         btnDeleteAccount.setOnClickListener(v -> showDeleteDialog());
+    } // 👈 onCreate 메서드는 여기서 정상적으로 딱 한 번 닫혀야 합니다.
 
-        btnCategory.setOnClickListener(v -> startActivity
-                (new Intent(SettingActivity.this, CategoryActivity.class)));
-
-        btnMyInfo.setOnClickListener(v ->
-                startActivity(new Intent(SettingActivity.this, ProfileActivity.class)));
-
-        btnFriend.setOnClickListener(v ->
-                startActivity(new Intent(SettingActivity.this, InviteFriendActivity.class)));
-    }
-
+    // [회원 탈퇴 비밀번호 검증 팝업창]
     private void showDeleteDialog() {
-        // 로그인된 사용자가 없으면 탈퇴를 진행하지 않음
         if (user == null || user.getEmail() == null) {
             Toast.makeText(this, "로그인된 사용자가 없습니다", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 계정 삭제 전에 비밀번호를 다시 입력받음
         EditText passwordInput = new EditText(this);
         passwordInput.setHint("비밀번호를 다시 입력하세요");
         passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -89,12 +119,11 @@ public class SettingActivity extends AppCompatActivity {
                 .show();
     }
 
+    // [실제 Firebase 데이터베이스 계정 삭제 처리]
     private void deleteAccount(String password) {
-        // Firebase 계정 삭제 전 재인증에 사용할 정보 생성
         String email = user.getEmail();
         AuthCredential credential = EmailAuthProvider.getCredential(email, password);
 
-        // 비밀번호 재확인 후 계정 삭제 진행
         user.reauthenticate(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {

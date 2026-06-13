@@ -92,6 +92,12 @@ public class TimeTable extends View {
     // 드래그 묶음별 라벨 저장
     private Map<Integer, String> groupLabels = new HashMap<>();
 
+    // 라벨 수정 모드 여부
+    private boolean labelEditMode = false;
+
+    // 라벨 수정 요청 리스너
+    private OnLabelEditRequestListener labelEditRequestListener;
+
     //변수 선언 끝--------------------------------------------------------------------------
 
 
@@ -149,9 +155,10 @@ public class TimeTable extends View {
 
         textPaint = new Paint();
         textPaint.setColor(Color.DKGRAY);
-        textPaint.setTextSize(22f);
+        textPaint.setTextSize(18f);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setAntiAlias(true);
+        textPaint.setFakeBoldText(true);
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -288,39 +295,127 @@ public class TimeTable extends View {
                 continue;
             }
 
-            int[] firstCell = findFirstCellOfGroup(groupId);
+            GroupBounds bounds = findGroupBounds(groupId);
 
-            if (firstCell == null) {
+            if (bounds == null) {
                 continue;
             }
 
-            int row = firstCell[0];
-            int col = firstCell[1];
+            float left = (bounds.minCol + 1) * cellWidth;
+            float top = (bounds.minRow + 1) * cellHeight;
+            float right = (bounds.maxCol + 2) * cellWidth;
+            float bottom = (bounds.maxRow + 2) * cellHeight;
 
-            float x = (col + 1) * cellWidth + cellWidth / 2f;
-            float y = (row + 1) * cellHeight + cellHeight / 2f
+            float centerX = (left + right) / 2f;
+            float centerY = (top + bottom) / 2f
                     - ((textPaint.descent() + textPaint.ascent()) / 2f);
 
-            canvas.drawText(label, x, y, textPaint);
+            drawSpacedLabel(
+                    canvas,
+                    label,
+                    bounds,
+                    centerY
+            );
         }
 
 
     }
 
     // 해당 묶음의 첫 번째 칸 찾기
-    private int[] findFirstCellOfGroup(int targetGroupId) {
+    private GroupBounds findGroupBounds(int targetGroupId) {
+
+        GroupBounds bounds = null;
 
         for (int row = 0; row < ROWS; row++) {
 
             for (int col = 0; col < COLS; col++) {
 
                 if (groupIds[row][col] == targetGroupId) {
-                    return new int[]{row, col};
+
+                    if (bounds == null) {
+                        bounds = new GroupBounds(row, col);
+                    } else {
+                        bounds.include(row, col);
+                    }
                 }
             }
         }
 
-        return null;
+        return bounds;
+    }
+
+    private String fitLabelToWidth(String label, float maxWidth) {
+
+        if (label == null) {
+            return "";
+        }
+
+        if (textPaint.measureText(label) <= maxWidth) {
+            return label;
+        }
+
+        String ellipsis = "…";
+
+        for (int i = label.length(); i > 0; i--) {
+
+            String candidate =
+                    label.substring(0, i) + ellipsis;
+
+            if (textPaint.measureText(candidate) <= maxWidth) {
+                return candidate;
+            }
+        }
+
+        return ellipsis;
+    }
+
+    private void drawSpacedLabel(
+            Canvas canvas,
+            String label,
+            GroupBounds bounds,
+            float centerY
+    ) {
+        if (label == null || label.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedLabel = label.trim();
+
+        if (trimmedLabel.length() > 7) {
+            trimmedLabel = trimmedLabel.substring(0, 7);
+        }
+
+        int textLength = trimmedLabel.length();
+
+        float left = (bounds.minCol + 1) * cellWidth;
+        float right = (bounds.maxCol + 2) * cellWidth;
+
+        float totalWidth = right - left;
+
+        if (textLength == 1) {
+            canvas.drawText(
+                    trimmedLabel,
+                    left + totalWidth / 2f,
+                    centerY,
+                    textPaint
+            );
+            return;
+        }
+
+        float gap = totalWidth / (textLength - 1 + 2);
+
+        float startX = left + gap;
+
+        for (int i = 0; i < textLength; i++) {
+            float x = startX + gap * i;
+
+            canvas.drawText(
+                    String.valueOf(trimmedLabel.charAt(i)),
+                    x,
+                    centerY,
+                    textPaint
+            );
+        }
     }
 
 
@@ -359,6 +454,24 @@ public class TimeTable extends View {
         // 범위 밖 방지
         if (col < 0 || col >= COLS ||
                 row < 0 || row >= ROWS) {
+
+            return true;
+        }
+
+        // 라벨 수정 모드일 때는 색칠하지 않고 라벨 수정 요청만 보냄
+        if (labelEditMode && event.getAction() == MotionEvent.ACTION_DOWN) {
+
+            int groupId = groupIds[row][col];
+
+            if (groupId != -1 && labelEditRequestListener != null) {
+
+                String currentLabel = groupLabels.get(groupId);
+
+                labelEditRequestListener.onLabelEditRequest(
+                        groupId,
+                        currentLabel
+                );
+            }
 
             return true;
         }
@@ -551,29 +664,60 @@ public class TimeTable extends View {
 
     //Undo 기능 시작--------------------------------------------------------------------------
 
+    private void removeUnusedLabels() {
+
+        List<Integer> unusedLabels = new ArrayList<>();
+
+        for (Integer groupId : groupLabels.keySet()) {
+            if (findGroupBounds(groupId) == null) {
+                unusedLabels.add(groupId);
+            }
+        }
+
+        for (Integer groupId : unusedLabels) {
+            groupLabels.remove(groupId);
+        }
+    }
+
     // 마지막 작업 되돌리기
     public void undoLastAction() {
 
-        // 되돌릴 작업이 없으면 종료
         if (undoStack.isEmpty()) {
             return;
         }
 
-        // 최근 작업 가져오기
         List<CellChange> lastChanges = undoStack.pop();
 
-        // 이전 색으로 복구
         for (CellChange change : lastChanges) {
-
-            cells[change.row][change.col]
-                    = change.beforeColor;
+            cells[change.row][change.col] = change.beforeColor;
+            groupIds[change.row][change.col] = change.beforeGroupId;
         }
 
-        // 화면 다시 그리기
+        removeUnusedLabels();
+
         invalidate();
     }
 
     //Undo 기능 끝--------------------------------------------------------------------------
+
+
+    // 라벨 수정 모드 ON/OFF
+    public void setLabelEditMode(boolean labelEditMode) {
+        this.labelEditMode = labelEditMode;
+    }
+
+    // 라벨 수정 요청 리스너 연결
+    public void setOnLabelEditRequestListener(
+            OnLabelEditRequestListener listener
+    ) {
+        this.labelEditRequestListener = listener;
+    }
+
+    // 라벨 수정 요청 인터페이스
+    public interface OnLabelEditRequestListener {
+        void onLabelEditRequest(int groupId, String currentLabel);
+    }
+
 
     //지우개 함수 시작 ------------------------------------------------
     private void eraseGroup(int targetGroupId) {
@@ -654,6 +798,22 @@ public class TimeTable extends View {
         return copyCells(cells);
     }
 
+    public int[][] getGroupIds() {
+        int[][] copied = new int[ROWS][COLS];
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                copied[row][col] = groupIds[row][col];
+            }
+        }
+
+        return copied;
+    }
+
+    public Map<Integer, String> getGroupLabels() {
+        return new HashMap<>(groupLabels);
+    }
+
     //데이터 반환 끝--------------------------------------------------------------------------
 
 
@@ -677,6 +837,28 @@ public class TimeTable extends View {
         }
 
         // 화면 다시 그리기
+        invalidate();
+    }
+
+    public void setGroupIds(int[][] newGroupIds) {
+        if (newGroupIds == null) return;
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                groupIds[row][col] = newGroupIds[row][col];
+            }
+        }
+
+        invalidate();
+    }
+
+    public void setGroupLabels(Map<Integer, String> newLabels) {
+        groupLabels.clear();
+
+        if (newLabels != null) {
+            groupLabels.putAll(newLabels);
+        }
+
         invalidate();
     }
 
@@ -720,6 +902,27 @@ public class TimeTable extends View {
     //XML Preview 안정화용 끝--------------------------------------------------------------------------
 
 
+    private static class GroupBounds {
+
+        int minRow;
+        int maxRow;
+        int minCol;
+        int maxCol;
+
+        GroupBounds(int row, int col) {
+            minRow = row;
+            maxRow = row;
+            minCol = col;
+            maxCol = col;
+        }
+
+        void include(int row, int col) {
+            if (row < minRow) minRow = row;
+            if (row > maxRow) maxRow = row;
+            if (col < minCol) minCol = col;
+            if (col > maxCol) maxCol = col;
+        }
+    }
 
     //Undo 데이터 저장 클래스 시작--------------------------------------------------------------------------
 

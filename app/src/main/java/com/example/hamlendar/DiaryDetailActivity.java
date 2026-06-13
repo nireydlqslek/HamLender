@@ -6,10 +6,18 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.Job;
+import kotlinx.coroutines.BuildersKt;
+
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,15 +39,23 @@ import androidx.appcompat.app.AlertDialog;
 import android.widget.EditText;
 import android.widget.Button;
 
+import android.text.InputType;
+import android.view.inputmethod.EditorInfo;
+import android.text.InputFilter;
+
 public class DiaryDetailActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
+    private static final String KEY_SUMMARY_PREFIX = "summary_";
 
     private TextView txtDate;
     private EditText editContent;
     private String originalContent = "";
     private boolean isSaved;
+
+    private TextView tvDiarySummary;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +64,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         txtDate = findViewById(R.id.txtDate);
         editContent = findViewById(R.id.editContent);
+
+        tvDiarySummary = findViewById(R.id.tvDiarySummary);
+        tvDiarySummary.setText("");
+        progressBar = findViewById(R.id.progressBar);
+
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView menuIcon = findViewById(R.id.menuIcon);
         Button btnSave = findViewById(R.id.btnSave);
@@ -56,11 +77,46 @@ public class DiaryDetailActivity extends AppCompatActivity {
         String date = getIntent().getStringExtra("date");
         String content = getIntent().getStringExtra("content");
 
-        originalContent = content == null ? "" : content;
+        originalContent =
+                content == null ? "" : content;
+
+
+        SharedPreferences settings =
+                getSharedPreferences("AppSettings", MODE_PRIVATE);
+//
+        boolean isAiEnabled =
+                settings.getBoolean("isAiEnabled", true);
+//
+//        if (!isAiEnabled) {
+//            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+//        }
+
 
         // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
         txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
         editContent.setText(originalContent);
+
+
+        String savedSummary =
+                getSharedPreferences(
+                        PREF_NAME,
+                        MODE_PRIVATE
+                )
+                        .getString(
+                                KEY_SUMMARY_PREFIX + txtDate.getText().toString(),
+                                ""
+                        );
+
+        if (isAiEnabled) {
+            if (!savedSummary.isEmpty()) {
+                tvDiarySummary.setText(savedSummary);
+        } else {
+            tvDiarySummary.setText("작성된 요약이 없습니다.");
+        }
+    } else {
+        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+    }
+
 
         // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
         btnBack.setOnClickListener(v -> handleBack());
@@ -107,7 +163,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
         if (isSaved || !hasChanged()) {
             finish();
         } else {
-            Toast.makeText(this, "저장 버튼을 눌러주세요", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "저장 버튼을 눌러 주세요", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -154,25 +210,45 @@ public class DiaryDetailActivity extends AppCompatActivity {
         try {
             JSONArray diaries = new JSONArray(json);
             JSONObject newDiary = new JSONObject();
+
             newDiary.put("date", date);
             newDiary.put("content", content);
 
             for (int i = 0; i < diaries.length(); i++) {
                 JSONObject diary = diaries.getJSONObject(i);
+
                 if (date.equals(diary.optString("date"))) {
                     diaries.put(i, newDiary);
-                    prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
-                    Toast.makeText(this, "일기가 수정되었습니다", Toast.LENGTH_SHORT).show();
+                    prefs.edit().putString(
+                            KEY_DIARY_LIST,
+                            diaries.toString()
+                    ).apply();
+
+                    if (isAiEnabled()) {
+                        generateDiarySummary(content);
+                    } else {
+                        tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+                        saveSummary(date, "AI 기능이 OFF 상태입니다.");
+                    }
+
+                    //generateDiarySummary(content);
+
+                    Toast.makeText(this,
+                            "일기가 수정되었습니다.",
+                            Toast.LENGTH_SHORT).show();
                     return true;
                 }
             }
 
             diaries.put(newDiary);
             prefs.edit().putString(KEY_DIARY_LIST, diaries.toString()).apply();
-            Toast.makeText(this, "일기가 저장되었습니다", Toast.LENGTH_SHORT).show();
+
+            generateDiarySummary(content);
+
+            Toast.makeText(this, "일기가 저장되었습니다.", Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
-            Toast.makeText(this, "일기를 저장할 수 없습니다", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "일기를 저장할 수 없습니다.", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
@@ -204,6 +280,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
             }
 
             prefs.edit().putString(KEY_DIARY_LIST, newDiaries.toString()).apply();
+
+            prefs.edit()
+                    .remove(KEY_SUMMARY_PREFIX + date)
+                    .apply();
+
             isSaved = true;
             Toast.makeText(this, "일기가 삭제되었습니다", Toast.LENGTH_SHORT).show();
             finish();
@@ -223,6 +304,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
         Window window = dialog.getWindow();
 
         if (window != null) {
+
+            // Dialog 바깥 배경 투명 처리
+            window.setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(
+                            android.graphics.Color.TRANSPARENT
+                    )
+            );
+
             window.setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -231,15 +320,14 @@ public class DiaryDetailActivity extends AppCompatActivity {
             // 뒤 배경 어둡게
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-            WindowManager.LayoutParams params = window.getAttributes();
+            WindowManager.LayoutParams params =
+                    window.getAttributes();
 
-            // 어두워지는 정도
-            // 0.0 = 안 어두움
-            // 1.0 = 완전 검정
             params.dimAmount = 0.45f;
 
             window.setAttributes(params);
         }
+
 
         TimeTable bigTimeTable =
                 dialog.findViewById(R.id.bigTimeTable);
@@ -259,6 +347,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
         View colorBlue =
                 dialog.findViewById(R.id.colorBlue);
 
+        Button btnEditLabel =
+                dialog.findViewById(R.id.btnEditLabelTimeTable);
+
+        final boolean[] isLabelEditMode = {false};
+
         // 큰 타임테이블은 편집 가능
         bigTimeTable.setEditable(true);
 
@@ -276,21 +369,39 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         // 미니 타임테이블의 현재 내용을 큰 타임테이블에 복사
         bigTimeTable.setCells(miniTimeTable.getCells());
+        bigTimeTable.setGroupIds(miniTimeTable.getGroupIds());
+        bigTimeTable.setGroupLabels(miniTimeTable.getGroupLabels());
 
         // 색상 선택
         colorRed.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF5252");
         });
 
         colorOrange.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#FF9800");
         });
 
         colorGreen.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#4CAF50");
         });
 
         colorBlue.setOnClickListener(v -> {
+            isLabelEditMode[0] = false;
+            btnEditLabel.setText("라벨 수정");
+            bigTimeTable.setLabelEditMode(false);
+            bigTimeTable.setDrawMode();
             bigTimeTable.setSelectedColor("#2196F3");
         });
 
@@ -301,27 +412,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
         Button btnEraser =
                 dialog.findViewById(R.id.btnClearAllTimeTable);
 
-
-        //되돌리기
-        colorRed.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF5252");
-        });
-
-        colorOrange.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#FF9800");
-        });
-
-        colorGreen.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#4CAF50");
-        });
-
-        colorBlue.setOnClickListener(v -> {
-            bigTimeTable.setDrawMode();
-            bigTimeTable.setSelectedColor("#2196F3");
-        });
 
         //지우개
         btnUndo.setOnClickListener(v -> {
@@ -334,6 +424,8 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
             // 큰 타임테이블 내용을 미니 타임테이블에 반영
             miniTimeTable.setCells(bigTimeTable.getCells());
+            miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
+            miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
 
             // 미니 타임테이블은 다시 보기 전용 유지
             miniTimeTable.setEditable(false);
@@ -345,24 +437,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         dialog.show();
 
-        bigTimeTable.setOnDragCompleteListener(groupId -> {
-
-            EditText input = new EditText(this);
-            input.setHint("예: 수업, 운동, 알바");
-
-            new AlertDialog.Builder(this)
-                    .setTitle("라벨 입력")
-                    .setView(input)
-
-                    .setNegativeButton("건너뛰기", null)
-
-                    .setPositiveButton("저장", (dialogInterface, which) -> {
-                        String label = input.getText().toString().trim();
-                        bigTimeTable.setGroupLabel(groupId, label);
-                    })
-
-                    .show();
-        });
 
         Button btnClearAll =
                 dialog.findViewById(R.id.btnClearAllTimeTable);
@@ -381,8 +455,167 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
                     .show();
         });
+
+
+// 라벨 수정 버튼
+        btnEditLabel.setOnClickListener(v -> {
+
+            isLabelEditMode[0] = !isLabelEditMode[0];
+
+            if (isLabelEditMode[0]) {
+
+                bigTimeTable.setLabelEditMode(true);
+
+                btnEditLabel.setText("수정 완료");
+
+            } else {
+
+                bigTimeTable.setLabelEditMode(false);
+
+                btnEditLabel.setText("라벨 수정");
+            }
+        });
+
+
+
+        bigTimeTable.setLabelEditMode(false);
+
+        bigTimeTable.setOnLabelEditRequestListener((groupId, currentLabel) -> {
+
+            EditText input = new EditText(this);
+            input.setFilters(new InputFilter[]{
+                    new InputFilter.LengthFilter(7)
+            });
+            input.setHint("라벨");
+            input.setSingleLine(true);
+
+            if (currentLabel != null) {
+                input.setText(currentLabel);
+                input.setSelection(currentLabel.length());
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("라벨 수정")
+                    .setView(input)
+
+                    .setNegativeButton("삭제", (dialogInterface, which) -> {
+                        bigTimeTable.setGroupLabel(groupId, "");
+                    })
+
+                    .setNeutralButton("취소", null)
+
+                    .setPositiveButton("저장", (dialogInterface, which) -> {
+                        String label = input.getText().toString().trim();
+
+                        if (label.length() > 4) {
+
+                            Toast.makeText(
+                                    this,
+                                    "라벨은 최대 7글자까지 가능합니다",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            label = label.substring(0, 4);
+                        }
+
+                        bigTimeTable.setGroupLabel(groupId, label);
+                    })
+
+                    .show();
+        });
+
+
+    }
+
+    private void saveSummary(
+            String date,
+            String summary
+    ) {
+
+        SharedPreferences prefs =
+                getSharedPreferences(
+                        PREF_NAME,
+                        MODE_PRIVATE
+                );
+
+        prefs.edit()
+                .putString(
+                        KEY_SUMMARY_PREFIX + date,
+                        summary
+                )
+                .apply();
     }
 
 
+    private boolean isAiEnabled() {
+
+        SharedPreferences settings =
+                getSharedPreferences("AppSettings", MODE_PRIVATE);
+
+        return settings.getBoolean("isAiEnabled", true);
+    }
+
+    private void generateSummary(String content) {
+
+        if (!isAiEnabled()) {
+            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            return;
+        }
+
+        if (content.length() > 30) {
+            tvDiarySummary.setText(
+                    content.substring(0, 30) + "..."
+            );
+        } else {
+            tvDiarySummary.setText(content);
+        }
+    }
+
+    private void generateDiarySummary(String content) {
+
+        if (!isAiEnabled()) {
+
+            tvDiarySummary.setText("AI 기능이 OFF 상태입니다.");
+            return;
+        }
+
+
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        GeminiManager.INSTANCE.generateSummary(
+                content,
+                new GeminiManager.SummaryCallback() {
+
+                    @Override
+                    public void onSuccess(String summary) {
+
+                        runOnUiThread(() -> {
+
+                            progressBar.setVisibility(View.GONE);
+
+                            tvDiarySummary.setText(summary);
+
+                            saveSummary(
+                                    txtDate.getText().toString(),
+                                    summary
+                            );
+
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() -> {
+
+                            progressBar.setVisibility(View.GONE);
+                            tvDiarySummary.setText(error);
+
+                        });
+                    }
+                }
+        );
+    }
 
 }

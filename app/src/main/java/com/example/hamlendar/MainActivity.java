@@ -63,6 +63,20 @@ public class MainActivity extends AppCompatActivity {
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
     // 🌟 일정을 통째로 보관할 클래스 (아이디, 제목, 카테고리, 메모)
+    class ScheduleItem {
+        String id;
+        String title;
+        String category;
+        String memo;
+
+        public ScheduleItem(String id, String title, String category, String memo) {
+            this.id = id;
+            this.title = title;
+            this.category = category;
+            this.memo = memo;
+        }
+    }
+
     // 🔥 단순 String이 아니라, ScheduleItem 전체를 담아두는 맵
 
     @Override
@@ -74,10 +88,14 @@ public class MainActivity extends AppCompatActivity {
         nameTitle = findViewById(R.id.nameTitle);
 
         ImageView menuIcon = findViewById(R.id.menu_icon);
+        ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
 
         btnDiary.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
@@ -337,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
                                 for (int k = 0; k < totalSize; k++) {
                                     catNames[k] = serverCategories.get(k).getName();
                                 }
-                                catNames[totalSize] = "새 카테고리 추가하러 가기";
+                                catNames[totalSize] = "새 카테고리 추가하기";
 
                                 new AlertDialog.Builder(MainActivity.this)
                                         .setTitle("카테고리 선택")
@@ -391,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             if (title.isEmpty()) {
-                Toast.makeText(MainActivity.this, "일정을 입력해주세요!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "일정을 입력해 주세요!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -497,6 +515,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return false;
             });
+        }
+    }
+
+    class MonthHeaderContainer extends ViewContainer {
+        TextView tvMonth;
+        ImageView btnPrev;
+        ImageView btnNext;
+
+        public MonthHeaderContainer(View view) {
+            super(view);
+            tvMonth = view.findViewById(R.id.tvMonth);
+            btnPrev = view.findViewById(R.id.btnPrev);
+            btnNext = view.findViewById(R.id.btnNext);
         }
     }
 
