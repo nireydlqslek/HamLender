@@ -24,7 +24,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat; // 🌟 필수 추가: 안전하게 색상을 입혀 크래시를 방지하는 도구
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,9 +38,6 @@ import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.kizitonwose.calendar.view.ViewContainer;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -48,7 +45,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -62,8 +58,22 @@ public class MainActivity extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
 
-    // 🌟 일정을 통째로 보관할 클래스 (아이디, 제목, 카테고리, 메모)
-    // 🔥 단순 String이 아니라, ScheduleItem 전체를 담아두는 맵
+    // 🌟 카테고리 > 일정 > 메모 구조화용 ScheduleItem 클래스
+    class ScheduleItem {
+        String id;
+        String title;
+        String categoryId;
+        String category;
+        String memo;
+
+        public ScheduleItem(String id, String title, String categoryId, String category, String memo) {
+            this.id = id;
+            this.title = title;
+            this.categoryId = categoryId;
+            this.category = category;
+            this.memo = memo;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,9 +175,6 @@ public class MainActivity extends AppCompatActivity {
         calendarView.scrollToMonth(currentMonth);
     }
 
-    // =========================
-    // 🔥 파이어베이스에서 내 일정 불러오기
-    // =========================
     private void loadSchedulesFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
@@ -180,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                         String id = document.getId();
                         String dateStr = document.getString("date");
                         String title = document.getString("title");
+                        String categoryId = document.getString("categoryId");
                         String category = document.getString("category");
                         String memo = document.getString("memo");
 
@@ -188,16 +196,13 @@ public class MainActivity extends AppCompatActivity {
                             if (!schedulesMap.containsKey(date)) {
                                 schedulesMap.put(date, new ArrayList<>());
                             }
-                            schedulesMap.get(date).add(new ScheduleItem(id, title, category, memo));
+                            schedulesMap.get(date).add(new ScheduleItem(id, title, categoryId, category, memo));
                         }
                     }
                     calendarView.notifyCalendarChanged();
                 });
     }
 
-    // =========================
-    // 🔥 일정 다이얼로그 띄우기 (목록, 추가, 수정, 삭제)
-    // =========================
     private void showScheduleDialog(LocalDate date) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -222,11 +227,20 @@ public class MainActivity extends AppCompatActivity {
         tvDialogDate.setText(date.format(formatter));
 
         final String[] editDocId = {null};
+        final String[] selectedCategoryId = {null};
 
-        // [기존 일정 세팅 로직]
-        layoutScheduleList.removeAllViews();
+        // 🌟 [수정 포인트 1] 다이얼로그가 처음 열릴 때는 이전 뷰들을 싹 비우고 리스트 영역을 숨깁니다 (공간까지 완전 압축)
+        if (layoutScheduleList != null) {
+            layoutScheduleList.removeAllViews();
+            layoutScheduleList.setVisibility(View.GONE);
+        }
+
         List<ScheduleItem> todaySchedules = schedulesMap.get(date);
-        if (todaySchedules != null) {
+
+        // 🌟 [수정 포인트 2] 오늘 등록된 일정이 하나라도 '있을 때만' 목록 상자를 보여줍니다 (단계별 노출)
+        if (todaySchedules != null && !todaySchedules.isEmpty() && layoutScheduleList != null) {
+            layoutScheduleList.setVisibility(View.VISIBLE); // 일정이 존재하므로 숨겨진 리스트 영역 활성화!
+
             for (ScheduleItem item : todaySchedules) {
                 View itemView = getLayoutInflater().inflate(R.layout.item_schedule, null);
                 TextView tvItemTitle = itemView.findViewById(R.id.tvItemTitle);
@@ -250,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 itemView.setOnClickListener(v -> {
                     layoutInputForm.setVisibility(View.VISIBLE);
                     editDocId[0] = item.id;
+                    selectedCategoryId[0] = item.categoryId;
                     etCategory.setText(item.category);
                     etTitle.setText(item.title);
                     etMemo.setText(item.memo);
@@ -259,7 +274,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // 🌟 [안전화 완료] 파이어베이스 카테고리 불러오기 및 실시간 칩 연동 로직
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             db.collection("users").document(user.getUid()).collection("categories")
@@ -269,24 +283,23 @@ public class MainActivity extends AppCompatActivity {
                         List<CategoryItem> serverCategories = new ArrayList<>();
 
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                            serverCategories.add(doc.toObject(CategoryItem.class));
+                            CategoryItem cat = doc.toObject(CategoryItem.class);
+                            cat.setId(doc.getId());
+                            serverCategories.add(cat);
                         }
 
                         int totalSize = serverCategories.size();
                         int displayCount = Math.min(totalSize, 3);
 
-                        // 상위 3개 카테고리 자동 칩 생성 (오류 우회형 동적 생성)
                         for (int i = 0; i < displayCount; i++) {
                             CategoryItem cat = serverCategories.get(i);
 
-                            // 💡 버튼 대신 item_category.xml 도면 레이아웃을 인플레이트하여 일관성 보장 및 튕김 해결!
                             View chipView = getLayoutInflater().inflate(R.layout.item_category, layoutCategoryChips, false);
                             View viewColorCircle = chipView.findViewById(R.id.viewColorCircle);
                             TextView txtCategoryName = chipView.findViewById(R.id.txtCategoryName);
 
                             txtCategoryName.setText(cat.getName());
 
-                            // DrawableCompat을 통해 안전하게 백그라운드 원형에 파이어베이스 색상 주입 🌟
                             Drawable bgDrawable = viewColorCircle.getBackground();
                             if (bgDrawable != null && cat.getColorCode() != null) {
                                 try {
@@ -303,11 +316,10 @@ public class MainActivity extends AppCompatActivity {
                             params.setMargins(0, 0, 16, 0);
                             chipView.setLayoutParams(params);
 
-                            // 칩 터치 시 타겟 입력창 데이터 동기화
                             chipView.setOnClickListener(v -> {
                                 etCategory.setText(cat.getName());
+                                selectedCategoryId[0] = cat.getId();
 
-                                // 입력 폼의 etCategory 배경색도 안전하게 변경하기 위한 로직
                                 Drawable etBg = etCategory.getBackground();
                                 if (etBg != null) {
                                     try {
@@ -325,7 +337,6 @@ public class MainActivity extends AppCompatActivity {
                             layoutCategoryChips.addView(chipView);
                         }
 
-                        // 3개 이상일 때 혹은 목록 관리를 위한 [+ 더보기(etc)] 버튼 생성
                         if (totalSize > 0) {
                             Button moreBtn = new Button(MainActivity.this);
                             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -341,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
                                 for (int k = 0; k < totalSize; k++) {
                                     catNames[k] = serverCategories.get(k).getName();
                                 }
-                                catNames[totalSize] = "새 카테고리 추가하러 가기";
+                                catNames[totalSize] = "새 카테고리 추가하기";
 
                                 new AlertDialog.Builder(MainActivity.this)
                                         .setTitle("카테고리 선택")
@@ -353,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
                                             } else {
                                                 CategoryItem selectedCat = serverCategories.get(which);
                                                 etCategory.setText(selectedCat.getName());
+                                                selectedCategoryId[0] = selectedCat.getId();
 
                                                 Drawable etBg = etCategory.getBackground();
                                                 if (etBg != null) {
@@ -376,11 +388,11 @@ public class MainActivity extends AppCompatActivity {
                     });
         }
 
-        // [추가하기 및 저장 처리 버튼 로직]
         btnAddSchedule.setOnClickListener(v -> {
             if (layoutInputForm.getVisibility() == View.GONE) {
                 layoutInputForm.setVisibility(View.VISIBLE);
                 editDocId[0] = null;
+                selectedCategoryId[0] = null;
                 etCategory.setText("");
                 etCategory.setBackgroundColor(Color.parseColor("#F5F5F5"));
                 etCategory.setTextColor(Color.BLACK);
@@ -395,13 +407,14 @@ public class MainActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             if (title.isEmpty()) {
-                Toast.makeText(MainActivity.this, "일정을 입력해주세요!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "일정을 입력해 주세요!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (user != null) {
                 Map<String, Object> scheduleData = new HashMap<>();
                 scheduleData.put("date", date.toString());
+                scheduleData.put("categoryId", selectedCategoryId[0]);
                 scheduleData.put("category", etCategory.getText().toString().trim());
                 scheduleData.put("title", title);
                 scheduleData.put("memo", etMemo.getText().toString().trim());
@@ -469,10 +482,6 @@ public class MainActivity extends AppCompatActivity {
         nameTitle.setText(spannableGreeting);
     }
 
-    // =========================
-    // ViewContainer 클래스들
-    // =========================
-
     final class DayViewContainer extends ViewContainer {
         TextView tvDate;
         TextView tvEvent1, tvEvent2, tvEvent3, tvEvent4, tvEvent5, tvMore;
@@ -488,15 +497,23 @@ public class MainActivity extends AppCompatActivity {
             tvEvent5 = view.findViewById(R.id.tvEvent5);
             tvMore = view.findViewById(R.id.tvMore);
 
+            TextView[] allTextViews = {tvDate, tvEvent1, tvEvent2, tvEvent3, tvEvent4, tvEvent5, tvMore};
+            for (TextView tv : allTextViews) {
+                if (tv != null) {
+                    tv.setClickable(false);
+                    tv.setLongClickable(false);
+                }
+            }
+
             view.setOnClickListener(v -> {
                 if (day != null && day.getPosition() == DayPosition.MonthDate) {
-                    openDiaryForDate(day.getDate());
+                    showScheduleDialog(day.getDate());
                 }
             });
 
             view.setOnLongClickListener(v -> {
                 if (day != null && day.getPosition() == DayPosition.MonthDate) {
-                    showScheduleDialog(day.getDate());
+                    openDiaryForDate(day.getDate());
                     return true;
                 }
                 return false;
@@ -504,19 +521,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // =========================
-// 일기 화면 열기
-// =========================
+    class MonthHeaderContainer extends ViewContainer {
+        TextView tvMonth;
+        ImageView btnPrev;
+        ImageView btnNext;
+
+        public MonthHeaderContainer(View view) {
+            super(view);
+            tvMonth = view.findViewById(R.id.tvMonth);
+            btnPrev = view.findViewById(R.id.btnPrev);
+            btnNext = view.findViewById(R.id.btnNext);
+        }
+    }
+
     private void openDiaryForDate(LocalDate date) {
+        Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
 
-        Intent intent =
-                new Intent(MainActivity.this,
-                        DiaryDetailActivity.class);
+        try {
+            java.time.format.DateTimeFormatter diaryFormatter =
+                    java.time.format.DateTimeFormatter.ofPattern("M월 d일 (E)", java.util.Locale.KOREAN);
+            String formattedDate = date.format(diaryFormatter);
+            intent.putExtra("date", formattedDate);
+        } catch (Exception e) {
+            intent.putExtra("date", date.toString());
+        }
 
-        // 선택한 날짜 전달
-        intent.putExtra("selectedDate",
-                date.toString());
-
+        intent.putExtra("content", "");
         startActivity(intent);
     }
 }
