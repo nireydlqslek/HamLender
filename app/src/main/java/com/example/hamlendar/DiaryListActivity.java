@@ -1,5 +1,6 @@
 package com.example.hamlendar;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -23,14 +24,22 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DiaryListActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
+    private static final String KEY_SUMMARY_PREFIX = "summary_";
+    private static final String KEY_TIMETABLE_PREFIX = "timetable_";
+    private static final Pattern DIARY_DATE_PATTERN =
+            Pattern.compile("(\\d{1,2})월\\s*(\\d{1,2})일");
 
     private TextView txtCurrentDate;
     private Button btnSelectDelete;
@@ -61,6 +70,7 @@ public class DiaryListActivity extends AppCompatActivity {
 
         // 오늘 날짜 표시
         txtCurrentDate.setText(getTodayDate());
+        txtCurrentDate.setOnClickListener(v -> showDiaryDatePicker());
 
         // RecyclerView 연결
         diaryAdapter = new DiaryAdapter();
@@ -171,6 +181,83 @@ public class DiaryListActivity extends AppCompatActivity {
         return sdf.format(new Date());
     }
 
+    private void showDiaryDatePicker() {
+        Calendar selected = Calendar.getInstance();
+        int currentPosition = findDiaryPosition(txtCurrentDate.getText().toString());
+        if (currentPosition >= 0) {
+            applyDateToCalendar(diaryList.get(currentPosition).date, selected);
+        }
+
+        new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    Calendar picked = Calendar.getInstance();
+                    picked.set(year, month, dayOfMonth);
+                    String pickedDate = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN)
+                            .format(picked.getTime());
+                    txtCurrentDate.setText(pickedDate);
+
+                    int position = findDiaryPosition(pickedDate);
+                    if (position >= 0) {
+                        scrollDiaryToCenter(position);
+                    } else {
+                        Toast.makeText(this, "해당 날짜에 작성된 일기가 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                selected.get(Calendar.YEAR),
+                selected.get(Calendar.MONTH),
+                selected.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
+    private int findDiaryPosition(String date) {
+        long target = diaryDateSortValue(date);
+        for (int i = 0; i < diaryList.size(); i++) {
+            if (diaryDateSortValue(diaryList.get(i).date) == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void scrollDiaryToCenter(int position) {
+        RecyclerView.LayoutManager manager = recyclerDiary.getLayoutManager();
+        if (!(manager instanceof LinearLayoutManager)) return;
+
+        LinearLayoutManager layoutManager = (LinearLayoutManager) manager;
+        layoutManager.scrollToPositionWithOffset(position, recyclerDiary.getHeight() / 2);
+        recyclerDiary.post(() -> {
+            View itemView = layoutManager.findViewByPosition(position);
+            if (itemView != null) {
+                int itemCenter = (itemView.getTop() + itemView.getBottom()) / 2;
+                recyclerDiary.scrollBy(0, itemCenter - recyclerDiary.getHeight() / 2);
+            }
+            updateDiaryCardScale();
+        });
+    }
+
+    private void applyDateToCalendar(String date, Calendar calendar) {
+        Matcher matcher = DIARY_DATE_PATTERN.matcher(date == null ? "" : date);
+        if (matcher.find()) {
+            calendar.set(Calendar.MONTH, Integer.parseInt(matcher.group(1)) - 1);
+            calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(matcher.group(2)));
+        }
+    }
+
+    private long diaryDateSortValue(String date) {
+        Matcher matcher = DIARY_DATE_PATTERN.matcher(date == null ? "" : date);
+        if (!matcher.find()) return Long.MIN_VALUE;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(
+                Calendar.getInstance().get(Calendar.YEAR),
+                Integer.parseInt(matcher.group(1)) - 1,
+                Integer.parseInt(matcher.group(2))
+        );
+        return calendar.getTimeInMillis();
+    }
+
     private void openDiary(String date, String content) {
         Intent intent = new Intent(DiaryListActivity.this, DiaryDetailActivity.class);
         intent.putExtra("date", date);
@@ -188,13 +275,16 @@ public class DiaryListActivity extends AppCompatActivity {
             JSONArray jsonArray = new JSONArray(json);
 
             // 최근에 쓴 일기가 위에 보이도록 역순으로 추가
-            for (int i = jsonArray.length() - 1; i >= 0; i--) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject obj = jsonArray.getJSONObject(i);
                 diaryList.add(new DiaryItem(
                         obj.optString("date", ""),
                         obj.optString("content", "")
                 ));
             }
+            diaryList.sort(Comparator.comparingLong(
+                    (DiaryItem item) -> diaryDateSortValue(item.date)
+            ).reversed());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -242,7 +332,9 @@ public class DiaryListActivity extends AppCompatActivity {
     private void deleteSelectedDiaries() {
         Iterator<DiaryItem> iterator = diaryList.iterator();
         while (iterator.hasNext()) {
-            if (iterator.next().selected) {
+            DiaryItem item = iterator.next();
+            if (item.selected) {
+                removeDiaryExtras(item.date);
                 iterator.remove();
             }
         }
@@ -262,6 +354,9 @@ public class DiaryListActivity extends AppCompatActivity {
                 .setTitle("모두 삭제")
                 .setMessage("모든 일기를 삭제할까요?")
                 .setPositiveButton("삭제", (dialog, which) -> {
+                    for (DiaryItem item : diaryList) {
+                        removeDiaryExtras(item.date);
+                    }
                     diaryList.clear();
                     saveDiaryList();
                     clearSelectionMode();
@@ -288,8 +383,7 @@ public class DiaryListActivity extends AppCompatActivity {
 
         try {
             // SharedPreferences에는 원래 저장 순서로 다시 저장한다.
-            for (int i = diaryList.size() - 1; i >= 0; i--) {
-                DiaryItem item = diaryList.get(i);
+            for (DiaryItem item : diaryList) {
                 JSONObject obj = new JSONObject();
                 obj.put("date", item.date);
                 obj.put("content", item.content);
@@ -300,6 +394,14 @@ public class DiaryListActivity extends AppCompatActivity {
         }
 
         prefs.edit().putString(KEY_DIARY_LIST, jsonArray.toString()).apply();
+    }
+
+    private void removeDiaryExtras(String date) {
+        getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                .edit()
+                .remove(KEY_SUMMARY_PREFIX + date)
+                .remove(KEY_TIMETABLE_PREFIX + date)
+                .apply();
     }
 
     static final class DiaryItem {

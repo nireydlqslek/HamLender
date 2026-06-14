@@ -42,6 +42,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
     private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
     private static final String KEY_SUMMARY_PREFIX = "summary_";
+    private static final String KEY_TIMETABLE_PREFIX = "timetable_";
 
     private TextView txtDate;
     private EditText editContent;
@@ -142,6 +143,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
         // 미니 타임테이블은 보기 전용
         if (miniTimeTable != null) {
             miniTimeTable.setEditable(false);
+            loadTimeTable();
         }
 
         // 미니 타임테이블 클릭 시 큰 팝업 열기
@@ -274,8 +276,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 }
             }
 
-            prefs.edit().putString(KEY_DIARY_LIST, newDiaries.toString()).apply();
-            prefs.edit().remove(KEY_SUMMARY_PREFIX + date).apply();
+            prefs.edit()
+                    .putString(KEY_DIARY_LIST, newDiaries.toString())
+                    .remove(KEY_SUMMARY_PREFIX + date)
+                    .remove(KEY_TIMETABLE_PREFIX + date)
+                    .apply();
 
             isSaved = true;
             Toast.makeText(this, "일기가 삭제되었습니다", Toast.LENGTH_SHORT).show();
@@ -368,15 +373,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
         }
 
         if (btnClose != null) {
-            btnClose.setOnClickListener(v -> {
-                if (miniTimeTable != null && bigTimeTable != null) {
-                    miniTimeTable.setCells(bigTimeTable.getCells());
-                    miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
-                    miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
-                    miniTimeTable.setEditable(false);
-                }
-                dialog.dismiss();
-            });
+            btnClose.setOnClickListener(v -> dialog.dismiss());
         }
 
         Button btnClearAll = dialog.findViewById(R.id.btnClearAllTimeTable);
@@ -434,7 +431,100 @@ public class DiaryDetailActivity extends AppCompatActivity {
             });
         }
 
+        dialog.setOnDismissListener(ignored -> {
+            if (miniTimeTable != null && bigTimeTable != null) {
+                miniTimeTable.setCells(bigTimeTable.getCells());
+                miniTimeTable.setGroupIds(bigTimeTable.getGroupIds());
+                miniTimeTable.setGroupLabels(bigTimeTable.getGroupLabels());
+                miniTimeTable.setEditable(false);
+                saveTimeTable();
+            }
+        });
+
         dialog.show();
+    }
+
+    private void saveTimeTable() {
+        if (miniTimeTable == null || txtDate == null) return;
+
+        try {
+            JSONObject root = new JSONObject();
+            JSONArray cellRows = new JSONArray();
+            JSONArray groupRows = new JSONArray();
+            String[][] cells = miniTimeTable.getCells();
+            int[][] groupIds = miniTimeTable.getGroupIds();
+
+            for (int row = 0; row < cells.length; row++) {
+                JSONArray cellRow = new JSONArray();
+                JSONArray groupRow = new JSONArray();
+                for (int col = 0; col < cells[row].length; col++) {
+                    cellRow.put(cells[row][col] == null ? JSONObject.NULL : cells[row][col]);
+                    groupRow.put(groupIds[row][col]);
+                }
+                cellRows.put(cellRow);
+                groupRows.put(groupRow);
+            }
+
+            JSONObject labels = new JSONObject();
+            for (Map.Entry<Integer, String> entry : miniTimeTable.getGroupLabels().entrySet()) {
+                labels.put(String.valueOf(entry.getKey()), entry.getValue());
+            }
+
+            root.put("cells", cellRows);
+            root.put("groupIds", groupRows);
+            root.put("labels", labels);
+
+            getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_TIMETABLE_PREFIX + txtDate.getText(), root.toString())
+                    .apply();
+        } catch (Exception e) {
+            Toast.makeText(this, "타임테이블을 저장하지 못했습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadTimeTable() {
+        if (miniTimeTable == null || txtDate == null) return;
+
+        String json = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                .getString(KEY_TIMETABLE_PREFIX + txtDate.getText(), "");
+        if (json.isEmpty()) return;
+
+        try {
+            JSONObject root = new JSONObject(json);
+            JSONArray cellRows = root.getJSONArray("cells");
+            JSONArray groupRows = root.getJSONArray("groupIds");
+            String[][] cells = new String[24][6];
+            int[][] groupIds = new int[24][6];
+
+            for (int row = 0; row < 24; row++) {
+                JSONArray cellRow = cellRows.getJSONArray(row);
+                JSONArray groupRow = groupRows.getJSONArray(row);
+                for (int col = 0; col < 6; col++) {
+                    cells[row][col] = cellRow.isNull(col) ? null : cellRow.getString(col);
+                    groupIds[row][col] = groupRow.getInt(col);
+                }
+            }
+
+            Map<Integer, String> labels = new HashMap<>();
+            JSONObject labelObject = root.optJSONObject("labels");
+            if (labelObject != null) {
+                java.util.Iterator<String> keys = labelObject.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    labels.put(Integer.parseInt(key), labelObject.getString(key));
+                }
+            }
+
+            miniTimeTable.setCells(cells);
+            miniTimeTable.setGroupIds(groupIds);
+            miniTimeTable.setGroupLabels(labels);
+        } catch (Exception e) {
+            getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                    .edit()
+                    .remove(KEY_TIMETABLE_PREFIX + txtDate.getText())
+                    .apply();
+        }
     }
 
     private void saveSummary(String date, String summary) {

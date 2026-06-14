@@ -843,11 +843,14 @@ public class TimeTable extends View {
     public void setGroupIds(int[][] newGroupIds) {
         if (newGroupIds == null) return;
 
+        int maxGroupId = 0;
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
                 groupIds[row][col] = newGroupIds[row][col];
+                maxGroupId = Math.max(maxGroupId, newGroupIds[row][col]);
             }
         }
+        nextGroupId = maxGroupId + 1;
 
         invalidate();
     }

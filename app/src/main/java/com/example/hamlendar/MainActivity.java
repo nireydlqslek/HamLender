@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -38,6 +39,9 @@ import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.kizitonwose.calendar.view.ViewContainer;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -51,12 +55,25 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String DIARY_PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
+    private static final String HEALTH_PREF_NAME = "health_pref";
+    private static final String KEY_HEALTH_LIST = "health_list";
 
     private CalendarView calendarView;
     private TextView nameTitle;
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
+    private final Map<LocalDate, List<CalendarEvent>> healthEventsMap = new HashMap<>();
+
+    static class CalendarEvent {
+        final String text;
+        final Integer backgroundColor;
+
+        CalendarEvent(String text, Integer backgroundColor) {
+            this.text = text;
+            this.backgroundColor = backgroundColor;
+        }
+    }
 
     // 🌟 카테고리 > 일정 > 메모 구조화용 ScheduleItem 클래스
     class ScheduleItem {
@@ -101,6 +118,12 @@ public class MainActivity extends AppCompatActivity {
         loadSchedulesFromFirebase();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadHealthEvents();
+    }
+
     private void setupCalendar() {
         YearMonth currentMonth = YearMonth.now();
 
@@ -126,24 +149,30 @@ public class MainActivity extends AppCompatActivity {
                 container.tvEvent4.setText("");
                 container.tvEvent5.setText("");
                 container.tvMore.setText("");
+                resetEventView(container.tvEvent1);
+                resetEventView(container.tvEvent2);
+                resetEventView(container.tvEvent3);
+                resetEventView(container.tvEvent4);
+                resetEventView(container.tvEvent5);
 
                 if (day.getPosition() == DayPosition.MonthDate) {
                     container.tvDate.setText(String.valueOf(day.getDate().getDayOfMonth()));
 
-                    List<ScheduleItem> todaySchedules = schedulesMap.get(day.getDate());
+                    List<CalendarEvent> dayEvents = getCalendarEvents(day.getDate());
+                    TextView[] eventViews = {
+                            container.tvEvent1,
+                            container.tvEvent2,
+                            container.tvEvent3,
+                            container.tvEvent4,
+                            container.tvEvent5
+                    };
 
-                    if (todaySchedules != null && !todaySchedules.isEmpty()) {
-                        int size = todaySchedules.size();
-
-                        if (size >= 1) container.tvEvent1.setText("• " + todaySchedules.get(0).title);
-                        if (size >= 2) container.tvEvent2.setText("• " + todaySchedules.get(1).title);
-                        if (size >= 3) container.tvEvent3.setText("• " + todaySchedules.get(2).title);
-                        if (size >= 4) container.tvEvent4.setText("• " + todaySchedules.get(3).title);
-                        if (size >= 5) container.tvEvent5.setText("• " + todaySchedules.get(4).title);
-
-                        if (size > 5) {
-                            container.tvMore.setText("+" + (size - 5));
-                        }
+                    int displayCount = Math.min(dayEvents.size(), eventViews.length);
+                    for (int i = 0; i < displayCount; i++) {
+                        bindEventView(eventViews[i], dayEvents.get(i));
+                    }
+                    if (dayEvents.size() > eventViews.length) {
+                        container.tvMore.setText("+" + (dayEvents.size() - eventViews.length));
                     }
                 } else {
                     container.tvDate.setText("");
@@ -173,6 +202,151 @@ public class MainActivity extends AppCompatActivity {
         });
 
         calendarView.scrollToMonth(currentMonth);
+    }
+
+    private List<CalendarEvent> getCalendarEvents(LocalDate date) {
+        List<CalendarEvent> events = new ArrayList<>();
+
+        List<ScheduleItem> schedules = schedulesMap.get(date);
+        if (schedules != null) {
+            for (ScheduleItem schedule : schedules) {
+                events.add(new CalendarEvent("• " + schedule.title, null));
+            }
+        }
+
+        List<CalendarEvent> healthEvents = healthEventsMap.get(date);
+        if (healthEvents != null) {
+            events.addAll(healthEvents);
+        }
+        return events;
+    }
+
+    private void bindEventView(TextView view, CalendarEvent event) {
+        view.setText(event.text);
+        if (event.backgroundColor == null) {
+            resetEventView(view);
+            return;
+        }
+
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(event.backgroundColor);
+        background.setCornerRadius(dpToPx(4));
+        view.setBackground(background);
+        view.setPadding(dpToPx(3), 0, dpToPx(3), 0);
+    }
+
+    private void resetEventView(TextView view) {
+        view.setBackground(null);
+        view.setPadding(0, 0, 0, 0);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    private void loadHealthEvents() {
+        healthEventsMap.clear();
+
+        SharedPreferences prefs = getSharedPreferences(HEALTH_PREF_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_HEALTH_LIST, "[]");
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate rangeStart = currentMonth.minusMonths(12).atDay(1);
+        LocalDate rangeEnd = currentMonth.plusMonths(12).atEndOfMonth();
+
+        try {
+            JSONArray items = new JSONArray(json);
+            for (int i = 0; i < items.length(); i++) {
+                try {
+                    JSONObject item = items.getJSONObject(i);
+                    int cycleValue = item.optInt("cycleValue", 0);
+                    if (cycleValue <= 0) continue;
+
+                    LocalDate startDate = LocalDate.parse(item.optString("startDate", ""));
+                    String cycleUnit = item.optString("cycleUnit", "일");
+                    String category = item.optString("category", "건강");
+                    String content = item.optString("content", "").trim();
+                    String title = item.optString("title", "").trim();
+                    String label = !content.isEmpty()
+                            ? content
+                            : !title.isEmpty() ? title : category;
+                    int color = item.optInt("color", Color.rgb(239, 248, 232));
+
+                    addHealthOccurrences(
+                            startDate,
+                            cycleValue,
+                            cycleUnit,
+                            label,
+                            color,
+                            rangeStart,
+                            rangeEnd
+                    );
+                } catch (Exception ignored) {
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (calendarView != null) {
+            calendarView.notifyCalendarChanged();
+        }
+    }
+
+    private void addHealthOccurrences(
+            LocalDate startDate,
+            int cycleValue,
+            String cycleUnit,
+            String label,
+            int color,
+            LocalDate rangeStart,
+            LocalDate rangeEnd
+    ) {
+        LocalDate occurrence = moveOccurrenceToRange(
+                startDate, cycleValue, cycleUnit, rangeStart
+        );
+
+        while (!occurrence.isAfter(rangeEnd)) {
+            healthEventsMap
+                    .computeIfAbsent(occurrence, ignored -> new ArrayList<>())
+                    .add(new CalendarEvent(label, color));
+            occurrence = nextHealthOccurrence(occurrence, cycleValue, cycleUnit);
+        }
+    }
+
+    private LocalDate moveOccurrenceToRange(
+            LocalDate startDate,
+            int cycleValue,
+            String cycleUnit,
+            LocalDate rangeStart
+    ) {
+        if (!startDate.isBefore(rangeStart)) {
+            return startDate;
+        }
+
+        if ("일".equals(cycleUnit)) {
+            long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, rangeStart);
+            long cycles = (days + cycleValue - 1L) / cycleValue;
+            return startDate.plusDays(cycles * cycleValue);
+        }
+
+        LocalDate occurrence = startDate;
+        while (occurrence.isBefore(rangeStart)) {
+            occurrence = nextHealthOccurrence(occurrence, cycleValue, cycleUnit);
+        }
+        return occurrence;
+    }
+
+    private LocalDate nextHealthOccurrence(
+            LocalDate date,
+            int cycleValue,
+            String cycleUnit
+    ) {
+        if ("년".equals(cycleUnit)) {
+            return date.plusYears(cycleValue);
+        }
+        if ("달".equals(cycleUnit)) {
+            return date.plusMonths(cycleValue);
+        }
+        return date.plusDays(cycleValue);
     }
 
     private void loadSchedulesFromFirebase() {
@@ -536,17 +710,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void openDiaryForDate(LocalDate date) {
         Intent intent = new Intent(MainActivity.this, DiaryDetailActivity.class);
+        String formattedDate;
 
         try {
             java.time.format.DateTimeFormatter diaryFormatter =
                     java.time.format.DateTimeFormatter.ofPattern("M월 d일 (E)", java.util.Locale.KOREAN);
-            String formattedDate = date.format(diaryFormatter);
-            intent.putExtra("date", formattedDate);
+            formattedDate = date.format(diaryFormatter);
         } catch (Exception e) {
-            intent.putExtra("date", date.toString());
+            formattedDate = date.toString();
         }
 
-        intent.putExtra("content", "");
+        intent.putExtra("date", formattedDate);
+        intent.putExtra("content", findDiaryContent(formattedDate));
         startActivity(intent);
+    }
+
+    private String findDiaryContent(String date) {
+        SharedPreferences prefs = getSharedPreferences(DIARY_PREF_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_DIARY_LIST, "[]");
+
+        try {
+            JSONArray diaries = new JSONArray(json);
+            for (int i = 0; i < diaries.length(); i++) {
+                JSONObject diary = diaries.getJSONObject(i);
+                if (date.equals(diary.optString("date"))) {
+                    return diary.optString("content", "");
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return "";
     }
 }
