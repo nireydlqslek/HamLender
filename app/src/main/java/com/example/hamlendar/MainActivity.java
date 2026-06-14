@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                             CategoryItem cat = serverCategories.get(i);
 
                             View chipView = getLayoutInflater().inflate(R.layout.item_category, layoutCategoryChips, false);
-                            View viewColorCircle = chipView.findViewById(R.id.viewColorCircle);
+                            View viewColorCircle = chipView.findViewById(R.id.viewColorBar);
                             TextView txtCategoryName = chipView.findViewById(R.id.txtCategoryName);
 
                             txtCategoryName.setText(cat.getName());
