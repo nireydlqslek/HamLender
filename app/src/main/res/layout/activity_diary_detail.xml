@@ -17,6 +17,7 @@
         android:elevation="2dp"
         android:orientation="vertical"
         android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="@+id/editContent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/timeTableContainer">
 
@@ -102,7 +103,8 @@
         android:layout_width="252dp"
         android:layout_height="452dp"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="88dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/edittext_box"
         android:elevation="2dp"
         android:fontFamily="@font/simplehea"
@@ -115,10 +117,11 @@
         android:textColor="@color/black"
         android:textColorHint="#777777"
         android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintHorizontal_bias="0.125"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline" />
+        app:layout_constraintTop_toBottomOf="@+id/layoutAiSummary" />
 
     <FrameLayout
         android:id="@+id/timeTableContainer"
@@ -126,9 +129,10 @@
         android:layout_height="521dp"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/edittext_box"
         android:elevation="2dp"
-        app:layout_constraintBottom_toTopOf="@id/guideline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="@id/guideline3"
@@ -153,13 +157,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="8dp"
         android:gravity="end"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline2">
 
         <ImageButton
             android:id="@+id/btnDeleteDiary"
