@@ -13,7 +13,7 @@
         android:layout_width="200dp"
         android:layout_height="68dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="68dp"
         android:fontFamily="@font/moyamoya"
         android:text="햄린더"
         android:textColor="@color/maincolor"
@@ -25,28 +25,30 @@
         android:id="@+id/imageView01"
         android:layout_width="250dp"
         android:layout_height="250dp"
+        android:layout_marginTop="8dp"
         android:contentDescription="hamster"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview01"
-        app:srcCompat="@drawable/hamcircle_w" />
+        app:srcCompat="@drawable/hamcircle" />
 
     <TextView
         android:id="@+id/id_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginEnd="8dp"
         android:text="ID"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageView01" />
+        app:layout_constraintBottom_toBottomOf="@id/logintext"
+        app:layout_constraintEnd_toStartOf="@id/logintext"
+        app:layout_constraintTop_toTopOf="@id/logintext" />
 
     <EditText
         android:id="@+id/logintext"
-        android:layout_width="0dp"
-        android:layout_height="42dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="84dp"
         android:background="@drawable/edittext_box"
         android:ems="10"
         android:inputType="textEmailAddress"
@@ -54,24 +56,27 @@
         android:paddingEnd="10dp"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/id_textView" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView01" />
 
     <TextView
         android:id="@+id/pw_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="PW"
-        app:layout_constraintStart_toStartOf="@id/id_textView"
-        app:layout_constraintTop_toBottomOf="@id/logintext" />
+        app:layout_constraintBottom_toBottomOf="@id/passwordtext"
+        app:layout_constraintEnd_toStartOf="@id/passwordtext"
+        app:layout_constraintHorizontal_bias="0.97"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/passwordtext"
+        app:layout_constraintVertical_bias="0.571" />
 
     <EditText
         android:id="@+id/passwordtext"
-        android:layout_width="0dp"
-        android:layout_height="42dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="84dp"
         android:background="@drawable/edittext_box"
         android:ems="10"
         android:inputType="textPassword"
@@ -79,18 +84,19 @@
         android:paddingEnd="10dp"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pw_textView" />
+        app:layout_constraintTop_toBottomOf="@id/logintext" />
 
     <TextView
         android:id="@+id/register_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="44dp"
         android:fontFamily="@font/simplehea"
         android:text="회원가입 하러가기"
         android:textColor="@color/maincolor"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/findId_textView"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginbutton" />
 
@@ -98,17 +104,14 @@
         android:id="@+id/findId_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
+        android:layout_marginStart="24dp"
         android:fontFamily="@font/simplehea"
-        android:padding="4dp"
         android:text="아이디 찾기"
         android:textColor="@color/ham_light_brown"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@+id/register_textView"
-        app:layout_constraintEnd_toStartOf="@id/findDivider"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toEndOf="@+id/register_textView"
-        app:layout_constraintTop_toTopOf="@+id/register_textView" />
+        android:textSize="12sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/register_textView"
+        app:layout_constraintEnd_toStartOf="@id/findPw_textView"
+        app:layout_constraintStart_toEndOf="@id/register_textView" />
 
     <TextView
         android:id="@+id/findDivider"
@@ -127,16 +130,14 @@
         android:id="@+id/findPw_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:fontFamily="@font/simplehea"
-        android:padding="4dp"
         android:text="비밀번호 찾기"
         android:textColor="@color/ham_light_brown"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@id/findId_textView"
+        android:textSize="12sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/register_textView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/findDivider"
-        app:layout_constraintTop_toTopOf="@id/findId_textView"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintStart_toEndOf="@id/findId_textView" />
 
     <Button
         android:id="@+id/loginbutton"
