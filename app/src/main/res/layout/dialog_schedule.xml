@@ -1,58 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://tools.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
     android:layout_margin="16dp"
-    android:background="@drawable/bg_dialog_rounded">
+    android:background="@android:color/white">
 
-    <!-- 선택한 날짜 -->
-    <TextView
-        android:id="@+id/tvDialogDate"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"> <TextView
+        android:id="@+id/tvDialogDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="@color/black" />
+        android:textColor="@color/black"
+        tools:text="4월 2일" />
 
-    <!-- 등록된 일정들이 추가될 빈 공간 -->
+        <ImageView
+            android:id="@+id/btnDialogClose"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/close_24px"
+            android:contentDescription="창 닫기" />
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/layoutScheduleList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="210dp"
+        android:minHeight="150dp"
         android:orientation="vertical"
         android:layout_marginTop="16dp" />
 
-    <!-- 🌟 일반 Button에서 AppCompatButton으로 전면 교체! 이제 색깔과 배경이 동시에 완벽 적용됩니다! -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnAddSchedule"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/bg_schedule_add"
-        android:backgroundTint="@color/maincolor"
-        android:text="+ 일정 추가"
-        android:textColor="@color/white"
+        android:backgroundTint="#EAEFEF"
+        android:text="+   일정 추가"
+        android:textColor="#555555"
         android:textStyle="bold"
         android:stateListAnimator="@null"
         android:elevation="0dp" />
-    <!-- 일정 입력 폼 -->
+
+
     <LinearLayout
         android:id="@+id/layoutInputForm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginTop="20dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"> <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="카테고리"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#333333"/>
+
+            <ImageView
+                android:id="@+id/btnCategoryMenu"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/menu_24px"
+                android:contentDescription="카테고리 설정" />
+        </LinearLayout>
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp">
 
             <LinearLayout
                 android:id="@+id/layoutCategoryChips"
@@ -62,49 +103,80 @@
                 android:gravity="center_vertical" />
         </HorizontalScrollView>
 
-        <!-- 카테고리 입력 -->
         <EditText
             android:id="@+id/etCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:background="#F5F5F5"
-            android:hint="카테고리"
-            android:textSize="14sp" />
+            android:visibility="gone"
+            android:importantForAutofill="no"
+            tools:ignore="LabelFor" />
 
-        <!-- 일정 제목 입력 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="일정"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
         <EditText
             android:id="@+id/etTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
             android:padding="12dp"
-            android:background="#F5F5F5"
-            android:hint="일정"
-            android:textSize="14sp" />
+            android:background="#F2F1ED"
+            android:textColorHint="#999999"
+            android:textSize="14sp"
+            android:inputType="text"
+            android:importantForAutofill="no" />
 
-        <!-- 메모 입력 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="메모"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#333333"/>
+
+            <ImageView
+                android:id="@+id/btnDeleteMemo"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/delete"
+                android:contentDescription="메모 삭제" />
+        </LinearLayout>
+
         <EditText
             android:id="@+id/etMemo"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="6dp"
             android:padding="12dp"
-            android:background="#F5F5F5"
-            android:hint="메모 작성"
-            android:lines="3"
+            android:background="#F2F1ED"
+            android:textColorHint="#999999"
+            android:lines="4"
             android:gravity="top"
-            android:textSize="14sp" />
+            android:textSize="13sp"
+            android:importantForAutofill="no" />
 
-        <!-- 저장 버튼 -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="20dp"
             android:text="저장하기"
             android:textColor="@color/white"
             android:textStyle="bold"
-            android:backgroundTint="@color/maincolor" />
+            android:backgroundTint="@color/maincolor"
+            android:stateListAnimator="@null" />
     </LinearLayout>
 </LinearLayout>

@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/itemRoot"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootScheduleItem"
     android:layout_width="match_parent"
-    android:layout_height="44dp"
+    android:layout_height="54dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:layout_marginBottom="8dp"
-    android:padding="12dp"
-    android:background="@drawable/bg_schedule_item">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:background="#F5F5F5"> <View
+    android:id="@+id/viewCategoryBar"
+    android:layout_width="5dp"
+    android:layout_height="24dp"
+    android:background="@color/maincolor" />
 
     <TextView
         android:id="@+id/tvItemTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:text="샘플 일정"
-        android:textSize="16sp" />
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:text=" " />
 
-    <!-- 삭제 아이콘 (기본은 숨김 상태) -->
     <ImageView
-        android:id="@+id/ivDelete"
+        android:id="@+id/ivComplete"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/close_24px" />
-
-</RelativeLayout>
+        android:src="@drawable/circle_white"
+        android:contentDescription="일정 완료" />
+</LinearLayout>

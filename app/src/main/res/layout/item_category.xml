@@ -1,24 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutCategoryRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:padding="12dp"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_category_item">
 
     <View
-        android:id="@+id/viewColorCircle"
-        android:layout_width="24dp"
+        android:id="@+id/viewColorBar"
+        android:layout_width="6dp"
         android:layout_height="24dp"
-        android:background="@drawable/circle_grey" />
+        android:background="#FF8A8A" />
 
     <TextView
-    android:id="@+id/txtCategoryName"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:text="카테고리 이름"
-    android:textColor="#333333"
-    android:textSize="16sp" />
+        android:id="@+id/txtCategoryName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:text="카테고리 이름"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <View
+        android:id="@+id/viewDefaultCheck"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:visibility="gone"
+        android:background="@drawable/circle_white" />
+
+    <LinearLayout
+        android:id="@+id/layoutCustomActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_action_buttons"
+        android:padding="4dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/btnMoveUp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_up"
+            android:contentDescription="위로 이동" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:background="#E0E0E0" />
+
+        <ImageView
+            android:id="@+id/btnMoveDown"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_down"
+            android:contentDescription="아래로 이동" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:background="#E0E0E0" />
+
+        <ImageView
+            android:id="@+id/btnDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/delete_24px"
+            android:contentDescription="삭제" />
+
+    </LinearLayout>
 
 </LinearLayout>
