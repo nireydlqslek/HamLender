@@ -7,8 +7,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,8 +42,8 @@ public class DiaryListActivity extends AppCompatActivity {
             Pattern.compile("(\\d{1,2})월\\s*(\\d{1,2})일");
 
     private TextView txtCurrentDate;
-    private Button btnSelectDelete;
-    private Button btnDeleteAll;
+    private ImageButton btnSelectDelete;
+    private ImageButton btnDeleteAll;
     private RecyclerView recyclerDiary;
     private final ArrayList<DiaryItem> diaryList = new ArrayList<>();
     private DiaryAdapter diaryAdapter;
@@ -298,8 +298,10 @@ public class DiaryListActivity extends AppCompatActivity {
             }
 
             selectMode = true;
-            btnSelectDelete.setText("삭제");
-            btnDeleteAll.setText("취소");
+            btnSelectDelete.setImageResource(R.drawable.delete);
+            btnSelectDelete.setContentDescription("선택한 일기 삭제");
+            btnDeleteAll.setImageResource(R.drawable.close_24px);
+            btnDeleteAll.setContentDescription("선택 취소");
             diaryAdapter.notifyDataSetChanged();
             recyclerDiary.post(this::updateDiaryCardScale);
             return;
@@ -368,8 +370,10 @@ public class DiaryListActivity extends AppCompatActivity {
 
     private void clearSelectionMode() {
         selectMode = false;
-        btnSelectDelete.setText("선택 삭제");
-        btnDeleteAll.setText("모두 삭제");
+        btnSelectDelete.setImageResource(R.drawable.select_delete);
+        btnSelectDelete.setContentDescription("선택 삭제");
+        btnDeleteAll.setImageResource(R.drawable.delete);
+        btnDeleteAll.setContentDescription("모두 삭제");
         for (DiaryItem item : diaryList) {
             item.selected = false;
         }
