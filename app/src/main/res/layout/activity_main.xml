@@ -25,6 +25,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/aiMessage"
+        android:layout_width="283dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="20dp"
+        android:fontFamily="@font/dangdang"
+        android:text="햄햄의 생각 보따리 풀어 보기"
+        android:textColor="@color/ham_brown"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nameTitle" />
+
     <ImageView
         android:id="@+id/menu_icon"
         android:layout_width="36dp"
