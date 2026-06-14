@@ -99,7 +99,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="health"
-            android:src="@drawable/hamicon" />
+            android:src="@drawable/mainbtn1" />
 
         <ImageView
             android:id="@+id/img_main_cal"
@@ -108,14 +108,14 @@
             android:layout_marginStart="56dp"
             android:layout_marginEnd="56dp"
             android:contentDescription="calendar"
-            android:src="@drawable/hamcircle_w" />
+            android:src="@drawable/mainbtn2" />
 
         <ImageView
             android:id="@+id/img_main_diary"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="diary"
-            android:src="@drawable/hamicon" />
+            android:src="@drawable/mainbtn3" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
