@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -47,10 +48,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -110,6 +113,33 @@ public class MainActivity extends AppCompatActivity {
         ImageView btnHealth = findViewById(R.id.img_main_health);
         ImageView btnDiary = findViewById(R.id.img_main_diary);
 
+        TextView aiMessage = findViewById(R.id.aiMessage);
+
+        // 3. "햄햄" 텍스트뷰를 클릭했을 때의 동작
+        aiMessage.setOnClickListener(v -> {
+            // 로딩 문구 표시 (클릭하자마자 반응 주기)
+            aiMessage.setText("들어 있는 게 많다햄! 기다려 보라햄...");
+
+            // 실제 회원 이름 가져오기 (nameTitle 텍스트에서 추출하거나 기존 이름 변수 사용)
+            // 만약 "사용자님, 안녕하세요!" 형태라면 이름 부분만 추출합니다.
+            String actualName = nameTitle.getText().toString().replace(", 안녕하세요!", "");
+
+            // 다른 화면으로 이동하지 않고, 이 자리에서 바로 Gemini 호출!
+            GeminiManager.INSTANCE.generateEmpathyMessage(actualName, new GeminiManager.SummaryCallback() {
+                @Override
+                public void onSuccess(@NonNull String summary) {
+                    // 대답을 성공적으로 받아오면 메인 스레드에서 글자만 쏙 바꿉니다.
+                    runOnUiThread(() -> aiMessage.setText(summary));
+                }
+
+                @Override
+                public void onError(@NonNull String error) {
+                    // 에러 발생 시 처리
+                    runOnUiThread(() -> aiMessage.setText("다시 한 번 누르자햄!"));
+                }
+            });
+        });
+
         menuIcon.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SettingActivity.class)));
 
@@ -132,6 +162,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupCalendar() {
         YearMonth currentMonth = YearMonth.now();
+
+        YearMonth startMonth = currentMonth.minusMonths(100);
+        YearMonth endMonth = currentMonth.plusMonths(100);
+        DayOfWeek firstDayOfWeek = WeekFields.of(Locale.getDefault()).getFirstDayOfWeek();
+
+        calendarView.setup(startMonth, endMonth, firstDayOfWeek);
+        calendarView.scrollToMonth(currentMonth);
+
 
         calendarView.setup(
                 currentMonth.minusMonths(12),
