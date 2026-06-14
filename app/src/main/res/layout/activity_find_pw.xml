@@ -212,7 +212,7 @@
 
         <!-- [12] 연두색 찾기 완료 버튼 -->
         <Button
-            android:id="@+id/btn_do_findId"
+            android:id="@+id/btn_do_findPw"
             android:layout_width="270dp"
             android:layout_height="57dp"
             android:layout_marginTop="24dp"
@@ -226,7 +226,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_findId_result" />
+            app:layout_constraintTop_toBottomOf="@id/tv_findPw_result" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
