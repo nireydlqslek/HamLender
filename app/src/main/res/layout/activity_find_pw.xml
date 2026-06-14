@@ -17,10 +17,14 @@
         android:paddingBottom="40dp">
 
         <!-- [1] 왼쪽 상단 뒤로가기 아이콘 -->
+
+        <!-- [2] 타원형 하얀색 말풍선 도형 영역 -->
+
         <ImageView
             android:id="@+id/btn_back_pw"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_marginTop="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="뒤로가기"
@@ -30,7 +34,6 @@
             app:srcCompat="@drawable/abc_ic_ab_back_material"
             app:tint="@color/maincolor" />
 
-        <!-- [2] 타원형 하얀색 말풍선 도형 영역 -->
         <FrameLayout
             android:id="@+id/bubbleFramePw"
             android:layout_width="0dp"
@@ -81,10 +84,12 @@
 
                 <ImageView
                     android:id="@+id/imageViewPw"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/hampic2" /> <!-- 돋보기나 열쇠 햄스터 이미지 연동 -->
+                    android:layout_width="82dp"
+                    android:layout_height="82dp"
+                    android:layout_gravity="center_horizontal|bottom"
+                    android:layout_marginBottom="14dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/find" /> <!-- 돋보기나 열쇠 햄스터 이미지 연동 -->
             </androidx.cardview.widget.CardView>
         </FrameLayout>
 
@@ -105,8 +110,8 @@
         <!-- [5] 별명 입력창 -->
         <EditText
             android:id="@+id/et_findPw_nickname"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_width="193dp"
+            android:layout_height="35dp"
             android:layout_marginTop="4dp"
             android:background="@drawable/calendar_border"
             android:inputType="text"
@@ -134,8 +139,8 @@
         <!-- [7] 전화번호 입력창 -->
         <EditText
             android:id="@+id/et_findPw_phone"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_width="275dp"
+            android:layout_height="35dp"
             android:layout_marginTop="4dp"
             android:background="@drawable/calendar_border"
             android:inputType="phone"
@@ -163,8 +168,8 @@
         <!-- [9] 보안 질문 스피너 (가입창처럼 가로 비율 분할 배치) -->
         <Spinner
             android:id="@+id/spinner_findPw_question"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_width="150dp"
+            android:layout_height="35dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="6dp"
             android:background="@drawable/calendar_border"
@@ -178,7 +183,7 @@
         <EditText
             android:id="@+id/et_findPw_answer"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="35dp"
             android:background="@drawable/calendar_border"
             android:inputType="text"
             android:paddingStart="12dp"
