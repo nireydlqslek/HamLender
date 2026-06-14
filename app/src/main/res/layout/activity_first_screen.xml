@@ -35,13 +35,13 @@
 
     <Button
         android:id="@+id/login"
-        android:layout_width="230dp"
-        android:layout_height="40dp"
+        android:layout_width="201dp"
+        android:layout_height="46dp"
         android:layout_marginTop="24dp"
         android:background="@drawable/bg_button_orange_rounded"
         android:fontFamily="@font/dangdang"
-        android:textColor="@color/white"
         android:text="로그인"
+        android:textColor="@color/white"
         app:backgroundTint="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -49,13 +49,14 @@
 
     <Button
         android:id="@+id/join"
-        android:layout_width="230dp"
-        android:layout_height="40dp"
+        android:layout_width="121dp"
+        android:layout_height="33dp"
         android:layout_marginTop="4dp"
         android:background="@drawable/bg_button_orange_rounded"
         android:fontFamily="@font/dangdang"
-        android:textColor="@color/white"
         android:text="회원가입"
+        android:textColor="@color/white"
+        android:textSize="10dp"
         app:backgroundTint="@color/maincolor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -66,22 +67,25 @@
         android:layout_width="270dp"
         android:layout_height="270dp"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="172dp"
+        android:layout_marginTop="184dp"
         android:layout_marginEnd="15dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/hamcircle_w" />
+        app:srcCompat="@drawable/hiham" />
 
     <TextView
         android:id="@+id/register_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/dangdang"
         android:gravity="center"
         android:text="길을 잃으셨나요?"
+        android:textSize="9dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/join" />
 
