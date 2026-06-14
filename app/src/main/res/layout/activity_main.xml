@@ -40,6 +40,28 @@
         app:srcCompat="@drawable/menu_24px"
         app:tint="@color/maincolor" />
 
+    <ImageView
+        android:id="@+id/topImageLeft"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/reading"
+        tools2:layout_editor_absoluteX="26dp"
+        tools2:layout_editor_absoluteY="87dp" />
+
+    <ImageView
+        android:id="@+id/topImageRight"
+        android:layout_width="363dp"
+        android:layout_height="82dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/talk3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@id/topImageLeft"
+        app:layout_constraintTop_toTopOf="@id/topImageLeft" />
+
     <LinearLayout
         android:id="@+id/calendarContainer"
         android:layout_width="361dp"
