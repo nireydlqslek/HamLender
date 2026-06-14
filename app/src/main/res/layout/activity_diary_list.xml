@@ -118,7 +118,7 @@
         app:fabSize="mini"
         app:layout_constraintBottom_toBottomOf="@id/recyclerDiary"
         app:layout_constraintEnd_toEndOf="@id/recyclerDiary"
-        app:tint="@color/white" />
+        app:tint="@color/white"/>
 
     <LinearLayout
         android:id="@+id/bottomNav"
