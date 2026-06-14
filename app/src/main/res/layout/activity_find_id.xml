@@ -146,7 +146,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_phone_label" />
 
-        <!-- [8] 생년월일 8자리 레이블 (⭐ 양쪽 제약을 다 걸고 wrap_content로 바꾸어 완벽히 중앙 정렬!) -->
+        <!--[8] 생년월일 8자리 레이블 (⭐ 양쪽 제약을 다 걸고 wrap_content로 바꾸어 완벽히 중앙 정렬!) -->
         <TextView
             android:id="@+id/tv_birth_label"
             android:layout_width="wrap_content"
