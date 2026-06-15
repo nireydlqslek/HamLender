@@ -15,7 +15,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView; // 🌟 TextView 임포트 추가
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -37,41 +37,26 @@ import java.io.OutputStream;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etName;
-    private EditText etPhone;
-    private EditText etBirth;
-    private EditText etNickname;
-    private EditText etEmail;
-    private Spinner spinnerEmailDomain;
-    private EditText etPassword;
-    private EditText etPasswordConfirm;
-    private Spinner spinnerQuestion;
-    private EditText etAnswer;
+    private EditText etName, etPhone, etBirth, etNickname, etEmail, etPassword, etPasswordConfirm, etAnswer;
+    private Spinner spinnerEmailDomain, spinnerQuestion;
     private Button registerBtn;
-
-    // 🌟 "로그인 하러가기" 텍스트뷰 변수 선언
     private TextView tvGotoLogin;
-
     private FrameLayout profileFrame;
     private ImageView profileImageView;
 
     private FirebaseAuth mAuth;
     private String selectedDomain = "";
-
-    // 🌟 내 사진 주소를 저장할 전역 변수
     private Uri selectedImageUri = null;
 
-    // 사진첩을 안전하게 열어주는 Launcher 시스템
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri originalUri = result.getData().getData();
                     if (originalUri != null) {
-                        // 🌟 [핵심 마법] 고른 외부 사진을 우리 앱의 안전한 내부 폴더로 즉시 복사해 옵니다!
                         Uri localUri = copyUriToInternalStorage(originalUri);
                         if (localUri != null) {
-                            selectedImageUri = localUri; // 복사된 로컬 경로로 대체!
+                            selectedImageUri = localUri;
                             profileImageView.setImageURI(selectedImageUri);
                         } else {
                             Toast.makeText(this, "이미지 복사에 실패했습니다.", Toast.LENGTH_SHORT).show();
@@ -93,7 +78,6 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        // 컴포넌트 ID 연결
         etName = findViewById(R.id.et_name);
         etPhone = findViewById(R.id.et_phone);
         etBirth = findViewById(R.id.et_birth);
@@ -105,30 +89,23 @@ public class RegisterActivity extends AppCompatActivity {
         spinnerQuestion = findViewById(R.id.spinner_question);
         etAnswer = findViewById(R.id.et_answer);
         registerBtn = findViewById(R.id.register_btn);
-
-        // 🌟 "로그인 하러가기" ID 연결
         tvGotoLogin = findViewById(R.id.gotologin);
-
         profileFrame = findViewById(R.id.profileFrame);
         profileImageView = findViewById(R.id.imageView3);
 
         mAuth = FirebaseAuth.getInstance();
 
-        // 프로필 클릭 시 갤러리 열기
         profileFrame.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
             pickImageLauncher.launch(intent);
         });
 
-        // 🌟 "로그인 하러가기" 버튼 클릭 시 로그인 액티비티로 가는 문 추가
         tvGotoLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish(); // 로그인 화면으로 가면서 회원가입 화면은 스택에서 완전히 닫아줍니다!
+            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+            finish();
         });
 
-        // 이메일 도메인 어댑터 세팅
         String[] domains = {"직접 입력", "naver.com", "gmail.com", "daum.net", "hanmail.net"};
         ArrayAdapter<String> domainAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, domains);
         spinnerEmailDomain.setAdapter(domainAdapter);
@@ -142,31 +119,25 @@ public class RegisterActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // 보안 질문 리스트 세팅
-        String[] securityQuestions = {
-                "애완동물의 이름은 ?",
-                "가장 좋아하는 캐릭터 이름은?",
-                "제일 좋아하는 책 이름은 ?"
-        };
+        String[] securityQuestions = {"애완동물의 이름은 ?", "가장 좋아하는 캐릭터 이름은?", "제일 좋아하는 책 이름은 ?"};
         ArrayAdapter<String> questionAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, securityQuestions);
         spinnerQuestion.setAdapter(questionAdapter);
 
         setupTextWatchers();
-
         registerBtn.setOnClickListener(v -> register());
     }
 
-    /**
-     * 🌟 [치트키 함수] 사용자가 외부에서 선택한 사진 스트림을 읽어와서,
-     * 우리 앱의 단독 파일 저장 공간(files/profile.jpg)에 파일로 직접 복제하는 메서드 (권한 회피의 핵심)
-     */
     private Uri copyUriToInternalStorage(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             if (inputStream == null) return null;
 
-            // 앱 내부 전용 폴더에 'profile.jpg' 라는 이름으로 파일 공간 확보 (덮어쓰기 가능)
-            File file = new File(getFilesDir(), "profile.jpg");
+            // 💡 [사진 덮어쓰기 대참사 해결!]
+            // 폰 1대에서 테스트해도 서로 덮어쓰지 않게, 이메일 아이디를 파일 이름에 붙여서 독립적으로 저장합니다!
+            String emailText = etEmail.getText().toString().trim();
+            String safeName = TextUtils.isEmpty(emailText) ? "profile" : emailText.replace("@", "_").replace(".", "_");
+            File file = new File(getFilesDir(), safeName + "_profile.jpg");
+
             OutputStream outputStream = new FileOutputStream(file);
 
             byte[] buffer = new byte[4096];
@@ -179,7 +150,6 @@ public class RegisterActivity extends AppCompatActivity {
             outputStream.close();
             inputStream.close();
 
-            // 생성된 내부 파일의 안심 Uri 주소 반환!
             return Uri.fromFile(file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -191,16 +161,11 @@ public class RegisterActivity extends AppCompatActivity {
         TextWatcher inputWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                checkInputFields();
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) { checkInputFields(); }
             @Override
             public void afterTextChanged(Editable s) {}
         };
-
         etName.addTextChangedListener(inputWatcher);
         etPhone.addTextChangedListener(inputWatcher);
         etBirth.addTextChangedListener(inputWatcher);
@@ -212,29 +177,13 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void checkInputFields() {
-        String name = etName.getText().toString().trim();
-        String phone = etPhone.getText().toString().trim();
-        String birth = etBirth.getText().toString().trim();
-        String nickname = etNickname.getText().toString().trim();
-        String emailId = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
-        String passwordConfirm = etPasswordConfirm.getText().toString().trim();
-        String answer = etAnswer.getText().toString().trim();
+        boolean isAllFilled = !TextUtils.isEmpty(etName.getText()) && !TextUtils.isEmpty(etPhone.getText()) &&
+                !TextUtils.isEmpty(etBirth.getText()) && !TextUtils.isEmpty(etNickname.getText()) &&
+                !TextUtils.isEmpty(etEmail.getText()) && !TextUtils.isEmpty(etPassword.getText()) &&
+                !TextUtils.isEmpty(etPasswordConfirm.getText()) && !TextUtils.isEmpty(etAnswer.getText());
 
-        boolean isAllFilled = !TextUtils.isEmpty(name) &&
-                !TextUtils.isEmpty(phone) &&
-                !TextUtils.isEmpty(birth) &&
-                !TextUtils.isEmpty(nickname) &&
-                !TextUtils.isEmpty(emailId) &&
-                !TextUtils.isEmpty(password) &&
-                !TextUtils.isEmpty(passwordConfirm) &&
-                !TextUtils.isEmpty(answer);
-
-        if (isAllFilled) {
-            registerBtn.setText("회원가입");
-        } else {
-            registerBtn.setText("모든 정보가 입력되지 않았습니다");
-        }
+        if (isAllFilled) registerBtn.setText("회원가입");
+        else registerBtn.setText("모든 정보가 입력되지 않았습니다");
     }
 
     private void register() {
@@ -246,9 +195,7 @@ public class RegisterActivity extends AppCompatActivity {
         String answer = etAnswer.getText().toString().trim();
 
         String fullEmail = emailId;
-        if (!TextUtils.isEmpty(selectedDomain)) {
-            fullEmail = emailId + "@" + selectedDomain;
-        }
+        if (!TextUtils.isEmpty(selectedDomain)) fullEmail = emailId + "@" + selectedDomain;
 
         if (TextUtils.isEmpty(fullEmail) || TextUtils.isEmpty(userPassword) ||
                 TextUtils.isEmpty(confirmPassword) || TextUtils.isEmpty(userName) || TextUtils.isEmpty(answer)) {
@@ -261,11 +208,12 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        String finalFullEmail = fullEmail;
         mAuth.createUserWithEmailAndPassword(fullEmail, userPassword)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         String displayName = TextUtils.isEmpty(userNickname) ? userName : userNickname;
-                        saveUserName(displayName);
+                        saveUserName(displayName, finalFullEmail);
                     } else {
                         String message = task.getException() == null ? "회원가입 실패" : task.getException().getMessage();
                         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
@@ -273,37 +221,19 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveUserName(String displayName) {
-        String userName = etName.getText().toString().trim();
-        String userPhone = etPhone.getText().toString().trim();
-        String rawBirth = etBirth.getText().toString().trim();
-        String inputBirth = rawBirth.replace(".", "");
-        String userPassword = etPassword.getText().toString().trim();
-
-        int questionPosition = spinnerQuestion.getSelectedItemPosition();
-        String answer = etAnswer.getText().toString().trim();
-
-        String emailId = etEmail.getText().toString().trim();
-        String fullEmail = emailId;
-        if (!TextUtils.isEmpty(selectedDomain)) {
-            fullEmail = emailId + "@" + selectedDomain;
-        }
-
-        // SharedPreferences 데이터 저장
+    private void saveUserName(String displayName, String fullEmail) {
         SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("user_name", displayName);
-        editor.putString("real_name", userName);
-        editor.putString("user_phone", userPhone);
-        editor.putString("user_birth", inputBirth);
+        editor.putString("real_name", etName.getText().toString().trim());
+        editor.putString("user_phone", etPhone.getText().toString().trim());
+        editor.putString("user_birth", etBirth.getText().toString().trim().replace(".", ""));
         editor.putString("user_email_id", fullEmail);
-
         editor.putString("user_nickname", etNickname.getText().toString().trim());
-        editor.putString("user_password", userPassword);
-        editor.putInt("user_question_pos", questionPosition);
-        editor.putString("user_answer", answer);
+        editor.putString("user_password", etPassword.getText().toString().trim());
+        editor.putInt("user_question_pos", spinnerQuestion.getSelectedItemPosition());
+        editor.putString("user_answer", etAnswer.getText().toString().trim());
 
-        // 🌟 이제 복사된 내부 앱 전용 가상 File 주소(file:///data/user/...)를 저장하므로 권한 에러 철통방어!
         if (selectedImageUri != null) {
             editor.putString("user_profile_uri", selectedImageUri.toString());
         }

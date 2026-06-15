@@ -3,11 +3,11 @@ package com.example.hamlendar;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -19,10 +19,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.time.LocalDate;
@@ -38,8 +40,11 @@ public class InviteFriendActivity extends AppCompatActivity {
     private LinearLayout layoutFriendSchedules;
     private TextView tvFriendDiarySummary;
     private TextView tvTargetName;
+    private LinearLayout layoutFriendDiary;
 
     private String todayStr;
+    private String diaryTodayStr;
+    private ListenerRegistration friendsListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,12 +53,17 @@ public class InviteFriendActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        todayStr = LocalDate.now().toString(); // "2026-06-14" 형태
+
+        todayStr = LocalDate.now().toString();
+        java.time.format.DateTimeFormatter diaryFormatter =
+                java.time.format.DateTimeFormatter.ofPattern("M월 d일 (E)", java.util.Locale.KOREAN);
+        diaryTodayStr = LocalDate.now().format(diaryFormatter);
 
         layoutProfileContainer = findViewById(R.id.layoutProfileContainer);
         layoutFriendSchedules = findViewById(R.id.layoutFriendSchedules);
         tvFriendDiarySummary = findViewById(R.id.tvFriendDiarySummary);
         tvTargetName = findViewById(R.id.tvTargetName);
+        layoutFriendDiary = findViewById(R.id.layoutFriendDiary);
 
         if (currentUser == null) {
             Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
@@ -61,198 +71,29 @@ public class InviteFriendActivity extends AppCompatActivity {
             return;
         }
 
-        // 🌟 [나래님 도면 연동] 정적으로 박아둔 [+] 버튼에 이메일 초대 팝업 연결!
         FrameLayout circleFrame = findViewById(R.id.circleFrame);
         if (circleFrame != null) {
             circleFrame.setOnClickListener(v -> showInviteEmailDialog());
         }
 
-        // 내 전용 프로필 서클(첫 번째 FrameLayout) 클릭 시 내 데이터 로드 리스너 부여
         FrameLayout plusFrame = findViewById(R.id.plusFrame);
         if (plusFrame != null) {
-            plusFrame.setOnClickListener(v -> loadUserDailyData(currentUser.getUid(), "나", "close_friend"));
+            plusFrame.setOnClickListener(v -> {
+                Toast.makeText(this, "나의 오늘 하루를 보고 계십니다! 🐹", Toast.LENGTH_SHORT).show();
+            });
         }
 
-        // 초기 화면 구동 시 데이터 배치 수행
+        loadMyDailyData();
         loadAcceptedFriendsAndRender();
-        loadUserDailyData(currentUser.getUid(), "나", "close_friend");
     }
 
-    // 🟢 1. [나]와 [+] 사이에만 친구 원형 이미지를 동적으로 비집고 밀어 넣는 핵심 렌더러
-    private void loadAcceptedFriendsAndRender() {
-        if (currentUser == null) return;
+    private void loadMyDailyData() {
+        if (tvTargetName != null) tvTargetName.setText("나의 오늘 하루");
+        if (layoutFriendSchedules == null || tvFriendDiarySummary == null) return;
 
-        db.collection("users").document(currentUser.getUid()).collection("friends").get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (layoutProfileContainer == null) return;
-
-                    // 1. 순정 상태 원상 복구 (나와 +만 남기고 사이에 낀 옛날 뷰들 소거)
-                    while (layoutProfileContainer.getChildCount() > 2) {
-                        layoutProfileContainer.removeViewAt(1);
-                    }
-
-                    float density = getResources().getDisplayMetrics().density;
-                    int circleSize = (int) (80 * density);
-                    int marginSize = (int) (16 * density);
-
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        String friendUid = doc.getId();
-                        String friendName = doc.getString("name");
-                        String status = doc.getString("status");
-                        String tier = doc.getString("tier");
-
-                        // 오직 관계 설정이 정상 수락("accepted") 또는 내게 온 요청("received")인 유저만 링에 배치
-                        if ("accepted".equals(status) || "received".equals(status)) {
-
-                            FrameLayout friendFrame = new FrameLayout(this);
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(circleSize, circleSize);
-                            params.setMargins(marginSize, 0, 0, 0); // 16dp 간격 배치 규칙 준수
-                            friendFrame.setLayoutParams(params);
-
-                            // 초록색 원형 프로필 테두리 장식 입히기
-                            GradientDrawable strokeDrawable = new GradientDrawable();
-                            strokeDrawable.setShape(GradientDrawable.OVAL);
-                            strokeDrawable.setStroke(5, Color.parseColor("#4CAF50")); // 메인 초록색
-
-                            // 🟢 친구가 추가되면 프로필 사진으로 초록 원 내부를 완벽 채우기
-                            ImageView imgProfile = new ImageView(this);
-                            FrameLayout.LayoutParams imgParams = new FrameLayout.LayoutParams(circleSize, circleSize);
-                            imgProfile.setLayoutParams(imgParams);
-                            imgProfile.setImageResource(R.drawable.hamicon); // 🐹 친구 전용 프로필 이미지 뷰포트 배치
-                            imgProfile.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-                            if ("received".equals(status)) {
-                                strokeDrawable.setStroke(5, Color.parseColor("#FF9800")); // 대기자는 오렌지 경고색 테두리
-                            } else if ("close_friend".equals(tier)) {
-                                strokeDrawable.setColor(Color.parseColor("#E8F5E9")); // 친한 친구는 부드러운 초록색 배경 음영 보너스
-                            }
-                            imgProfile.setBackground(strokeDrawable);
-                            friendFrame.addView(imgProfile);
-
-                            // 🌟 핵심 인덱스 밀어내기 기법 적용 (언제나 [+] 바로 앞자리에 주입)
-                            int insertIndex = layoutProfileContainer.getChildCount() - 1;
-                            layoutProfileContainer.addView(friendFrame, insertIndex);
-
-                            // 프로필 터치 클릭 액션 설정
-                            friendFrame.setOnClickListener(v -> {
-                                if ("received".equals(status)) {
-                                    showAcceptDialog(friendUid, friendName);
-                                } else {
-                                    // 일반 수락 상태라면 하단에 일정 및 일기 즉각 분기 로드 후 등급 편집 팝업 출력
-                                    loadUserDailyData(friendUid, friendName, tier);
-                                    showTierToggleDialog(friendUid, friendName, tier);
-                                }
-                            });
-                        }
-                    }
-                });
-    }
-
-    // 🟢 2. 중앙 이메일 탐색 및 초대 팝업창
-    private void showInviteEmailDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("📨 햄린더 친구 초대");
-
-        final EditText inputEmail = new EditText(this);
-        inputEmail.setHint("친구의 이메일을 입력하세요");
-        inputEmail.setPadding(40, 40, 40, 40);
-        builder.setView(inputEmail);
-
-        builder.setPositiveButton("초대 전송", (dialog, which) -> {
-            String email = inputEmail.getText().toString().trim();
-            if (TextUtils.isEmpty(email)) return;
-
-            if (email.equals(currentUser.getEmail())) {
-                Toast.makeText(this, "자기 자신은 초대할 수 없습니다.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            db.collection("users").whereEqualTo("email", email).get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            Toast.makeText(InviteFriendActivity.this, "가입되지 않은 이메일입니다.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        DocumentSnapshot targetUser = queryDocumentSnapshots.getDocuments().get(0);
-                        String targetUid = targetUser.getId();
-                        String targetName = targetUser.getString("name");
-
-                        Map<String, Object> myRequest = new HashMap<>();
-                        myRequest.put("email", email);
-                        myRequest.put("name", targetName != null ? targetName : "사용자");
-                        myRequest.put("status", "sent");
-                        myRequest.put("tier", "friend");
-
-                        Map<String, Object> targetRequest = new HashMap<>();
-                        targetRequest.put("email", currentUser.getEmail());
-                        targetRequest.put("name", currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "새로운 친구");
-                        targetRequest.put("status", "received");
-                        targetRequest.put("tier", "friend");
-
-                        db.collection("users").document(currentUser.getUid()).collection("friends").document(targetUid).set(myRequest);
-                        db.collection("users").document(targetUid).collection("friends").document(currentUser.getUid()).set(targetRequest)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(InviteFriendActivity.this, "초대를 전송했습니다!", Toast.LENGTH_SHORT).show();
-                                    loadAcceptedFriendsAndRender();
-                                });
-                    });
-        });
-        builder.setNegativeButton("취소", null);
-        builder.show();
-    }
-
-    // 🟢 3. 친구 수락 제어 다이얼로그
-    private void showAcceptDialog(String friendUid, String friendName) {
-        new AlertDialog.Builder(this)
-                .setTitle("친구 초대가 와있습니다")
-                .setMessage(friendName + "님의 초대를 수락하시겠습니까?")
-                .setNegativeButton("거절", null)
-                .setPositiveButton("수락", (dialog, which) -> {
-                    db.collection("users").document(currentUser.getUid()).collection("friends").document(friendUid).update("status", "accepted");
-                    db.collection("users").document(friendUid).collection("friends").document(currentUser.getUid()).update("status", "accepted")
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(InviteFriendActivity.this, "이제 친구 관계입니다!", Toast.LENGTH_SHORT).show();
-                                loadAcceptedFriendsAndRender();
-                            });
-                }).show();
-    }
-
-    // 🟢 4. 등급 설정 토글 다이얼로그 (일반 친구 ↔ 친한 친구)
-    private void showTierToggleDialog(String friendUid, String friendName, String currentTier) {
-        String menuOption = "close_friend".equals(currentTier) ? "일반 친구로 변경 (일기 숨기기)" : "⭐ 친한 친구로 지정 (일기 공유)";
-        new AlertDialog.Builder(this)
-                .setTitle(friendName + "님 권한 설정")
-                .setItems(new String[]{menuOption, "취소"}, (dialog, which) -> {
-                    if (which == 0) {
-                        String nextTier = "close_friend".equals(currentTier) ? "friend" : "close_friend";
-                        db.collection("users").document(currentUser.getUid()).collection("friends").document(friendUid)
-                                .update("tier", nextTier)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(InviteFriendActivity.this, "권한 변경 완료!", Toast.LENGTH_SHORT).show();
-                                    loadAcceptedFriendsAndRender();
-                                });
-                    }
-                }).show();
-    }
-
-    // 🟢 5. [핵심 지표] 선택된 인물의 데이터 연동 및 권한 분기 필터링 (화면 하단 출력 영역)
-    // 💡 InviteFriendActivity.java의 맨 아래 loadUserDailyData 메서드를 이 코드로 덮어쓰기 해주세요!
-
-    private void loadUserDailyData(String uid, String name, String tier) {
-        if (tvTargetName == null || layoutFriendSchedules == null || tvFriendDiarySummary == null) return;
-
-        tvTargetName.setText(name + "님의 오늘 하루");
         layoutFriendSchedules.removeAllViews();
-        tvFriendDiarySummary.setText("작성된 일기가 없거나 오픈 권한이 제한되어 있습니다.");
 
-        // 🌟 [핵심 수정] 일기장 전용 한글 포맷 생성 (예: "6월 14일 (일)")
-        java.time.format.DateTimeFormatter diaryFormatter =
-                java.time.format.DateTimeFormatter.ofPattern("M월 d일 (E)", java.util.Locale.KOREAN);
-        String diaryTodayStr = LocalDate.now().format(diaryFormatter);
-
-        // [A. 일정 로드] - 일정은 기존대로 "2026-06-14" (todayStr)로 조회
-        db.collection("users").document(uid).collection("schedules")
+        db.collection("users").document(currentUser.getUid()).collection("schedules")
                 .whereEqualTo("date", todayStr)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -263,7 +104,6 @@ public class InviteFriendActivity extends AppCompatActivity {
                         layoutFriendSchedules.addView(tvEmpty);
                         return;
                     }
-
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         TextView tvSchedule = new TextView(this);
                         tvSchedule.setText("• " + doc.getString("title"));
@@ -274,35 +114,336 @@ public class InviteFriendActivity extends AppCompatActivity {
                     }
                 });
 
-        // [B. 일기 요약 제어 분기] - 한글 날짜 이름표(diaryTodayStr)를 사용하여 매칭 성공!
-        if (uid.equals(currentUser.getUid())) {
-            // 내 일기는 한글 이름표로 로컬 SharedPreferences에서 가져옴
-            String localSummary = getSharedPreferences("diary_pref", MODE_PRIVATE).getString("summary_" + diaryTodayStr, "");
-            if (!localSummary.isEmpty()) {
-                tvFriendDiarySummary.setText(localSummary);
-            } else {
-                tvFriendDiarySummary.setText("오늘 작성된 일기 요약이 없습니다.");
-            }
+        String localSummary = getSharedPreferences("diary_pref", MODE_PRIVATE).getString("summary_" + diaryTodayStr, "");
+        if (!localSummary.isEmpty()) {
+            tvFriendDiarySummary.setText(localSummary);
         } else {
-            // 친구의 일기는 상대방이 파이어베이스에 올린 한글 이름표 도큐먼트를 조회
-            db.collection("users").document(uid).collection("friends").document(currentUser.getUid()).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists() && "close_friend".equals(documentSnapshot.getString("tier"))) {
-
-                            // 파이어베이스 도큐먼트 ID도 한글 날짜 이름표(diaryTodayStr)로 매칭!
-                            db.collection("users").document(uid).collection("summaries").document(diaryTodayStr).get()
-                                    .addOnSuccessListener(diaryDoc -> {
-                                        if (diaryDoc.exists() && diaryDoc.getString("summary") != null) {
-                                            tvFriendDiarySummary.setText(diaryDoc.getString("summary"));
-                                        } else {
-                                            tvFriendDiarySummary.setText("친한 친구 관계이나 상대방이 오늘 일기를 작성하지 않았습니다.");
-                                        }
-                                    });
-                        } else {
-                            tvFriendDiarySummary.setText("🔒 상대방의 '친한 친구' 등급에게만 투명하게 공개되는 비밀 일기입니다.");
-                        }
-                    });
+            tvFriendDiarySummary.setText("오늘 작성된 내 일기 요약이 없습니다.");
         }
+    }
 
+    // 🟢 친구 목록 실시간 렌더러
+    private void loadAcceptedFriendsAndRender() {
+        if (currentUser == null) return;
+
+        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+
+        friendsListener = db.collection("users").document(myEmailKey).collection("friends")
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                    if (error != null) return;
+                    if (queryDocumentSnapshots == null || layoutProfileContainer == null || layoutFriendDiary == null) return;
+
+                    while (layoutProfileContainer.getChildCount() > 2) {
+                        layoutProfileContainer.removeViewAt(1);
+                    }
+                    layoutFriendDiary.removeAllViews();
+
+                    float density = getResources().getDisplayMetrics().density;
+                    int circleSize = (int) (80 * density);
+                    int marginSize = (int) (16 * density);
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String friendEmail = doc.getId();
+                        String friendName = doc.getString("name");
+                        String status = doc.getString("status");
+                        String tier = doc.getString("tier");
+                        String friendProfileUriStr = doc.getString("friend_profile_uri");
+
+                        if (friendEmail.equalsIgnoreCase(myEmailKey)) continue;
+
+                        if ("accepted".equals(status) || "received".equals(status)) {
+
+                            FrameLayout friendFrame = new FrameLayout(this);
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(circleSize, circleSize);
+                            params.setMargins(marginSize, 0, 0, 0);
+                            friendFrame.setLayoutParams(params);
+
+                            GradientDrawable strokeDrawable = new GradientDrawable();
+                            strokeDrawable.setShape(GradientDrawable.OVAL);
+                            strokeDrawable.setStroke(5, Color.parseColor("#4CAF50"));
+
+                            ImageView imgProfile = new ImageView(this);
+                            FrameLayout.LayoutParams imgParams = new FrameLayout.LayoutParams(circleSize, circleSize);
+                            imgProfile.setLayoutParams(imgParams);
+                            imgProfile.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+                            if ("received".equals(status)) {
+                                strokeDrawable.setStroke(5, Color.parseColor("#FF9800"));
+                            } else if ("close_friend".equals(tier)) {
+                                strokeDrawable.setColor(Color.parseColor("#E8F5E9"));
+                            }
+                            imgProfile.setBackground(strokeDrawable);
+
+                            if (!TextUtils.isEmpty(friendProfileUriStr)) {
+                                Glide.with(InviteFriendActivity.this)
+                                        .load(Uri.parse(friendProfileUriStr))
+                                        .circleCrop()
+                                        .placeholder(R.drawable.hamicon)
+                                        .error(R.drawable.hamicon)
+                                        .into(imgProfile);
+                            } else {
+                                imgProfile.setImageResource(R.drawable.hamicon);
+                            }
+
+                            TextView tvNick = new TextView(this);
+                            FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                            textParams.gravity = Gravity.CENTER;
+                            tvNick.setLayoutParams(textParams);
+                            tvNick.setText(friendName != null ? friendName : friendEmail);
+                            tvNick.setTextColor(Color.BLACK);
+                            tvNick.setTextSize(12);
+
+                            friendFrame.addView(imgProfile);
+                            friendFrame.addView(tvNick);
+
+                            int insertIndex = layoutProfileContainer.getChildCount() - 1;
+                            layoutProfileContainer.addView(friendFrame, insertIndex);
+
+                            friendFrame.setOnClickListener(v -> {
+                                if ("received".equals(status)) {
+                                    showAcceptDialog(friendEmail, tvNick.getText().toString());
+                                } else {
+                                    showFriendManagementDialog(friendEmail, tvNick.getText().toString(), tier);
+                                }
+                            });
+
+                            if ("accepted".equals(status)) {
+                                createFriendFeedDynamicView(friendEmail, tvNick.getText().toString(), tier);
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void createFriendFeedDynamicView(String friendEmail, String friendName, String tier) {
+        float density = getResources().getDisplayMetrics().density;
+
+        LinearLayout friendSection = new LinearLayout(this);
+        friendSection.setOrientation(LinearLayout.VERTICAL);
+        friendSection.setPadding(0, (int) (20 * density), 0, 0);
+
+        View divider = new View(this);
+        LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (1 * density));
+        divParams.setMargins(0, 0, 0, (int) (16 * density));
+        divider.setLayoutParams(divParams);
+        divider.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        friendSection.addView(divider);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(friendName + "님의 오늘 하루");
+        tvTitle.setTextSize(18);
+        tvTitle.setTextColor(Color.BLACK);
+        tvTitle.setPadding(0, 0, 0, (int) (12 * density));
+        friendSection.addView(tvTitle);
+
+        TextView tvSubSchedule = new TextView(this);
+        tvSubSchedule.setText("📅 친구의 오늘 일정");
+        tvSubSchedule.setTextSize(14);
+        tvSubSchedule.setTextColor(Color.BLACK);
+        tvSubSchedule.setPadding(0, 0, 0, (int) (6 * density));
+        friendSection.addView(tvSubSchedule);
+
+        LinearLayout scheduleBox = new LinearLayout(this);
+        scheduleBox.setOrientation(LinearLayout.VERTICAL);
+        scheduleBox.setBackgroundResource(R.drawable.edittext_box);
+        scheduleBox.setBackgroundColor(Color.WHITE);
+        scheduleBox.setElevation(1 * density);
+        scheduleBox.setPadding((int) (14 * density), (int) (14 * density), (int) (14 * density), (int) (14 * density));
+        LinearLayout.LayoutParams boxParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        boxParams.setMargins(0, 0, 0, (int) (16 * density));
+        scheduleBox.setLayoutParams(boxParams);
+        friendSection.addView(scheduleBox);
+
+        db.collection("users").document(friendEmail).collection("schedules")
+                .whereEqualTo("date", todayStr)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        TextView tvEmpty = new TextView(this);
+                        tvEmpty.setText("오늘 잡힌 친구의 일정이 없습니다.");
+                        tvEmpty.setTextColor(Color.GRAY);
+                        scheduleBox.addView(tvEmpty);
+                        return;
+                    }
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        TextView tvSchedule = new TextView(this);
+                        tvSchedule.setText("• " + doc.getString("title"));
+                        tvSchedule.setTextSize(14);
+                        tvSchedule.setPadding(0, 8, 0, 8);
+                        tvSchedule.setTextColor(Color.BLACK);
+                        scheduleBox.addView(tvSchedule);
+                    }
+                });
+
+        TextView tvSubDiary = new TextView(this);
+        tvSubDiary.setText("✨ 친구의 AI 일기 요약");
+        tvSubDiary.setTextSize(14);
+        tvSubDiary.setTextColor(Color.BLACK);
+        tvSubDiary.setPadding(0, 0, 0, (int) (6 * density));
+        friendSection.addView(tvSubDiary);
+
+        LinearLayout diaryBox = new LinearLayout(this);
+        diaryBox.setOrientation(LinearLayout.VERTICAL);
+        diaryBox.setBackgroundResource(R.drawable.edittext_box);
+        diaryBox.setBackgroundColor(Color.parseColor("#F2F9F6"));
+        diaryBox.setElevation(1 * density);
+        diaryBox.setPadding((int) (14 * density), (int) (14 * density), (int) (14 * density), (int) (14 * density));
+        diaryBox.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        TextView tvDiarySummary = new TextView(this);
+        tvDiarySummary.setText("🔒 상대방의 '친한 친구' 등급에게만 투명하게 공개되는 비밀 일기입니다.");
+        tvDiarySummary.setTextColor(Color.BLACK);
+        tvDiarySummary.setTextSize(13);
+        diaryBox.addView(tvDiarySummary);
+        friendSection.addView(diaryBox);
+
+        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+        db.collection("users").document(myEmailKey).collection("friends").document(friendEmail).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists() && "close_friend".equals(documentSnapshot.getString("tier"))) {
+                        db.collection("users").document(friendEmail).collection("summaries").document(diaryTodayStr).get()
+                                .addOnSuccessListener(diaryDoc -> {
+                                    if (diaryDoc.exists() && diaryDoc.getString("summary") != null) {
+                                        tvDiarySummary.setText(diaryDoc.getString("summary"));
+                                    } else {
+                                        tvDiarySummary.setText("친한 친구 관계이나 상대방이 오늘 일기를 작성하지 않았습니다.");
+                                    }
+                                });
+                    } else {
+                        tvDiarySummary.setText("🔒 상대방의 '친한 친구' 등급에게만 투명하게 공개되는 비밀 일기입니다.");
+                    }
+                });
+
+        layoutFriendDiary.addView(friendSection);
+    }
+
+    // 🟢 초대 전송 시 폰 서랍장을 완전히 무시하고, 파이어베이스 계정 본체를 직접 열어서 배달합니다!
+    private void showInviteEmailDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("📨 햄린더 친구 초대");
+
+        final EditText inputEmail = new EditText(this);
+        inputEmail.setHint("친구의 이메일을 입력하세요");
+        inputEmail.setPadding(40, 40, 40, 40);
+        builder.setView(inputEmail);
+
+        builder.setPositiveButton("초대 전송", (dialog, which) -> {
+            String targetEmail = inputEmail.getText().toString().trim();
+            if (TextUtils.isEmpty(targetEmail)) return;
+
+            if (targetEmail.equalsIgnoreCase(currentUser.getEmail())) {
+                Toast.makeText(this, "자기 자신은 초대할 수 없습니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+
+            // 💡 [핵심 해결 1] 꼬여있는 폰 서랍장 버리고 파이어베이스 로그인 정보에서 무조건 가져옴!
+            String myNickname = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "새로운 친구";
+            String myProfileUriStr = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "";
+
+            Map<String, Object> myRequest = new HashMap<>();
+            myRequest.put("email", targetEmail);
+            myRequest.put("name", targetEmail);
+            myRequest.put("status", "sent");
+            myRequest.put("tier", "friend");
+
+            Map<String, Object> targetRequest = new HashMap<>();
+            targetRequest.put("email", myEmailKey);
+            targetRequest.put("name", myNickname);
+            targetRequest.put("status", "received");
+            targetRequest.put("tier", "friend");
+            if (!TextUtils.isEmpty(myProfileUriStr)) {
+                targetRequest.put("friend_profile_uri", myProfileUriStr);
+            }
+
+            db.collection("users").document(myEmailKey).collection("friends").document(targetEmail).set(myRequest);
+            db.collection("users").document(targetEmail).collection("friends").document(myEmailKey).set(targetRequest)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(InviteFriendActivity.this, "🎉 초대를 성공적으로 전송했습니다!", Toast.LENGTH_SHORT).show();
+                    });
+        });
+        builder.setNegativeButton("취소", null);
+        builder.show();
+    }
+
+    // 🟢 수락 시에도 파이어베이스 계정 본체에서 꺼내옵니다!
+    private void showAcceptDialog(String friendEmail, String friendName) {
+        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+
+        new AlertDialog.Builder(this)
+                .setTitle("친구 초대가 와있습니다")
+                .setMessage(friendName + "님의 초대를 수락하시겠습니까?")
+                .setNegativeButton("거절", null)
+                .setPositiveButton("수락", (dialog, which) -> {
+
+                    // 💡 [핵심 해결 2] 서랍장 버리고 파이어베이스 정보 직접 가져옴!
+                    String myNickname = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "새로운 친구";
+                    String myProfileUriStr = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "";
+
+                    Map<String, Object> friendUpdates = new HashMap<>();
+                    friendUpdates.put("status", "accepted");
+                    friendUpdates.put("name", myNickname);
+                    if (!TextUtils.isEmpty(myProfileUriStr)) {
+                        friendUpdates.put("friend_profile_uri", myProfileUriStr);
+                    }
+
+                    Map<String, Object> myUpdates = new HashMap<>();
+                    myUpdates.put("status", "accepted");
+
+                    if (!TextUtils.isEmpty(friendName) && !friendName.contains("@")) {
+                        myUpdates.put("name", friendName);
+                    }
+
+                    db.collection("users").document(myEmailKey).collection("friends").document(friendEmail).update(myUpdates);
+                    db.collection("users").document(friendEmail).collection("friends").document(myEmailKey).update(friendUpdates)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(InviteFriendActivity.this, "🤝 이제 친구 관계입니다!", Toast.LENGTH_SHORT).show();
+                            });
+                }).show();
+    }
+
+    private void showFriendManagementDialog(String friendEmail, String friendName, String currentTier) {
+        String menuOption = "close_friend".equals(currentTier) ? "일반 친구로 변경" : "⭐ 친한 친구로 지정 (일기 공유)";
+        String[] items = {menuOption, "❌ 친구 삭제하기", "취소"};
+
+        new AlertDialog.Builder(this)
+                .setTitle(friendName + "님 권한 및 관계 설정")
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        String nextTier = "close_friend".equals(currentTier) ? "friend" : "close_friend";
+                        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+                        db.collection("users").document(myEmailKey).collection("friends").document(friendEmail)
+                                .update("tier", nextTier)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(InviteFriendActivity.this, "권한 변경 완료!", Toast.LENGTH_SHORT).show();
+                                });
+                    } else if (which == 1) {
+                        showRealDeleteConfirmDialog(friendEmail, friendName);
+                    }
+                }).show();
+    }
+
+    private void showRealDeleteConfirmDialog(String friendEmail, String friendName) {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ 진짜로 삭제하시겠습니까?")
+                .setMessage(friendName + "님과의 모든 친구 관계, 오늘 일정, 일기장 공유가 즉시 차단되며 목록에서 사라집니다.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제 확정", (dialog, which) -> {
+                    String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+                    db.collection("users").document(myEmailKey).collection("friends").document(friendEmail).delete();
+                    db.collection("users").document(friendEmail).collection("friends").document(myEmailKey).delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(InviteFriendActivity.this, "친구 관계가 완전히 철회되었습니다. 햄!", Toast.LENGTH_SHORT).show();
+                            });
+                }).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (friendsListener != null) {
+            friendsListener.remove();
+        }
     }
 }

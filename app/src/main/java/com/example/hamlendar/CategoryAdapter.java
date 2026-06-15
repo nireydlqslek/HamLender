@@ -49,7 +49,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
         holder.txtCategoryName.setText(item.getName());
 
-        // [파스텔톤 컬러 매핑 테이블]
         String colorType = item.getColorCode();
         if (colorType == null) colorType = "GREY";
 
@@ -75,7 +74,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             } catch (Exception e) { e.printStackTrace(); }
         }
 
-        // 🔼 위로 이동 버튼 클릭 리스너
         holder.btnMoveUp.setOnClickListener(v -> {
             int pos = holder.getAdapterPosition();
             if (pos > 0 && pos != RecyclerView.NO_POSITION) {
@@ -85,7 +83,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             }
         });
 
-        // 🔽 아래로 이동 버튼 클릭 리스너
         holder.btnMoveDown.setOnClickListener(v -> {
             int pos = holder.getAdapterPosition();
             if (pos < categoryList.size() - 1 && pos != RecyclerView.NO_POSITION) {
@@ -95,7 +92,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             }
         });
 
-        // 삭제 및 수정 (기존 다이얼로그 기능 유지)
         holder.btnDelete.setOnClickListener(v -> deleteCategory(context, item, currentPosition));
         holder.itemView.setOnClickListener(v -> {
             String[] options = {"이름 수정하기"};
@@ -109,23 +105,21 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         });
     }
 
-    // 🌟 리스트 내에서 순서를 바꾸고 DB에 저장하는 핵심 메서드
     private void swapItems(Context context, int fromPosition, int toPosition) {
-        // 1. 로컬 리스트에서 두 아이템의 위치를 맞바꿈
         Collections.swap(categoryList, fromPosition, toPosition);
 
-        // 2. 바뀐 데이터에 맞게 index 값 재설정
         categoryList.get(fromPosition).setIndex(fromPosition);
         categoryList.get(toPosition).setIndex(toPosition);
 
-        // 3. 어댑터에 변경 알림 (부드러운 애니메이션 효과)
         notifyItemMoved(fromPosition, toPosition);
         notifyItemChanged(fromPosition);
         notifyItemChanged(toPosition);
 
-        // 4. 파이어스토어(원격 DB)에 순서 배치 일괄 동기화 (Batch 사용)
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+            // 🌟 [핵심 수리 1] 순서를 바꿀 때도 UID 말고 이메일 주소 이름표 사용!
+            String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
+
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             WriteBatch batch = db.batch();
 
@@ -133,8 +127,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             CategoryItem item2 = categoryList.get(toPosition);
 
             if (item1.getId() != null && item2.getId() != null) {
-                batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item1.getId()), "index", fromPosition);
-                batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item2.getId()), "index", toPosition);
+                batch.update(db.collection("users").document(myEmailKey).collection("categories").document(item1.getId()), "index", fromPosition);
+                batch.update(db.collection("users").document(myEmailKey).collection("categories").document(item2.getId()), "index", toPosition);
 
                 batch.commit().addOnFailureListener(e -> {
                     Toast.makeText(context, "순서 저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -155,8 +149,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             if (!newName.isEmpty()) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null && item.getId() != null) {
+                    // 🌟 [핵심 수리 2] 카테고리 이름을 수정할 때도 이메일 주소 이름표 사용!
+                    String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
+
                     FirebaseFirestore.getInstance()
-                            .collection("users").document(user.getUid())
+                            .collection("users").document(myEmailKey)
                             .collection("categories").document(item.getId())
                             .update("name", newName)
                             .addOnSuccessListener(aVoid -> {
@@ -174,8 +171,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     private void deleteCategory(Context context, CategoryItem item, int position) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && item.getId() != null) {
+            // 🌟 [핵심 수리 3] 카테고리를 삭제할 때도 이메일 주소 이름표 사용!
+            String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
+
             FirebaseFirestore.getInstance()
-                    .collection("users").document(user.getUid())
+                    .collection("users").document(myEmailKey)
                     .collection("categories").document(item.getId())
                     .delete()
                     .addOnSuccessListener(aVoid -> {
@@ -194,16 +194,16 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         TextView txtCategoryName;
         View viewColorBar;
         View layoutCategoryRoot;
-        ImageView btnMoveUp, btnMoveDown, btnDelete; // 화살표 및 삭제 버튼 추가
+        ImageView btnMoveUp, btnMoveDown, btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             txtCategoryName = itemView.findViewById(R.id.txtCategoryName);
             viewColorBar = itemView.findViewById(R.id.viewColorBar);
             layoutCategoryRoot = itemView.findViewById(R.id.layoutCategoryRoot);
-            btnMoveUp = itemView.findViewById(R.id.btnMoveUp);         // XML의 위로 가기 버튼 매핑
-            btnMoveDown = itemView.findViewById(R.id.btnMoveDown);     // XML의 아래로 가기 버튼 매핑
-            btnDelete = itemView.findViewById(R.id.btnDelete);         // XML의 휴지통 삭제 버튼 매핑
+            btnMoveUp = itemView.findViewById(R.id.btnMoveUp);
+            btnMoveDown = itemView.findViewById(R.id.btnMoveDown);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }
