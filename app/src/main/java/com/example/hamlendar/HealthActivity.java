@@ -756,9 +756,20 @@ public class HealthActivity extends AppCompatActivity {
             return items.size() < MAX_SECTION_ITEMS;
         }
 
+//        @Override
+//        public int getItemCount() {
+//            return items.size() + (shouldShowAddButton() ? 1 : 0);
+//        }
+
         @Override
         public int getItemCount() {
-            return items.size() + (shouldShowAddButton() ? 1 : 0);
+            if (items == null) return 0;
+
+            // 🌟 커스텀 카테고리가 3개보다 많으면 딱 3개만 그리도록 제한!
+            if (items.size() > 3) {
+                return 3;
+            }
+            return items.size();
         }
 
         class HealthViewHolder extends RecyclerView.ViewHolder {

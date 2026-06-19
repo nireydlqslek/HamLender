@@ -49,7 +49,7 @@ public class FindPwActivity extends AppCompatActivity {
         spinnerQuestion = findViewById(R.id.spinner_findPw_question);
         etAnswer = findViewById(R.id.et_findPw_answer);
         tvFindPwResult = findViewById(R.id.tv_findPw_result);
-        btnDoFindPw = findViewById(R.id.btn_do_findPw);
+        btnDoFindPw = findViewById(R.id.btn_do_findId);
 
         // 🌟 [동기화 1] 회원가입창(RegisterActivity)에서 추가한 새로운 3가지 보안 질문 리스트로 완벽 일치!
         String[] questions = {

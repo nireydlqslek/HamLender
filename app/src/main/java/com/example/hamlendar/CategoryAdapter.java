@@ -49,7 +49,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
         holder.txtCategoryName.setText(item.getName());
 
-        // [파스텔톤 컬러 매핑 테이블]
+        // 색상 및 배경 처리
         String colorType = item.getColorCode();
         if (colorType == null) colorType = "GREY";
 
@@ -65,23 +65,33 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             default: darkRes = R.color.cat_grey_dark; lightRes = R.color.cat_grey_light; break;
         }
 
-        holder.viewColorBar.setBackgroundColor(ContextCompat.getColor(context, darkRes));
-        Drawable backgroundDrawable = holder.layoutCategoryRoot.getBackground();
-        if (backgroundDrawable != null) {
-            try {
-                Drawable wrappedDrawable = DrawableCompat.wrap(backgroundDrawable.mutate());
-                DrawableCompat.setTint(wrappedDrawable, ContextCompat.getColor(context, lightRes));
-                holder.layoutCategoryRoot.setBackground(wrappedDrawable);
-            } catch (Exception e) { e.printStackTrace(); }
+        if (holder.viewColorBar != null) {
+            holder.viewColorBar.setBackgroundColor(ContextCompat.getColor(context, darkRes));
         }
 
-        // 🔼 위로 이동 버튼 클릭 리스너
+        if (holder.layoutCategoryRoot != null) {
+            Drawable backgroundDrawable = holder.layoutCategoryRoot.getBackground();
+            if (backgroundDrawable != null) {
+                try {
+                    Drawable wrappedDrawable = DrawableCompat.wrap(backgroundDrawable.mutate());
+                    DrawableCompat.setTint(wrappedDrawable, ContextCompat.getColor(context, lightRes));
+                    holder.layoutCategoryRoot.setBackground(wrappedDrawable);
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+        }
+
+        // 🌟 [수정] 어댑터에는 무조건 순수 커스텀 카테고리만 들어오므로 예외 방어 제거 및 모든 기능 기본 활성화
+        if (holder.btnMoveUp != null) holder.btnMoveUp.setVisibility(View.VISIBLE);
+        if (holder.btnMoveDown != null) holder.btnMoveDown.setVisibility(View.VISIBLE);
+        if (holder.btnDelete != null) holder.btnDelete.setVisibility(View.VISIBLE);
+
+        // 🔼 위로 이동 버튼 클릭 리스너 (0번 인덱스보다 커야 위로 갈 수 있음)
         holder.btnMoveUp.setOnClickListener(v -> {
             int pos = holder.getAdapterPosition();
             if (pos > 0 && pos != RecyclerView.NO_POSITION) {
                 swapItems(context, pos, pos - 1);
             } else {
-                Toast.makeText(context, "이미 가장 위에 있습니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "더 이상 위로 이동할 수 없습니다.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -95,35 +105,32 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             }
         });
 
-        // 삭제 및 수정 (기존 다이얼로그 기능 유지)
-        holder.btnDelete.setOnClickListener(v -> deleteCategory(context, item, currentPosition));
+        // 삭제 및 수정 리스너 연결
+        if (holder.btnDelete != null) {
+            holder.btnDelete.setOnClickListener(v -> deleteCategory(context, item, holder.getAdapterPosition()));
+        }
+
         holder.itemView.setOnClickListener(v -> {
             String[] options = {"이름 수정하기"};
             new AlertDialog.Builder(context)
                     .setTitle(item.getName())
                     .setItems(options, (dialog, which) -> {
-                        if (which == 0) showEditDialog(context, item, currentPosition);
-                        else if (which == 1) deleteCategory(context, item, currentPosition);
+                        if (which == 0) showEditDialog(context, item, holder.getAdapterPosition());
                     })
                     .show();
         });
     }
 
-    // 🌟 리스트 내에서 순서를 바꾸고 DB에 저장하는 핵심 메서드
+    // 🌟 [수정] 데이터 리스트 인덱스 보정 처리(-2 제거) 수정
     private void swapItems(Context context, int fromPosition, int toPosition) {
-        // 1. 로컬 리스트에서 두 아이템의 위치를 맞바꿈
         Collections.swap(categoryList, fromPosition, toPosition);
-
-        // 2. 바뀐 데이터에 맞게 index 값 재설정
         categoryList.get(fromPosition).setIndex(fromPosition);
         categoryList.get(toPosition).setIndex(toPosition);
 
-        // 3. 어댑터에 변경 알림 (부드러운 애니메이션 효과)
         notifyItemMoved(fromPosition, toPosition);
         notifyItemChanged(fromPosition);
         notifyItemChanged(toPosition);
 
-        // 4. 파이어스토어(원격 DB)에 순서 배치 일괄 동기화 (Batch 사용)
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -131,7 +138,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
             CategoryItem item1 = categoryList.get(fromPosition);
             CategoryItem item2 = categoryList.get(toPosition);
-
             if (item1.getId() != null && item2.getId() != null) {
                 batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item1.getId()), "index", fromPosition);
                 batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item2.getId()), "index", toPosition);
@@ -149,7 +155,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         final EditText input = new EditText(context);
         input.setText(item.getName());
         builder.setView(input);
-
         builder.setPositiveButton("수정", (dialog, which) -> {
             String newName = input.getText().toString().trim();
             if (!newName.isEmpty()) {
@@ -188,22 +193,24 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     }
 
     @Override
-    public int getItemCount() { return categoryList.size(); }
+    public int getItemCount() {
+        return categoryList != null ? categoryList.size() : 0;
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtCategoryName;
         View viewColorBar;
         View layoutCategoryRoot;
-        ImageView btnMoveUp, btnMoveDown, btnDelete; // 화살표 및 삭제 버튼 추가
+        ImageView btnMoveUp, btnMoveDown, btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             txtCategoryName = itemView.findViewById(R.id.txtCategoryName);
             viewColorBar = itemView.findViewById(R.id.viewColorBar);
             layoutCategoryRoot = itemView.findViewById(R.id.layoutCategoryRoot);
-            btnMoveUp = itemView.findViewById(R.id.btnMoveUp);         // XML의 위로 가기 버튼 매핑
-            btnMoveDown = itemView.findViewById(R.id.btnMoveDown);     // XML의 아래로 가기 버튼 매핑
-            btnDelete = itemView.findViewById(R.id.btnDelete);         // XML의 휴지통 삭제 버튼 매핑
+            btnMoveUp = itemView.findViewById(R.id.btnMoveUp);
+            btnMoveDown = itemView.findViewById(R.id.btnMoveDown);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }

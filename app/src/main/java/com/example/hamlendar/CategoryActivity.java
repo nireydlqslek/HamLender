@@ -1,6 +1,7 @@
 package com.example.hamlendar;
 
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,8 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,6 +44,9 @@ public class CategoryActivity extends AppCompatActivity {
     // [2번째 화면] 카테고리 목록 리스트
     ImageView btnBackToInput;
     RecyclerView rvCategoryList;
+    ImageView imgMoreVert;
+
+    LinearLayout layoutFixedImportant, layoutFixedTodo;
 
     CategoryAdapter categoryAdapter;
     List<CategoryItem> categoryDataList = new ArrayList<>();
@@ -77,16 +84,30 @@ public class CategoryActivity extends AppCompatActivity {
 
         btnBackToInput = findViewById(R.id.btnBackToInput);
         rvCategoryList = findViewById(R.id.rvCategoryList);
+        imgMoreVert = findViewById(R.id.imgMoreVert);
 
-        // 하단 카테고리 추가 버튼 누를 때 이벤트
+        layoutFixedImportant = findViewById(R.id.layoutFixedImportant);
+        layoutFixedTodo = findViewById(R.id.layoutFixedTodo);
+
+        // 상단 고정 뷰 색상 지정
+        if (layoutFixedImportant != null && layoutFixedImportant.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedImportant.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_red_light));
+            layoutFixedImportant.setBackground(wrapped);
+        }
+
+        if (layoutFixedTodo != null && layoutFixedTodo.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedTodo.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_blue_light));
+            layoutFixedTodo.setBackground(wrapped);
+        }
+
         if (btnTaskListAdd != null) {
             btnTaskListAdd.setOnClickListener(v -> {
-                // 🌟 추가 질문 해결: 새로 추가 폼으로 들어갈 때 에러 상태와 붉은색 글씨/라인을 깨끗하게 비워줍니다.
                 editCategory.setError(null);
                 editCategory.clearFocus();
-
                 editCategory.setText("");
-                selectColor("transparent"); // 기본 컬러 폼으로 리셋
+                selectColor("transparent");
                 viewFlipper.setDisplayedChild(0);
             });
         }
@@ -96,13 +117,32 @@ public class CategoryActivity extends AppCompatActivity {
         rvCategoryList.setLayoutManager(new LinearLayoutManager(this));
         rvCategoryList.setAdapter(categoryAdapter);
 
-        // 데이터 원격 로드
+        rvCategoryList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                // 순수 커스텀 카테고리만 카운트하므로 기존 기준(> 3) 유지
+                if (categoryDataList.size() > 3 && imgMoreVert != null && btnTaskListAdd != null) {
+                    if (!recyclerView.canScrollVertically(-1)) {
+                        imgMoreVert.setVisibility(android.view.View.VISIBLE);
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                        params.topToBottom = R.id.imgMoreVert;
+                        btnTaskListAdd.setLayoutParams(params);
+                    } else if (dy > 0) {
+                        imgMoreVert.setVisibility(android.view.View.GONE);
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                        params.topToBottom = R.id.rvCategoryList;
+                        btnTaskListAdd.setLayoutParams(params);
+                    }
+                }
+            }
+        });
+
         loadCategoriesFromFirebase();
 
-        // 설정창 진입 시 초기 화면은 목록 화면(1)
         viewFlipper.setDisplayedChild(1);
 
-        // 색상 선택 이벤트
         redBtn.setOnClickListener(v -> selectColor("RED"));
         orangeBtn.setOnClickListener(v -> selectColor("ORANGE"));
         yellowBtn.setOnClickListener(v -> selectColor("YELLOW"));
@@ -112,18 +152,21 @@ public class CategoryActivity extends AppCompatActivity {
         pinkBtn.setOnClickListener(v -> selectColor("PINK"));
         greyBtn.setOnClickListener(v -> selectColor("GREY"));
 
-        // 화면 전환 리스너
         btnBackToInput.setOnClickListener(v -> finish());
         menuBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
         closeBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
         cancelBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
 
-        // 완료 버튼 (파이어베이스 데이터 저장)
         completeBtn.setOnClickListener(v -> {
             String categoryName = editCategory.getText().toString().trim();
 
             if(categoryName.isEmpty()){
                 editCategory.setError("카테고리 이름을 입력하세요");
+                return;
+            }
+
+            if (categoryDataList != null && categoryDataList.size() >= 8) {
+                Toast.makeText(this, "추가 카테고리는 최대 8개까지만 생성 가능합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -134,7 +177,8 @@ public class CategoryActivity extends AppCompatActivity {
             }
 
             CategoryItem newItem = new CategoryItem(categoryName, selectedColorType);
-            newItem.setIndex(categoryDataList.size()); // 순서 값 지정
+            // 순수하게 리스트 맨 뒤의 인덱스로 지정
+            newItem.setIndex(categoryDataList.size());
 
             db.collection("users").document(user.getUid()).collection("categories")
                     .add(newItem)
@@ -145,7 +189,8 @@ public class CategoryActivity extends AppCompatActivity {
                         categoryDataList.add(newItem);
                         categoryAdapter.notifyDataSetChanged();
 
-                        // 🌟 추가 질문 해결: 저장 성공 시 에러 상태를 초기화(Null)하여 다음 진입 시 붉은 테두리가 생기지 않도록 방지합니다.
+                        updateMoreVertLayout();
+
                         editCategory.setError(null);
                         editCategory.setText("");
                         selectColor("RED");
@@ -166,56 +211,89 @@ public class CategoryActivity extends AppCompatActivity {
         }
     }
 
+    // 🌟 리스트 청소만 수행 (중요, 할 일 강제 삽입 코드 완전히 제거)
+    private void addFixedCategoriesToList() {
+        categoryDataList.clear();
+    }
+
     private void loadCategoriesFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
-        // 🌟 중요: 'index' 필드가 없는 구형 데이터가 있으면 에러가 발생하므로,
-        // 쿼리가 실패하더라도 앱이 멈추거나 리스트가 안 불려오지 않게 완벽하게 예외 처리를 추가했습니다.
         db.collection("users").document(user.getUid()).collection("categories")
                 .orderBy("index", com.google.firebase.firestore.Query.Direction.ASCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        categoryDataList.clear();
+                        addFixedCategoriesToList();
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
+
+                            // 고정형 카테고리 명칭 및 ID는 리사이클러뷰 데이터 리스트에 추가하지 않고 건너뜁니다.
+                            if (item.getId() != null && (item.getId().contains("FIXED_") ||
+                                    "할 일".equals(item.getName()) || "중요".equals(item.getName()))) {
+                                continue;
+                            }
+
                             categoryDataList.add(item);
                         }
                         categoryAdapter.notifyDataSetChanged();
+                        updateMoreVertLayout();
                     } else {
-                        // 만약 'index' 정렬 색인 오류 등으로 실패하면 백업용으로 전체 데이터를 그냥 로드합니다.
                         loadCategoriesBackup(user.getUid());
                     }
                 });
     }
 
-    // 데이터 유실 방지용 백업 로더 (index 필드가 없는 기존 유저용 방어 코드)
     private void loadCategoriesBackup(String uid) {
         db.collection("users").document(uid).collection("categories")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        categoryDataList.clear();
+                        addFixedCategoriesToList();
+
                         int fallbackIndex = 0;
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
+
+                            if (item.getId() != null && (item.getId().contains("FIXED_") ||
+                                    "할 일".equals(item.getName()) || "중요".equals(item.getName()))) {
+                                continue;
+                            }
+
                             if (item.getIndex() == 0) {
                                 item.setIndex(fallbackIndex++);
                             }
                             categoryDataList.add(item);
                         }
                         categoryAdapter.notifyDataSetChanged();
+                        updateMoreVertLayout();
                     }
                 });
     }
 
+    private void updateMoreVertLayout() {
+        if (imgMoreVert != null && btnTaskListAdd != null) {
+            if (categoryDataList.size() > 3) {
+                imgMoreVert.setVisibility(android.view.View.VISIBLE);
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                params.topToBottom = R.id.imgMoreVert;
+                btnTaskListAdd.setLayoutParams(params);
+            } else {
+                imgMoreVert.setVisibility(android.view.View.GONE);
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                params.topToBottom = R.id.rvCategoryList;
+                btnTaskListAdd.setLayoutParams(params);
+            }
+        }
+    }
+
     private void selectColor(String colorType) {
         selectedColorType = colorType;
-        int darkRes;
-        int lightRes;
+        int darkRes, lightRes;
 
         switch (colorType.toUpperCase()) {
             case "RED": darkRes = R.color.cat_red_dark; lightRes = R.color.cat_red_light; break;

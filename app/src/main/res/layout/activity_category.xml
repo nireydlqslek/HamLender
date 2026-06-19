@@ -229,6 +229,7 @@
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_category_list"
         android:layout_width="match_parent"
@@ -271,25 +272,105 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/btnBackToInput" />
 
+                <LinearLayout
+                    android:id="@+id/layoutFixedImportant"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_category_item"
+                    app:layout_constraintTop_toBottomOf="@id/txtListTitle">
+
+                    <View
+                        android:id="@+id/viewFixedImportantBar"
+                        android:layout_width="5dp"
+                        android:layout_height="24dp"
+                        android:background="#FF8A8A" />
+                    <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="중요"
+                    android:textColor="#333333"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/circle_white_filled" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutFixedTodo"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_category_item"
+                    app:layout_constraintTop_toBottomOf="@id/layoutFixedImportant">
+
+                    <View
+                        android:id="@+id/viewFixedTodoBar"
+                        android:layout_width="5dp"
+                        android:layout_height="24dp"
+                        android:background="#6495ED" />
+                    <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="할 일"
+                    android:textColor="#333333"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/circle_white_filled" />
+                </LinearLayout>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvCategoryList"
-                    android:layout_width="0dp"
-                    android:layout_height="220dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/txtListTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="165dp"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/layoutFixedTodo"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toTopOf="@+id/btnTaskListAdd" />
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <ImageView
+                    android:id="@+id/imgMoreVert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:src="@drawable/ic_more_vert"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    android:contentDescription="더보기"
+                    app:layout_constraintTop_toBottomOf="@id/rvCategoryList"
+                    app:layout_constraintBottom_toTopOf="@id/btnTaskListAdd"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnTaskListAdd"
                     android:layout_width="match_parent"
                     android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
                     android:background="#EAEFEF"
                     android:text="+       카테고리 추가"
                     android:textColor="#555555"
                     android:textSize="14sp"
+                    app:layout_constraintTop_toBottomOf="@id/imgMoreVert"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
