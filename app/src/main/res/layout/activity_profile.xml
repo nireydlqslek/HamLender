@@ -17,20 +17,22 @@
         android:paddingBottom="24dp">
 
         <!-- [1] 왼쪽 상단 뒤로가기 아이콘 -->
+
+        <!-- 가입창 구조 복사: 왼쪽 150x170 프로필 액자 -->
+
         <ImageView
             android:id="@+id/btn_back"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="뒤로가기"
             android:focusable="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/abc_ic_ab_back_material"
-            app:tint="@color/maincolor" />
+            app:srcCompat="@drawable/leftham" />
 
-        <!-- 가입창 구조 복사: 왼쪽 150x170 프로필 액자 -->
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
