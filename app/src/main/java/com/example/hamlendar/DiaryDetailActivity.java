@@ -14,7 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton; // 🌟 필수 추가: XML 도면의 ImageButton과 연결하기 위한 도구
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -68,7 +68,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView menuIcon = findViewById(R.id.menuIcon);
 
-        // 🌟 [버그 해체] XML 도면과 매칭되도록 일반 Button에서 ImageButton으로 완벽 정정!
         ImageButton btnSave = findViewById(R.id.btnSave);
         ImageButton btnDeleteDiary = findViewById(R.id.btnDeleteDiary);
 
@@ -80,7 +79,6 @@ public class DiaryDetailActivity extends AppCompatActivity {
         SharedPreferences settings = getSharedPreferences("AppSettings", MODE_PRIVATE);
         boolean isAiEnabled = settings.getBoolean("isAiEnabled", true);
 
-        // 목록이나 달력에서 넘어온 일기면 해당 날짜와 내용을 보여주고, 새 일기면 오늘 날짜로 작성한다.
         if (txtDate != null) {
             txtDate.setText((date == null || date.isEmpty()) ? getCurrentDate() : date);
         }
@@ -103,33 +101,27 @@ public class DiaryDetailActivity extends AppCompatActivity {
             }
         }
 
-        // 뒤로가기 버튼 클릭 -> 저장하지 않은 수정 내용이 있으면 안내한다.
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> handleBack());
         }
 
-        // 날짜 클릭 -> 일기 목록 화면으로 이동
         if (txtDate != null) {
             txtDate.setOnClickListener(v ->
                     startActivity(new Intent(DiaryDetailActivity.this, DiaryListActivity.class)));
         }
 
-        // 저장 버튼 클릭 -> 저장만 하고 현재 화면에 남아 있는다.
         if (btnSave != null) {
             btnSave.setOnClickListener(v -> saveOnly());
         }
 
-        // 삭제 버튼 클릭 -> 현재 일기 삭제
         if (btnDeleteDiary != null) {
             btnDeleteDiary.setOnClickListener(v -> confirmDeleteDiary());
         }
 
-        // 메뉴 버튼 클릭 -> 저장/삭제 선택
         if (menuIcon != null) {
             menuIcon.setOnClickListener(v -> showDiaryMenu());
         }
 
-        // 휴대폰 기본 뒤로가기도 화면의 뒤로가기 버튼과 똑같이 처리한다.
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -140,13 +132,11 @@ public class DiaryDetailActivity extends AppCompatActivity {
         miniTimeTable = findViewById(R.id.miniTimeTable);
         openTimeTableEditor = findViewById(R.id.openTimeTableEditor);
 
-        // 미니 타임테이블은 보기 전용
         if (miniTimeTable != null) {
             miniTimeTable.setEditable(false);
             loadTimeTable();
         }
 
-        // 미니 타임테이블 클릭 시 큰 팝업 열기
         if (openTimeTableEditor != null) {
             openTimeTableEditor.setOnClickListener(v -> showTimeTableDialog());
         }
@@ -553,15 +543,17 @@ public class DiaryDetailActivity extends AppCompatActivity {
                     if (tvDiarySummary != null) tvDiarySummary.setText(summary);
 
                     if (txtDate != null) {
-                        String diaryDate = txtDate.getText().toString(); // "6월 14일 (일)" 같은 한글 날짜 이름표 추출
-                        saveSummary(diaryDate, summary); // 1. 기존 로컬 캐시 저장
+                        String diaryDate = txtDate.getText().toString();
+                        saveSummary(diaryDate, summary);
 
-                        // 🌟 [서버 백업 연동] 친구들이 실시간으로 읽어갈 수 있게 파이어베이스 클라우드에도 동일 이름표로 업로드!
+                        // 🌟 [핵심 수리] 일기 요약도 UID 대신 이메일 이름표를 사용해 업로드!
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         if (user != null) {
+                            String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
                             Map<String, Object> serverDiary = new HashMap<>();
                             serverDiary.put("summary", summary);
-                            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+
+                            FirebaseFirestore.getInstance().collection("users").document(myEmailKey)
                                     .collection("summaries").document(diaryDate).set(serverDiary);
                         }
                     }

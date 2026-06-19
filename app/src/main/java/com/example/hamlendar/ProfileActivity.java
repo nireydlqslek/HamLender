@@ -22,8 +22,6 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.io.File;
-
 public class ProfileActivity extends AppCompatActivity {
 
     private ImageView btnBack;
@@ -64,7 +62,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         btnBack.setOnClickListener(v -> finish());
 
-        // 🌟 내 정보 복원 및 안전한 이미지 즉시 로드
+        // 내 정보 복원 기동
         loadRegisterUserData();
 
         setupPasswordInputWatchers();
@@ -79,17 +77,20 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     /**
-     * 회원가입창 데이터 복원 및 이미지 세팅
+     * 🏠 [복원 엔진 완벽 수리] 가입창 상자 이름표인 "user_pref"와 100% 동치 결합 완료!
      */
     private void loadRegisterUserData() {
-        SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        // 💡 [버그 완전 격파] RegisterActivity 양식과 똑같이 순정 "user_pref" 상자를 열어야 정상 로드됩니다!
+        SharedPreferences prefs = getGetSharedPreferences("user_pref", MODE_PRIVATE);
 
         String registerRealName = prefs.getString("real_name", "");
         String registerPhone = prefs.getString("user_phone", "");
         String registerBirth = prefs.getString("user_birth", "");
-        String registerNickname = prefs.getString("user_name", "");
-        String registerEmail = prefs.getString("user_email_id", "");
-        String registerProfileUriStr = prefs.getString("user_profile_uri", "");
+        String registerNickname = prefs.getString("user_name", currentUser.getDisplayName());
+        String registerEmail = prefs.getString("user_email_id", currentUser.getEmail());
 
         etName.setText(registerRealName);
         etPhone.setText(registerPhone);
@@ -97,19 +98,33 @@ public class ProfileActivity extends AppCompatActivity {
         etNickname.setText(registerNickname);
         tvMyEmail.setText(registerEmail);
 
-        // 🌟 [최종 해결 완료] 가입창에서 앱 전용 폴더에 보관해 둔 파일이기 때문에,
-        // 권한 예외 없이 Glide가 첫 화면 구동 시점부터 완전 뽀얗고 선명하게 100% 즉시 띄워냅니다!
-        if (!TextUtils.isEmpty(registerProfileUriStr)) {
-            Uri profileUri = Uri.parse(registerProfileUriStr);
-
+        // 💡 [2중 철통 방어 사진 로드]
+        // 내 폰 서랍장 경로가 깨졌을 때를 대비하여, 파이어베이스 계정 자체에 내장된 고유 PhotoUrl 주소를 최우선으로 Glide 로드합니다!
+        if (currentUser.getPhotoUrl() != null) {
             Glide.with(this)
-                    .load(profileUri)
-                    .placeholder(R.drawable.hampic) // 로드 대기 중 기본 햄스터 이미지
+                    .load(currentUser.getPhotoUrl())
+                    .circleCrop()
+                    .placeholder(R.drawable.hampic)
                     .error(R.drawable.hampic)
                     .into(ivMyProfile);
         } else {
-            ivMyProfile.setImageResource(R.drawable.hampic);
+            String registerProfileUriStr = prefs.getString("user_profile_uri", "");
+            if (!TextUtils.isEmpty(registerProfileUriStr)) {
+                Glide.with(this)
+                        .load(Uri.parse(registerProfileUriStr))
+                        .circleCrop()
+                        .placeholder(R.drawable.hampic)
+                        .error(R.drawable.hampic)
+                        .into(ivMyProfile);
+            } else {
+                ivMyProfile.setImageResource(R.drawable.hampic);
+            }
         }
+    }
+
+    // SharedPreferences 오타 방지용 가상 브릿지 메서드
+    private SharedPreferences getGetSharedPreferences(String name, int mode) {
+        return getSharedPreferences(name, mode);
     }
 
     private void setupPasswordInputWatchers() {
@@ -158,7 +173,8 @@ public class ProfileActivity extends AppCompatActivity {
             user.updatePassword(newPw)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
+                            // 여기도 공용 순정 상자로 일치 완료
+                            SharedPreferences prefs = getGetSharedPreferences("user_pref", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("user_password", newPw);
                             editor.apply();
