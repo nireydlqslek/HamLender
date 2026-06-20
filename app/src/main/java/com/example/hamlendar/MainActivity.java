@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         boolean isStrictTimeRange = checkCurrentTimeRange();
         if (!isStrictTimeRange) {
             String defaultMsg = "햄햄의 생각 보따리 풀어 보기";
-            sharedPreferences.edit().putString("saved_ai_msg", defaultMsg).apply();
+            sharedPreferences.edit().putString("saved_aiMessage", defaultMsg).apply();
             aiMessage.setText(defaultMsg);
         } else {
             String savedAiMessage = sharedPreferences.getString("saved_aiMessage", "반갑다햄! 오늘의 일정을 확인해 보라햄!");
