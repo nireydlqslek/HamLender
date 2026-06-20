@@ -98,8 +98,8 @@ public class TimeTable extends View {
     // 라벨 수정 요청 리스너
     private OnLabelEditRequestListener labelEditRequestListener;
 
+    private Paint labelPaint;
     //변수 선언 끝--------------------------------------------------------------------------
-
 
 
     //생성자 시작--------------------------------------------------------------------------
@@ -126,7 +126,6 @@ public class TimeTable extends View {
     }
 
     //생성자 끝--------------------------------------------------------------------------
-
 
 
     //초기 설정 시작--------------------------------------------------------------------------
@@ -160,6 +159,10 @@ public class TimeTable extends View {
         textPaint.setAntiAlias(true);
         textPaint.setFakeBoldText(true);
 
+        labelPaint = new Paint(textPaint);
+        labelPaint.setTextSize(24f); // 원하는 크기로 조절
+        labelPaint.setFakeBoldText(true);
+
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
                 groupIds[row][col] = -1;
@@ -168,7 +171,6 @@ public class TimeTable extends View {
     }
 
     //초기 설정 끝--------------------------------------------------------------------------
-
 
 
     //편집 가능 여부 설정 시작--------------------------------------------------------------------------
@@ -197,7 +199,6 @@ public class TimeTable extends View {
     //편집 가능 여부 설정 끝--------------------------------------------------------------------------
 
 
-
     //드래그 완료 리스너 시작--------------------------------------------------------------------------
 
     // 드래그 완료 리스너 연결
@@ -222,7 +223,6 @@ public class TimeTable extends View {
     }
 
     //드래그 완료 리스너 끝--------------------------------------------------------------------------
-
 
 
     //화면 그리기 시작--------------------------------------------------------------------------
@@ -385,42 +385,33 @@ public class TimeTable extends View {
             trimmedLabel = trimmedLabel.substring(0, 7);
         }
 
-        int textLength = trimmedLabel.length();
-
         float left = (bounds.minCol + 1) * cellWidth;
         float right = (bounds.maxCol + 2) * cellWidth;
+        float maxWidth = right - left - 4f;
 
-        float totalWidth = right - left;
+        float centerX = (left + right) / 2f;
 
-        if (textLength == 1) {
-            canvas.drawText(
-                    trimmedLabel,
-                    left + totalWidth / 2f,
-                    centerY,
-                    textPaint
-            );
-            return;
+        canvas.save();
+
+        float textWidth = labelPaint.measureText(trimmedLabel);
+
+        if (textWidth > maxWidth && textWidth > 0) {
+            float scaleX = maxWidth / textWidth;
+            canvas.scale(scaleX, 1f, centerX, centerY);
         }
 
-        float gap = totalWidth / (textLength - 1 + 2);
+        canvas.drawText(
+                trimmedLabel,
+                centerX,
+                centerY,
+                labelPaint
+        );
 
-        float startX = left + gap;
-
-        for (int i = 0; i < textLength; i++) {
-            float x = startX + gap * i;
-
-            canvas.drawText(
-                    String.valueOf(trimmedLabel.charAt(i)),
-                    x,
-                    centerY,
-                    textPaint
-            );
-        }
+        canvas.restore();
     }
 
 
     //화면 그리기 끝--------------------------------------------------------------------------
-
 
 
     //터치 처리 시작--------------------------------------------------------------------------
@@ -431,7 +422,7 @@ public class TimeTable extends View {
         // 미니 타임테이블 수정 방지
         // false면 편집 불가능
         if (!editable) {
-            return false;
+            return true;
         }
 
         // 칸 크기 계산 전이면 종료
@@ -543,7 +534,6 @@ public class TimeTable extends View {
     //터치 처리 끝--------------------------------------------------------------------------
 
 
-
     //실제 칸 색칠 시작--------------------------------------------------------------------------
 
     private void paintCell(int row, int col) {
@@ -593,7 +583,6 @@ public class TimeTable extends View {
     }
 
     //실제 칸 색칠 끝--------------------------------------------------------------------------
-
 
 
     //방문 기록 초기화 시작--------------------------------------------------------------------------
