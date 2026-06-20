@@ -98,6 +98,7 @@ public class TimeTable extends View {
     // 라벨 수정 요청 리스너
     private OnLabelEditRequestListener labelEditRequestListener;
 
+    private Paint labelPaint;
     //변수 선언 끝--------------------------------------------------------------------------
 
 
@@ -157,6 +158,10 @@ public class TimeTable extends View {
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setAntiAlias(true);
         textPaint.setFakeBoldText(true);
+
+        labelPaint = new Paint(textPaint);
+        labelPaint.setTextSize(24f); // 원하는 크기로 조절
+        labelPaint.setFakeBoldText(true);
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -380,37 +385,29 @@ public class TimeTable extends View {
             trimmedLabel = trimmedLabel.substring(0, 7);
         }
 
-        int textLength = trimmedLabel.length();
-
         float left = (bounds.minCol + 1) * cellWidth;
         float right = (bounds.maxCol + 2) * cellWidth;
+        float maxWidth = right - left - 4f;
 
-        float totalWidth = right - left;
+        float centerX = (left + right) / 2f;
 
-        if (textLength == 1) {
-            canvas.drawText(
-                    trimmedLabel,
-                    left + totalWidth / 2f,
-                    centerY,
-                    textPaint
-            );
-            return;
+        canvas.save();
+
+        float textWidth = labelPaint.measureText(trimmedLabel);
+
+        if (textWidth > maxWidth && textWidth > 0) {
+            float scaleX = maxWidth / textWidth;
+            canvas.scale(scaleX, 1f, centerX, centerY);
         }
 
-        float gap = totalWidth / (textLength - 1 + 2);
+        canvas.drawText(
+                trimmedLabel,
+                centerX,
+                centerY,
+                labelPaint
+        );
 
-        float startX = left + gap;
-
-        for (int i = 0; i < textLength; i++) {
-            float x = startX + gap * i;
-
-            canvas.drawText(
-                    String.valueOf(trimmedLabel.charAt(i)),
-                    x,
-                    centerY,
-                    textPaint
-            );
-        }
+        canvas.restore();
     }
 
 
