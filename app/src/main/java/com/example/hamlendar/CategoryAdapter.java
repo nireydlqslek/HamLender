@@ -109,7 +109,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         });
     }
 
-    // 🌟 리스트 내에서 순서를 바꾸고 DB에 저장하는 핵심 메서드
     private void swapItems(Context context, int fromPosition, int toPosition) {
         // 1. 로컬 리스트에서 두 아이템의 위치를 맞바꿈
         Collections.swap(categoryList, fromPosition, toPosition);
@@ -123,7 +122,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         notifyItemChanged(fromPosition);
         notifyItemChanged(toPosition);
 
-        // 4. 파이어스토어(원격 DB)에 순서 배치 일괄 동기화 (Batch 사용)
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             // 🌟 [핵심 수리 1] 순서를 바꿀 때도 UID 말고 이메일 주소 이름표 사용!
@@ -136,8 +134,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             CategoryItem item2 = categoryList.get(toPosition);
 
             if (item1.getId() != null && item2.getId() != null) {
-                batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item1.getId()), "index", fromPosition);
-                batch.update(db.collection("users").document(user.getUid()).collection("categories").document(item2.getId()), "index", toPosition);
+                batch.update(db.collection("users").document(myEmailKey).collection("categories").document(item1.getId()), "index", fromPosition);
+                batch.update(db.collection("users").document(myEmailKey).collection("categories").document(item2.getId()), "index", toPosition);
 
                 batch.commit().addOnFailureListener(e -> {
                     Toast.makeText(context, "순서 저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -162,7 +160,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
                     String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
 
                     FirebaseFirestore.getInstance()
-                            .collection("users").document(user.getUid())
+                            .collection("users").document(myEmailKey)
                             .collection("categories").document(item.getId())
                             .update("name", newName)
                             .addOnSuccessListener(aVoid -> {
@@ -184,7 +182,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
 
             FirebaseFirestore.getInstance()
-                    .collection("users").document(user.getUid())
+                    .collection("users").document(myEmailKey)
                     .collection("categories").document(item.getId())
                     .delete()
                     .addOnSuccessListener(aVoid -> {

@@ -45,7 +45,6 @@ public class CategoryActivity extends AppCompatActivity {
     ImageView btnBackToInput;
     RecyclerView rvCategoryList;
     ImageView imgMoreVert;
-
     LinearLayout layoutFixedImportant, layoutFixedTodo;
 
     CategoryAdapter categoryAdapter;
@@ -57,6 +56,11 @@ public class CategoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category);
+
+        getWindow().setLayout(
+                (int)(getResources().getDisplayMetrics().widthPixels * 0.92),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+        );
 
         db = FirebaseFirestore.getInstance();
 
@@ -89,10 +93,21 @@ public class CategoryActivity extends AppCompatActivity {
         layoutFixedImportant = findViewById(R.id.layoutFixedImportant);
         layoutFixedTodo = findViewById(R.id.layoutFixedTodo);
 
+        if (layoutFixedImportant != null && layoutFixedImportant.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedImportant.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_red_light));
+            layoutFixedImportant.setBackground(wrapped);
+        }
+
+        if (layoutFixedTodo != null && layoutFixedTodo.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedTodo.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_blue_light));
+            layoutFixedTodo.setBackground(wrapped);
+        }
+
         // 하단 카테고리 추가 버튼 누를 때 이벤트
         if (btnTaskListAdd != null) {
             btnTaskListAdd.setOnClickListener(v -> {
-                // 🌟 추가 질문 해결: 새로 추가 폼으로 들어갈 때 에러 상태와 붉은색 글씨/라인을 깨끗하게 비워줍니다.
                 editCategory.setError(null);
                 editCategory.clearFocus();
 
@@ -134,16 +149,17 @@ public class CategoryActivity extends AppCompatActivity {
             String categoryName = editCategory.getText().toString().trim();
 
             if(categoryName.isEmpty()){
-                editCategory.setError("카테고리 이름을 입력하세요");
+                editCategory.setError("카테고리 이름을 입력하세요.");
                 return;
             }
 
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (categoryDataList != null && categoryDataList.size() >= 8) {
                 Toast.makeText(this, "추가 카테고리는 최대 8개까지만 생성 가능합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
                 Toast.makeText(this, "로그인 정보가 없습니다.", Toast.LENGTH_SHORT).show();
                 return;
@@ -164,7 +180,6 @@ public class CategoryActivity extends AppCompatActivity {
                         categoryDataList.add(newItem);
                         categoryAdapter.notifyDataSetChanged();
 
-                        // 🌟 추가 질문 해결: 저장 성공 시 에러 상태를 초기화(Null)하여 다음 진입 시 붉은 테두리가 생기지 않도록 방지합니다.
                         editCategory.setError(null);
                         editCategory.setText("");
                         selectColor("RED");
@@ -189,9 +204,9 @@ public class CategoryActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
-        // 🌟 중요: 'index' 필드가 없는 구형 데이터가 있으면 에러가 발생하므로,
-        // 쿼리가 실패하더라도 앱이 멈추거나 리스트가 안 불려오지 않게 완벽하게 예외 처리를 추가했습니다.
-        db.collection("users").document(user.getUid()).collection("categories")
+        String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
+
+        db.collection("users").document(myEmailKey).collection("categories")
                 .orderBy("index", com.google.firebase.firestore.Query.Direction.ASCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -201,7 +216,6 @@ public class CategoryActivity extends AppCompatActivity {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
 
-                            // 고정형 카테고리 명칭 및 ID는 리사이클러뷰 데이터 리스트에 추가하지 않고 건너뜁니다.
                             if (item.getId() != null && (item.getId().contains("FIXED_") ||
                                     "할 일".equals(item.getName()) || "중요".equals(item.getName()))) {
                                 continue;

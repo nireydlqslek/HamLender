@@ -41,7 +41,7 @@
             android:exported="false" />
         <activity
             android:name=".CategoryActivity"
-            android:exported="false" />
+            android:theme="@style/Theme.HamLendar.Dialog"/>
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
