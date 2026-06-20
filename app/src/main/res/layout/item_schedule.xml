@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootScheduleItem"
     android:layout_width="match_parent"
     android:layout_height="54dp"
@@ -8,11 +9,13 @@
     android:layout_marginBottom="8dp"
     android:paddingStart="12dp"
     android:paddingEnd="12dp"
-    android:background="#F5F5F5"> <View
-    android:id="@+id/viewCategoryBar"
-    android:layout_width="5dp"
-    android:layout_height="24dp"
-    android:background="@color/maincolor" />
+    android:background="#F5F5F5">
+
+    <View
+        android:id="@+id/viewCategoryBar"
+        android:layout_width="5dp"
+        android:layout_height="24dp"
+        android:background="@color/maincolor" />
 
     <TextView
         android:id="@+id/tvItemTitle"
@@ -30,4 +33,14 @@
         android:layout_height="24dp"
         android:src="@drawable/circle_white"
         android:contentDescription="일정 완료" />
+
+    <ImageView
+        android:id="@+id/ivDelete"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="12dp"
+        android:src="@android:drawable/ic_menu_delete"
+        app:tint="#A0A0A0"
+        android:contentDescription="일정 삭제" />
+
 </LinearLayout>

@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
@@ -315,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
         return date.plusDays(cycleValue);
     }
 
-    // 🌟 [핵심 수리 1] 달력에 일정 불러올 때 이메일 이름표 사용!
     private void loadSchedulesFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
@@ -398,6 +398,7 @@ public class MainActivity extends AppCompatActivity {
                 View rootScheduleItem = itemView.findViewById(R.id.rootScheduleItem);
                 TextView tvItemTitle = itemView.findViewById(R.id.tvItemTitle);
                 ImageView ivComplete = itemView.findViewById(R.id.ivComplete);
+                ImageView ivDelete = itemView.findViewById(R.id.ivDelete); // 🌟 삭제 버튼 연동
                 View viewCategoryBar = itemView.findViewById(R.id.viewCategoryBar);
 
                 if (tvItemTitle != null) tvItemTitle.setText(item.title);
@@ -426,7 +427,6 @@ public class MainActivity extends AppCompatActivity {
                     if (rootScheduleItem != null) rootScheduleItem.setAlpha(1.0f);
                 }
 
-                // 🌟 [핵심 수리 2] 일정 완료 버튼 누를 때도 이메일 이름표 사용!
                 if (ivComplete != null) {
                     ivComplete.setOnClickListener(v -> {
                         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -452,6 +452,39 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
 
+                // 🌟 삭제 버튼 클릭 리스너 탑재!
+                if (ivDelete != null) {
+                    ivDelete.setOnClickListener(v -> {
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("일정 삭제")
+                                .setMessage("이 일정을 정말 삭제하시겠습니까?")
+                                .setPositiveButton("삭제", (dialogInterface, which) -> {
+                                    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                                    if (currentUser != null) {
+                                        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+                                        db.collection("users").document(myEmailKey)
+                                                .collection("schedules").document(item.id)
+                                                .delete()
+                                                .addOnSuccessListener(aVoid -> {
+                                                    Toast.makeText(MainActivity.this, "일정이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                                                    layoutScheduleList.removeView(itemView); // 화면에서 해당 줄 즉시 삭제
+                                                    todaySchedules.remove(item);
+
+                                                    // 일정이 0개가 되면 자동으로 입력 폼 띄우기
+                                                    if (todaySchedules.isEmpty()) {
+                                                        layoutScheduleList.setVisibility(View.GONE);
+                                                        if (layoutInputForm != null) layoutInputForm.setVisibility(View.VISIBLE);
+                                                        if (btnAddSchedule != null) btnAddSchedule.setVisibility(View.GONE);
+                                                    }
+                                                    loadSchedulesFromFirebase(); // 달력 칩 새로고침
+                                                });
+                                    }
+                                })
+                                .setNegativeButton("취소", null)
+                                .show();
+                    });
+                }
+
                 itemView.setOnClickListener(v -> {
                     if (layoutInputForm != null) layoutInputForm.setVisibility(View.VISIBLE);
                     if (layoutScheduleList != null) layoutScheduleList.setVisibility(View.GONE);
@@ -470,7 +503,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // 🌟 [핵심 수리 3] 카테고리 칩 목록 불러올 때 무조건 이메일 이름표 사용!
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && layoutCategoryChips != null) {
             String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
@@ -581,7 +613,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 [핵심 수리 4] 일정을 추가/저장할 때도 이메일 이름표 사용!
         if (btnSave != null) {
             btnSave.setOnClickListener(v -> {
                 String title = etTitle != null ? etTitle.getText().toString().trim() : "";
