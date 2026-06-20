@@ -445,18 +445,48 @@ public class MainActivity extends AppCompatActivity {
                 if (viewCategoryBar != null && item.categoryColor != null) {
                     String colorUpper = item.categoryColor.toUpperCase();
                     int colorResId;
+                    int lightColorResId;
 
                     switch (colorUpper) {
-                        case "RED": colorResId = R.color.cat_red_dark; break;
-                        case "ORANGE": colorResId = R.color.cat_orange_dark; break;
-                        case "YELLOW": colorResId = R.color.cat_yellow_dark; break;
-                        case "GREEN": colorResId = R.color.cat_green_dark; break;
-                        case "BLUE": colorResId = R.color.cat_blue_dark; break;
-                        case "PURPLE": colorResId = R.color.cat_purple_dark; break;
-                        case "PINK": colorResId = R.color.cat_pink_dark; break;
-                        default: colorResId = R.color.cat_grey_dark; break;
+                        case "RED": colorResId = R.color.cat_red_dark;
+                        lightColorResId = R.color.cat_red_light;
+                        break;
+                        case "ORANGE":
+                            colorResId = R.color.cat_orange_dark;
+                            lightColorResId = R.color.cat_orange_light;
+                            break;
+                        case "YELLOW":
+                            colorResId = R.color.cat_yellow_dark;
+                            lightColorResId = R.color.cat_yellow_light;
+                            break;
+                        case "GREEN":
+                            colorResId = R.color.cat_green_dark;
+                            lightColorResId = R.color.cat_green_light;
+                            break;
+                        case "BLUE":
+                            colorResId = R.color.cat_blue_dark;
+                            lightColorResId = R.color.cat_blue_light;
+                            break;
+                        case "PURPLE":
+                            colorResId = R.color.cat_purple_dark;
+                            lightColorResId = R.color.cat_purple_light;
+                            break;
+                        case "PINK":
+                            colorResId = R.color.cat_pink_dark;
+                            lightColorResId = R.color.cat_pink_light;
+                            break;
+                        default:
+                            colorResId = R.color.cat_grey_dark;
+                            lightColorResId = R.color.cat_grey_light;
+                            break;
                     }
                     viewCategoryBar.setBackgroundColor(ContextCompat.getColor(MainActivity.this, colorResId));
+
+                    if (rootScheduleItem != null && rootScheduleItem.getBackground() != null) {
+                        Drawable wrapped = DrawableCompat.wrap(rootScheduleItem.getBackground().mutate());
+                        DrawableCompat.setTint(wrapped, ContextCompat.getColor(MainActivity.this, lightColorResId));
+                        rootScheduleItem.setBackground(wrapped);
+                    }
                 }
 
                 if (item.isCompleted) {
@@ -509,8 +539,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // ========================================================
-// 4. 파이어베이스에서 카테고리 로드 후 가로 칩 목록 구성하기
-// ========================================================
+        // 4. 파이어베이스에서 카테고리 로드 후 가로 칩 목록 구성하기
+        // ========================================================
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && layoutCategoryChips != null) {
             db.collection("users").document(user.getUid()).collection("categories")
