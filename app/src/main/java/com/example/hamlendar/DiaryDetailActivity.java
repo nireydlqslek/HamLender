@@ -134,6 +134,13 @@ public class DiaryDetailActivity extends AppCompatActivity {
 
         if (miniTimeTable != null) {
             miniTimeTable.setEditable(false);
+            miniTimeTable.setLabelEditMode(false);
+
+            miniTimeTable.setClickable(true);
+            miniTimeTable.setFocusable(true);
+
+            miniTimeTable.setOnTouchListener((v, event) -> true);
+
             loadTimeTable();
         }
 
@@ -300,7 +307,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
         View colorOrange = dialog.findViewById(R.id.colorOrange);
         View colorGreen = dialog.findViewById(R.id.colorGreen);
         View colorBlue = dialog.findViewById(R.id.colorBlue);
-        Button btnEditLabel = dialog.findViewById(R.id.btnEditLabelTimeTable);
+        ImageButton btnEditLabel = dialog.findViewById(R.id.btnEditLabelTimeTable);
 
         final boolean[] isLabelEditMode = {false};
 
@@ -323,41 +330,37 @@ public class DiaryDetailActivity extends AppCompatActivity {
         if (colorRed != null && bigTimeTable != null && btnEditLabel != null) {
             colorRed.setOnClickListener(v -> {
                 isLabelEditMode[0] = false;
-                btnEditLabel.setText("라벨 수정");
                 bigTimeTable.setLabelEditMode(false);
                 bigTimeTable.setDrawMode();
-                bigTimeTable.setSelectedColor("#FF5252");
+                bigTimeTable.setSelectedColor("#FFDCD8");
             });
         }
         if (colorOrange != null && bigTimeTable != null && btnEditLabel != null) {
             colorOrange.setOnClickListener(v -> {
                 isLabelEditMode[0] = false;
-                btnEditLabel.setText("라벨 수정");
                 bigTimeTable.setLabelEditMode(false);
                 bigTimeTable.setDrawMode();
-                bigTimeTable.setSelectedColor("#FF9800");
+                bigTimeTable.setSelectedColor("#FEF6D8");
             });
         }
         if (colorGreen != null && bigTimeTable != null && btnEditLabel != null) {
             colorGreen.setOnClickListener(v -> {
                 isLabelEditMode[0] = false;
-                btnEditLabel.setText("라벨 수정");
                 bigTimeTable.setLabelEditMode(false);
                 bigTimeTable.setDrawMode();
-                bigTimeTable.setSelectedColor("#4CAF50");
+                bigTimeTable.setSelectedColor("#F7F9E7");
             });
         }
         if (colorBlue != null && bigTimeTable != null && btnEditLabel != null) {
             colorBlue.setOnClickListener(v -> {
                 isLabelEditMode[0] = false;
-                btnEditLabel.setText("라벨 수정");
                 bigTimeTable.setLabelEditMode(false);
                 bigTimeTable.setDrawMode();
-                bigTimeTable.setSelectedColor("#2196F3");
+                bigTimeTable.setSelectedColor("#EBEEF6");
             });
         }
 
-        Button btnUndo = dialog.findViewById(R.id.btnUndoTimeTable);
+        ImageButton btnUndo = dialog.findViewById(R.id.btnUndoTimeTable);
         if (btnUndo != null && bigTimeTable != null) {
             btnUndo.setOnClickListener(v -> bigTimeTable.undoLastAction());
         }
@@ -366,7 +369,7 @@ public class DiaryDetailActivity extends AppCompatActivity {
             btnClose.setOnClickListener(v -> dialog.dismiss());
         }
 
-        Button btnClearAll = dialog.findViewById(R.id.btnClearAllTimeTable);
+        ImageButton btnClearAll = dialog.findViewById(R.id.btnClearAllTimeTable);
         if (btnClearAll != null && bigTimeTable != null) {
             btnClearAll.setOnClickListener(v -> {
                 new AlertDialog.Builder(this)
@@ -383,10 +386,10 @@ public class DiaryDetailActivity extends AppCompatActivity {
                 isLabelEditMode[0] = !isLabelEditMode[0];
                 if (isLabelEditMode[0]) {
                     bigTimeTable.setLabelEditMode(true);
-                    btnEditLabel.setText("수정 완료");
+                    btnEditLabel.setImageResource(R.drawable.label_off);
                 } else {
                     bigTimeTable.setLabelEditMode(false);
-                    btnEditLabel.setText("라벨 수정");
+                    btnEditLabel.setImageResource(R.drawable.label_on);
                 }
             });
         }
