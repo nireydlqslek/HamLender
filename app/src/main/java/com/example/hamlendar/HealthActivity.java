@@ -704,10 +704,10 @@ public class HealthActivity extends AppCompatActivity {
                     "월경".equals(item.category)
                             ? "월경"
                             : item.category + " : " + (
-                                    TextUtils.isEmpty(item.content)
-                                            ? item.title
-                                            : item.content
-                            )
+                            TextUtils.isEmpty(item.content)
+                                    ? item.title
+                                    : item.content
+                    )
             );
             holder.txtCycle.setText(makeCycleText(item));
 

@@ -19,6 +19,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -34,7 +37,6 @@ import java.util.regex.Pattern;
 
 public class DiaryListActivity extends AppCompatActivity {
 
-    private static final String PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
     private static final String KEY_SUMMARY_PREFIX = "summary_";
     private static final String KEY_TIMETABLE_PREFIX = "timetable_";
@@ -48,6 +50,12 @@ public class DiaryListActivity extends AppCompatActivity {
     private final ArrayList<DiaryItem> diaryList = new ArrayList<>();
     private DiaryAdapter diaryAdapter;
     private boolean selectMode;
+
+    // 🌟 [핵심 수리] 로그인한 이메일별로 각자의 독립된 일기장 금고(파일)를 배정합니다!
+    private String getDiaryPrefName() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null && user.getEmail() != null ? "diary_pref_" + user.getEmail() : "diary_pref";
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +76,13 @@ public class DiaryListActivity extends AppCompatActivity {
         btnCal.setOnClickListener(v ->
                 startActivity(new Intent(DiaryListActivity.this, MainActivity.class)));
 
-        // 오늘 날짜 표시
         txtCurrentDate.setText(getTodayDate());
         txtCurrentDate.setOnClickListener(v -> showDiaryDatePicker());
 
-        // RecyclerView 연결
         diaryAdapter = new DiaryAdapter();
         recyclerDiary.setLayoutManager(new LinearLayoutManager(this));
         recyclerDiary.setAdapter(diaryAdapter);
 
-        // 위쪽 빈 공간이 크게 생기지 않도록 padding을 작게 둔다.
         recyclerDiary.setClipToPadding(false);
         recyclerDiary.setOverScrollMode(View.OVER_SCROLL_NEVER);
         recyclerDiary.setPadding(
@@ -87,7 +92,6 @@ public class DiaryListActivity extends AppCompatActivity {
                 dpToPx(88)
         );
 
-        // 스크롤 가능한 양일 때만 가운데 카드 확대 효과 적용
         recyclerDiary.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -96,13 +100,9 @@ public class DiaryListActivity extends AppCompatActivity {
             }
         });
 
-        // 새 일기 작성
         fabAddDiary.setOnClickListener(v -> openDiary(getTodayDate(), ""));
-
-        // 선택 삭제 버튼: 처음 누르면 선택 모드, 선택 모드에서는 체크한 일기 삭제
         btnSelectDelete.setOnClickListener(v -> handleSelectDelete());
 
-        // 평소에는 모두 삭제, 선택 모드에서는 선택 취소
         btnDeleteAll.setOnClickListener(v -> {
             if (selectMode) {
                 clearSelectionMode();
@@ -126,9 +126,7 @@ public class DiaryListActivity extends AppCompatActivity {
 
     private boolean canDiaryListScroll() {
         RecyclerView.LayoutManager manager = recyclerDiary.getLayoutManager();
-        if (!(manager instanceof LinearLayoutManager)) {
-            return false;
-        }
+        if (!(manager instanceof LinearLayoutManager)) return false;
 
         LinearLayoutManager layoutManager = (LinearLayoutManager) manager;
         int firstVisible = layoutManager.findFirstVisibleItemPosition();
@@ -139,7 +137,6 @@ public class DiaryListActivity extends AppCompatActivity {
             return false;
         }
 
-        // 모든 일기가 화면에 보이면 두 번째 사진처럼 scale 없이 원래 크기로 둔다.
         return firstVisible > 0 || lastVisible < itemCount - 1;
     }
 
@@ -268,13 +265,11 @@ public class DiaryListActivity extends AppCompatActivity {
     private void loadDiaryList() {
         diaryList.clear();
 
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(getDiaryPrefName(), MODE_PRIVATE);
         String json = prefs.getString(KEY_DIARY_LIST, "[]");
 
         try {
             JSONArray jsonArray = new JSONArray(json);
-
-            // 최근에 쓴 일기가 위에 보이도록 역순으로 추가
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject obj = jsonArray.getJSONObject(i);
                 diaryList.add(new DiaryItem(
@@ -306,16 +301,13 @@ public class DiaryListActivity extends AppCompatActivity {
             recyclerDiary.post(this::updateDiaryCardScale);
             return;
         }
-
         confirmDeleteSelected();
     }
 
     private void confirmDeleteSelected() {
         int selectedCount = 0;
         for (DiaryItem item : diaryList) {
-            if (item.selected) {
-                selectedCount++;
-            }
+            if (item.selected) selectedCount++;
         }
 
         if (selectedCount == 0) {
@@ -340,7 +332,6 @@ public class DiaryListActivity extends AppCompatActivity {
                 iterator.remove();
             }
         }
-
         saveDiaryList();
         clearSelectionMode();
         Toast.makeText(this, "선택한 일기가 삭제되었습니다", Toast.LENGTH_SHORT).show();
@@ -382,11 +373,10 @@ public class DiaryListActivity extends AppCompatActivity {
     }
 
     private void saveDiaryList() {
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(getDiaryPrefName(), MODE_PRIVATE);
         JSONArray jsonArray = new JSONArray();
 
         try {
-            // SharedPreferences에는 원래 저장 순서로 다시 저장한다.
             for (DiaryItem item : diaryList) {
                 JSONObject obj = new JSONObject();
                 obj.put("date", item.date);
@@ -401,7 +391,7 @@ public class DiaryListActivity extends AppCompatActivity {
     }
 
     private void removeDiaryExtras(String date) {
-        getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+        getSharedPreferences(getDiaryPrefName(), MODE_PRIVATE)
                 .edit()
                 .remove(KEY_SUMMARY_PREFIX + date)
                 .remove(KEY_TIMETABLE_PREFIX + date)
@@ -420,7 +410,6 @@ public class DiaryListActivity extends AppCompatActivity {
     }
 
     private class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.DiaryViewHolder> {
-
         @NonNull
         @Override
         public DiaryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -432,7 +421,6 @@ public class DiaryListActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull DiaryViewHolder holder, int position) {
             DiaryItem item = diaryList.get(position);
-
             holder.txtDiaryDate.setText(item.date);
 
             String preview = item.content;

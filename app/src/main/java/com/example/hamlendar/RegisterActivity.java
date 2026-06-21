@@ -29,11 +29,14 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -45,6 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ImageView profileImageView;
 
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     private String selectedDomain = "";
     private Uri selectedImageUri = null;
 
@@ -94,6 +98,7 @@ public class RegisterActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.imageView3);
 
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         profileFrame.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -132,11 +137,9 @@ public class RegisterActivity extends AppCompatActivity {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             if (inputStream == null) return null;
 
-            // 💡 [사진 덮어쓰기 대참사 해결!]
-            // 폰 1대에서 테스트해도 서로 덮어쓰지 않게, 이메일 아이디를 파일 이름에 붙여서 독립적으로 저장합니다!
-            String emailText = etEmail.getText().toString().trim();
-            String safeName = TextUtils.isEmpty(emailText) ? "profile" : emailText.replace("@", "_").replace(".", "_");
-            File file = new File(getFilesDir(), safeName + "_profile.jpg");
+            // 🌟 [최후의 방어선] 사용자가 이메일을 치기 전에 사진을 눌러도 절대 겹치지 않게, '현재 시간(0.001초)'을 파일 이름에 박아버립니다!
+            String uniqueName = "profile_" + System.currentTimeMillis() + ".jpg";
+            File file = new File(getFilesDir(), uniqueName);
 
             OutputStream outputStream = new FileOutputStream(file);
 
@@ -222,14 +225,32 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void saveUserName(String displayName, String fullEmail) {
+        String realName = etName.getText().toString().trim();
+        String phone = etPhone.getText().toString().trim();
+        String birth = etBirth.getText().toString().trim().replace(".", "");
+        String nickname = etNickname.getText().toString().trim();
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("email", fullEmail);
+        userData.put("user_name", displayName);
+        userData.put("real_name", realName);
+        userData.put("user_phone", phone);
+        userData.put("user_birth", birth);
+        userData.put("user_nickname", nickname);
+        if (selectedImageUri != null) {
+            userData.put("user_profile_uri", selectedImageUri.toString());
+        }
+
+        db.collection("users").document(fullEmail).set(userData);
+
         SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("user_name", displayName);
-        editor.putString("real_name", etName.getText().toString().trim());
-        editor.putString("user_phone", etPhone.getText().toString().trim());
-        editor.putString("user_birth", etBirth.getText().toString().trim().replace(".", ""));
+        editor.putString("real_name", realName);
+        editor.putString("user_phone", phone);
+        editor.putString("user_birth", birth);
         editor.putString("user_email_id", fullEmail);
-        editor.putString("user_nickname", etNickname.getText().toString().trim());
+        editor.putString("user_nickname", nickname);
         editor.putString("user_password", etPassword.getText().toString().trim());
         editor.putInt("user_question_pos", spinnerQuestion.getSelectedItemPosition());
         editor.putString("user_answer", etAnswer.getText().toString().trim());

@@ -1,6 +1,7 @@
 package com.example.hamlendar;
 
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -22,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -45,6 +45,12 @@ public class InviteFriendActivity extends AppCompatActivity {
     private String todayStr;
     private String diaryTodayStr;
     private ListenerRegistration friendsListener;
+
+    // 🌟 [핵심 3] 친구 초대 창의 "나의 오늘 하루" 요약도 내 개인 금고에서 꺼내옵니다!
+    private String getDiaryPrefName() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null && user.getEmail() != null ? "diary_pref_" + user.getEmail() : "diary_pref";
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +99,9 @@ public class InviteFriendActivity extends AppCompatActivity {
 
         layoutFriendSchedules.removeAllViews();
 
-        db.collection("users").document(currentUser.getUid()).collection("schedules")
+        String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
+
+        db.collection("users").document(myEmailKey).collection("schedules")
                 .whereEqualTo("date", todayStr)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -114,7 +122,7 @@ public class InviteFriendActivity extends AppCompatActivity {
                     }
                 });
 
-        String localSummary = getSharedPreferences("diary_pref", MODE_PRIVATE).getString("summary_" + diaryTodayStr, "");
+        String localSummary = getSharedPreferences(getDiaryPrefName(), MODE_PRIVATE).getString("summary_" + diaryTodayStr, "");
         if (!localSummary.isEmpty()) {
             tvFriendDiarySummary.setText(localSummary);
         } else {
@@ -122,7 +130,6 @@ public class InviteFriendActivity extends AppCompatActivity {
         }
     }
 
-    // 🟢 친구 목록 실시간 렌더러
     private void loadAcceptedFriendsAndRender() {
         if (currentUser == null) return;
 
@@ -291,14 +298,16 @@ public class InviteFriendActivity extends AppCompatActivity {
         diaryBox.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         TextView tvDiarySummary = new TextView(this);
-        tvDiarySummary.setText("🔒 상대방의 '친한 친구' 등급에게만 투명하게 공개되는 비밀 일기입니다.");
+        tvDiarySummary.setText("🔒 상대방이 나를 '친한 친구'로 지정해야 볼 수 있는 비밀 일기입니다.");
         tvDiarySummary.setTextColor(Color.BLACK);
         tvDiarySummary.setTextSize(13);
         diaryBox.addView(tvDiarySummary);
         friendSection.addView(diaryBox);
 
         String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
-        db.collection("users").document(myEmailKey).collection("friends").document(friendEmail).get()
+
+        // 🌟 [수정 완료] 상대방(friendEmail)의 친구 목록에서 나(myEmailKey)의 등급이 '친한 친구'인지 확인!
+        db.collection("users").document(friendEmail).collection("friends").document(myEmailKey).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists() && "close_friend".equals(documentSnapshot.getString("tier"))) {
                         db.collection("users").document(friendEmail).collection("summaries").document(diaryTodayStr).get()
@@ -310,14 +319,13 @@ public class InviteFriendActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
-                        tvDiarySummary.setText("🔒 상대방의 '친한 친구' 등급에게만 투명하게 공개되는 비밀 일기입니다.");
+                        tvDiarySummary.setText("🔒 상대방이 나를 '친한 친구'로 지정해야 볼 수 있는 비밀 일기입니다.");
                     }
                 });
 
         layoutFriendDiary.addView(friendSection);
     }
 
-    // 🟢 초대 전송 시 폰 서랍장을 완전히 무시하고, 파이어베이스 계정 본체를 직접 열어서 배달합니다!
     private void showInviteEmailDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("📨 햄린더 친구 초대");
@@ -338,9 +346,9 @@ public class InviteFriendActivity extends AppCompatActivity {
 
             String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
 
-            // 💡 [핵심 해결 1] 꼬여있는 폰 서랍장 버리고 파이어베이스 로그인 정보에서 무조건 가져옴!
-            String myNickname = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "새로운 친구";
-            String myProfileUriStr = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "";
+            SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
+            String myNickname = prefs.getString("user_name", "새로운 친구");
+            String myProfileUriStr = prefs.getString("user_profile_uri", "");
 
             Map<String, Object> myRequest = new HashMap<>();
             myRequest.put("email", targetEmail);
@@ -353,6 +361,7 @@ public class InviteFriendActivity extends AppCompatActivity {
             targetRequest.put("name", myNickname);
             targetRequest.put("status", "received");
             targetRequest.put("tier", "friend");
+
             if (!TextUtils.isEmpty(myProfileUriStr)) {
                 targetRequest.put("friend_profile_uri", myProfileUriStr);
             }
@@ -367,7 +376,6 @@ public class InviteFriendActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // 🟢 수락 시에도 파이어베이스 계정 본체에서 꺼내옵니다!
     private void showAcceptDialog(String friendEmail, String friendName) {
         String myEmailKey = currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid();
 
@@ -377,9 +385,9 @@ public class InviteFriendActivity extends AppCompatActivity {
                 .setNegativeButton("거절", null)
                 .setPositiveButton("수락", (dialog, which) -> {
 
-                    // 💡 [핵심 해결 2] 서랍장 버리고 파이어베이스 정보 직접 가져옴!
-                    String myNickname = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "새로운 친구";
-                    String myProfileUriStr = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "";
+                    SharedPreferences prefs = getSharedPreferences("user_pref", MODE_PRIVATE);
+                    String myNickname = prefs.getString("user_name", "새로운 친구");
+                    String myProfileUriStr = prefs.getString("user_profile_uri", "");
 
                     Map<String, Object> friendUpdates = new HashMap<>();
                     friendUpdates.put("status", "accepted");

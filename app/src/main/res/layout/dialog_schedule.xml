@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"> <TextView
+        android:gravity="center_vertical">
+        <TextView
         android:id="@+id/tvDialogDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -100,7 +101,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical" />
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/chipFixedImportant"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:background="@drawable/bg_category_item"
+                    android:text="중요"
+                    android:textColor="#333333"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/chipFixedTodo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:background="@drawable/bg_category_item"
+                    android:text="할 일"
+                    android:textColor="#333333"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
         </HorizontalScrollView>
 
         <EditText

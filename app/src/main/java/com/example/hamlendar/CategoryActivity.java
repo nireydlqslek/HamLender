@@ -1,6 +1,7 @@
 package com.example.hamlendar;
 
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,8 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,6 +44,8 @@ public class CategoryActivity extends AppCompatActivity {
     // [2번째 화면] 카테고리 목록 리스트
     ImageView btnBackToInput;
     RecyclerView rvCategoryList;
+    ImageView imgMoreVert;
+    LinearLayout layoutFixedImportant, layoutFixedTodo;
 
     CategoryAdapter categoryAdapter;
     List<CategoryItem> categoryDataList = new ArrayList<>();
@@ -50,6 +56,11 @@ public class CategoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category);
+
+        getWindow().setLayout(
+                (int)(getResources().getDisplayMetrics().widthPixels * 0.92),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+        );
 
         db = FirebaseFirestore.getInstance();
 
@@ -77,25 +88,47 @@ public class CategoryActivity extends AppCompatActivity {
 
         btnBackToInput = findViewById(R.id.btnBackToInput);
         rvCategoryList = findViewById(R.id.rvCategoryList);
+        imgMoreVert = findViewById(R.id.imgMoreVert);
 
+        layoutFixedImportant = findViewById(R.id.layoutFixedImportant);
+        layoutFixedTodo = findViewById(R.id.layoutFixedTodo);
+
+        if (layoutFixedImportant != null && layoutFixedImportant.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedImportant.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_red_light));
+            layoutFixedImportant.setBackground(wrapped);
+        }
+
+        if (layoutFixedTodo != null && layoutFixedTodo.getBackground() != null) {
+            Drawable wrapped = DrawableCompat.wrap(layoutFixedTodo.getBackground().mutate());
+            DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.cat_blue_light));
+            layoutFixedTodo.setBackground(wrapped);
+        }
+
+        // 하단 카테고리 추가 버튼 누를 때 이벤트
         if (btnTaskListAdd != null) {
             btnTaskListAdd.setOnClickListener(v -> {
                 editCategory.setError(null);
                 editCategory.clearFocus();
+
                 editCategory.setText("");
-                selectColor("transparent");
+                selectColor("transparent"); // 기본 컬러 폼으로 리셋
                 viewFlipper.setDisplayedChild(0);
             });
         }
 
+        // 리사이클러뷰 세팅
         categoryAdapter = new CategoryAdapter(categoryDataList);
         rvCategoryList.setLayoutManager(new LinearLayoutManager(this));
         rvCategoryList.setAdapter(categoryAdapter);
 
+        // 데이터 원격 로드
         loadCategoriesFromFirebase();
 
+        // 설정창 진입 시 초기 화면은 목록 화면(1)
         viewFlipper.setDisplayedChild(1);
 
+        // 색상 선택 이벤트
         redBtn.setOnClickListener(v -> selectColor("RED"));
         orangeBtn.setOnClickListener(v -> selectColor("ORANGE"));
         yellowBtn.setOnClickListener(v -> selectColor("YELLOW"));
@@ -105,28 +138,35 @@ public class CategoryActivity extends AppCompatActivity {
         pinkBtn.setOnClickListener(v -> selectColor("PINK"));
         greyBtn.setOnClickListener(v -> selectColor("GREY"));
 
+        // 화면 전환 리스너
         btnBackToInput.setOnClickListener(v -> finish());
         menuBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
         closeBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
         cancelBtn.setOnClickListener(v -> viewFlipper.setDisplayedChild(1));
 
-        // 🌟 [핵심 수리 완료] 카테고리 저장할 때 UID 말고 "이메일 이름표" 폴더에 쏙 저장합니다!
+        // 완료 버튼 (파이어베이스 데이터 저장)
         completeBtn.setOnClickListener(v -> {
             String categoryName = editCategory.getText().toString().trim();
 
             if(categoryName.isEmpty()){
-                editCategory.setError("카테고리 이름을 입력하세요");
+                editCategory.setError("카테고리 이름을 입력하세요.");
                 return;
             }
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (categoryDataList != null && categoryDataList.size() >= 8) {
+                Toast.makeText(this, "추가 카테고리는 최대 8개까지만 생성 가능합니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
                 Toast.makeText(this, "로그인 정보가 없습니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             CategoryItem newItem = new CategoryItem(categoryName, selectedColorType);
-            newItem.setIndex(categoryDataList.size());
+            newItem.setIndex(categoryDataList.size()); // 순서 값 지정
 
             // 💡 여기서 암호 폴더 대신 이메일 폴더로 경로를 바꿔줍니다!
             String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
@@ -160,12 +200,10 @@ public class CategoryActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 [핵심 수리 완료] 카테고리 목록 읽어올 때도 "이메일 이름표" 폴더에서 똑바로 읽어옵니다!
     private void loadCategoriesFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
-        // 💡 읽어올 때도 암호 폴더 대신 이메일 폴더로 경로를 맞춰줍니다!
         String myEmailKey = user.getEmail() != null ? user.getEmail() : user.getUid();
 
         db.collection("users").document(myEmailKey).collection("categories")
@@ -177,17 +215,26 @@ public class CategoryActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
+
+                            if (item.getId() != null && (item.getId().contains("FIXED_") ||
+                                    "할 일".equals(item.getName()) || "중요".equals(item.getName()))) {
+                                continue;
+                            }
+
                             categoryDataList.add(item);
                         }
                         categoryAdapter.notifyDataSetChanged();
+                        updateMoreVertLayout();
                     } else {
-                        loadCategoriesBackup(myEmailKey);
+                        // 만약 'index' 정렬 색인 오류 등으로 실패하면 백업용으로 전체 데이터를 그냥 로드합니다.
+                        loadCategoriesBackup(user.getUid());
                     }
                 });
     }
 
-    private void loadCategoriesBackup(String emailKey) {
-        db.collection("users").document(emailKey).collection("categories")
+    // 데이터 유실 방지용 백업 로더 (index 필드가 없는 기존 유저용 방어 코드)
+    private void loadCategoriesBackup(String uid) {
+        db.collection("users").document(uid).collection("categories")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
@@ -196,14 +243,37 @@ public class CategoryActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
+
+                            if (item.getId() != null && (item.getId().contains("FIXED_") ||
+                                    "할 일".equals(item.getName()) || "중요".equals(item.getName()))) {
+                                continue;
+                            }
+
                             if (item.getIndex() == 0) {
                                 item.setIndex(fallbackIndex++);
                             }
                             categoryDataList.add(item);
                         }
                         categoryAdapter.notifyDataSetChanged();
+                        updateMoreVertLayout();
                     }
                 });
+    }
+
+    private void updateMoreVertLayout() {
+        if (imgMoreVert != null && btnTaskListAdd != null) {
+            if (categoryDataList.size() > 3) {
+                imgMoreVert.setVisibility(android.view.View.VISIBLE);
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                params.topToBottom = R.id.imgMoreVert;
+                btnTaskListAdd.setLayoutParams(params);
+            } else {
+                imgMoreVert.setVisibility(android.view.View.GONE);
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) btnTaskListAdd.getLayoutParams();
+                params.topToBottom = R.id.rvCategoryList;
+                btnTaskListAdd.setLayoutParams(params);
+            }
+        }
     }
 
     private void selectColor(String colorType) {

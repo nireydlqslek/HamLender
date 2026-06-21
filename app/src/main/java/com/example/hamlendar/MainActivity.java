@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -26,6 +27,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -58,9 +61,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String DIARY_PREF_NAME = "diary_pref";
     private static final String KEY_DIARY_LIST = "diary_list";
-    private static final String HEALTH_PREF_NAME = "health_pref";
     private static final String KEY_HEALTH_LIST = "health_list";
 
     private CalendarView calendarView;
@@ -69,6 +70,18 @@ public class MainActivity extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Map<LocalDate, List<ScheduleItem>> schedulesMap = new HashMap<>();
     private final Map<LocalDate, List<CalendarEvent>> healthEventsMap = new HashMap<>();
+
+    // 🌟 [핵심 1] 일기장 개인 금고 (달력에서 꾹 눌렀을 때 남의 일기장 안 열리게 철통 방어!)
+    private String getDiaryPrefName() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null && user.getEmail() != null ? "diary_pref_" + user.getEmail() : "diary_pref";
+    }
+
+    // 🌟 [핵심 2] 건강 기록 개인 금고 (달력에 남의 건강 점 안 찍히게 방어!)
+    private String getHealthPrefName() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null && user.getEmail() != null ? "health_pref_" + user.getEmail() : "health_pref";
+    }
 
     static class CalendarEvent {
         final String text;
@@ -114,15 +127,42 @@ public class MainActivity extends AppCompatActivity {
 
         TextView aiMessage = findViewById(R.id.aiMessage);
 
+        SharedPreferences sharedPreferences = getSharedPreferences("AppSettings", MODE_PRIVATE);
+        boolean isStrictTimeRange = checkCurrentTimeRange();
+        if (!isStrictTimeRange) {
+            String defaultMsg = "햄햄의 생각 보따리 풀어 보기";
+            sharedPreferences.edit().putString("saved_aiMessage", defaultMsg).apply();
+            aiMessage.setText(defaultMsg);
+        } else {
+            String savedAiMessage = sharedPreferences.getString("saved_aiMessage", "반갑다햄! 오늘의 일정을 확인해 보라햄!");
+            aiMessage.setText(savedAiMessage);
+        }
+
         aiMessage.setOnClickListener(v -> {
+            boolean isAiEnabled = sharedPreferences.getBoolean("isAiEnabled", true);
+
+            if (!isAiEnabled) {
+                aiMessage.setText("AI 기능이 비활성화되어 있다햄.\n오늘도 좋은 하루 보내라햄!");
+                return;
+            }
+
+            if (!checkCurrentTimeRange()) {
+                aiMessage.setText("지금은 쉬는 시간이다햄!\n일정 확인하러 왔냐햄?");
+                return;
+            }
+
             aiMessage.setText("들어 있는 게 많다햄! 기다려 보라햄...");
             String actualName = nameTitle.getText().toString().replace(", 안녕하세요!", "");
 
             GeminiManager.INSTANCE.generateEmpathyMessage(actualName, new GeminiManager.SummaryCallback() {
                 @Override
                 public void onSuccess(@NonNull String summary) {
-                    runOnUiThread(() -> aiMessage.setText(summary));
+                    runOnUiThread(() -> {
+                        aiMessage.setText(summary);
+                        sharedPreferences.edit().putString("saved_aiMessage", summary).apply();
+                    });
                 }
+
                 @Override
                 public void onError(@NonNull String error) {
                     runOnUiThread(() -> aiMessage.setText("다시 한 번 누르자햄!"));
@@ -130,9 +170,12 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        menuIcon.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SettingActivity.class)));
-        btnHealth.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HealthActivity.class)));
-        btnDiary.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
+        menuIcon.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+        btnHealth.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HealthActivity.class)));
+        btnDiary.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, DiaryListActivity.class)));
 
         setGreetingName();
         setupCalendar();
@@ -182,8 +225,11 @@ public class MainActivity extends AppCompatActivity {
 
                     List<CalendarEvent> dayEvents = getCalendarEvents(day.getDate());
                     TextView[] eventViews = {
-                            container.tvEvent1, container.tvEvent2,
-                            container.tvEvent3, container.tvEvent4, container.tvEvent5
+                            container.tvEvent1,
+                            container.tvEvent2,
+                            container.tvEvent3,
+                            container.tvEvent4,
+                            container.tvEvent5
                     };
 
                     int displayCount = Math.min(dayEvents.size(), eventViews.length);
@@ -210,8 +256,10 @@ public class MainActivity extends AppCompatActivity {
                 YearMonth yearMonth = month.getYearMonth();
                 container.tvMonth.setText(yearMonth.getYear() + "년 " + yearMonth.getMonthValue() + "월");
 
-                container.btnPrev.setOnClickListener(v -> calendarView.smoothScrollToMonth(yearMonth.minusMonths(1)));
-                container.btnNext.setOnClickListener(v -> calendarView.smoothScrollToMonth(yearMonth.plusMonths(1)));
+                container.btnPrev.setOnClickListener(v ->
+                        calendarView.smoothScrollToMonth(yearMonth.minusMonths(1)));
+                container.btnNext.setOnClickListener(v ->
+                        calendarView.smoothScrollToMonth(yearMonth.plusMonths(1)));
             }
         });
     }
@@ -224,6 +272,7 @@ public class MainActivity extends AppCompatActivity {
                 events.add(new CalendarEvent("• " + schedule.title, null));
             }
         }
+
         List<CalendarEvent> healthEvents = healthEventsMap.get(date);
         if (healthEvents != null) {
             events.addAll(healthEvents);
@@ -237,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
             resetEventView(view);
             return;
         }
+
         GradientDrawable background = new GradientDrawable();
         background.setColor(event.backgroundColor);
         background.setCornerRadius(dpToPx(4));
@@ -253,10 +303,33 @@ public class MainActivity extends AppCompatActivity {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
+    private boolean checkCurrentTimeRange() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            java.time.LocalTime now = java.time.LocalTime.now();
+            int hour = now.getHour();
+            int minute = now.getMinute();
+
+            if (hour >= 5 && hour <= 10) {
+                if (hour == 10 && minute > 0) return false;
+                return true;
+            }
+            if (hour >= 11 && hour <= 16) {
+                if (hour == 16 && minute > 0) return false;
+                return true;
+            }
+            if (hour >= 17 && hour <= 21) {
+                if (hour == 21 && minute > 0) return false;
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
     private void loadHealthEvents() {
         healthEventsMap.clear();
 
-        SharedPreferences prefs = getSharedPreferences(HEALTH_PREF_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(getHealthPrefName(), MODE_PRIVATE);
         String json = prefs.getString(KEY_HEALTH_LIST, "[]");
         YearMonth currentMonth = YearMonth.now();
         LocalDate rangeStart = currentMonth.minusMonths(12).atDay(1);
@@ -291,18 +364,24 @@ public class MainActivity extends AppCompatActivity {
     private void addHealthOccurrences(LocalDate startDate, int cycleValue, String cycleUnit, String label, int color, LocalDate rangeStart, LocalDate rangeEnd) {
         LocalDate occurrence = moveOccurrenceToRange(startDate, cycleValue, cycleUnit, rangeStart);
         while (!occurrence.isAfter(rangeEnd)) {
-            healthEventsMap.computeIfAbsent(occurrence, ignored -> new ArrayList<>()).add(new CalendarEvent(label, color));
+            healthEventsMap
+                    .computeIfAbsent(occurrence, ignored -> new ArrayList<>())
+                    .add(new CalendarEvent(label, color));
             occurrence = nextHealthOccurrence(occurrence, cycleValue, cycleUnit);
         }
     }
 
     private LocalDate moveOccurrenceToRange(LocalDate startDate, int cycleValue, String cycleUnit, LocalDate rangeStart) {
-        if (!startDate.isBefore(rangeStart)) return startDate;
+        if (!startDate.isBefore(rangeStart)) {
+            return startDate;
+        }
+
         if ("일".equals(cycleUnit)) {
             long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, rangeStart);
             long cycles = (days + cycleValue - 1L) / cycleValue;
             return startDate.plusDays(cycles * cycleValue);
         }
+
         LocalDate occurrence = startDate;
         while (occurrence.isBefore(rangeStart)) {
             occurrence = nextHealthOccurrence(occurrence, cycleValue, cycleUnit);
@@ -311,8 +390,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private LocalDate nextHealthOccurrence(LocalDate date, int cycleValue, String cycleUnit) {
-        if ("년".equals(cycleUnit)) return date.plusYears(cycleValue);
-        if ("달".equals(cycleUnit)) return date.plusMonths(cycleValue);
+        if ("년".equals(cycleUnit)) {
+            return date.plusYears(cycleValue);
+        }
+        if ("달".equals(cycleUnit)) {
+            return date.plusMonths(cycleValue);
+        }
         return date.plusDays(cycleValue);
     }
 
@@ -336,11 +419,14 @@ public class MainActivity extends AppCompatActivity {
 
                         boolean isCompleted = document.getBoolean("isCompleted") != null && document.getBoolean("isCompleted");
                         String categoryColor = document.getString("categoryColor");
-                        if (categoryColor == null || categoryColor.isEmpty()) categoryColor = "#D3D3D3";
+                        if (categoryColor == null || categoryColor.isEmpty())
+                            categoryColor = "#D3D3D3";
 
                         if (dateStr != null && title != null) {
                             LocalDate date = LocalDate.parse(dateStr);
-                            if (!schedulesMap.containsKey(date)) schedulesMap.put(date, new ArrayList<>());
+                            if (!schedulesMap.containsKey(date)) {
+                                schedulesMap.put(date, new ArrayList<>());
+                            }
                             schedulesMap.get(date).add(new ScheduleItem(id, title, categoryId, category, memo, isCompleted, categoryColor));
                         }
                     }
@@ -376,7 +462,9 @@ public class MainActivity extends AppCompatActivity {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일");
         tvDialogDate.setText(date.format(formatter));
 
-        if (btnDialogClose != null) btnDialogClose.setOnClickListener(v -> dialog.dismiss());
+        if (btnDialogClose != null) {
+            btnDialogClose.setOnClickListener(v -> dialog.dismiss());
+        }
 
         final String[] editDocId = {null};
         final String[] selectedCategoryId = {null};
@@ -398,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
                 View rootScheduleItem = itemView.findViewById(R.id.rootScheduleItem);
                 TextView tvItemTitle = itemView.findViewById(R.id.tvItemTitle);
                 ImageView ivComplete = itemView.findViewById(R.id.ivComplete);
-                ImageView ivDelete = itemView.findViewById(R.id.ivDelete); // 🌟 삭제 버튼 연동
+                ImageView ivDelete = itemView.findViewById(R.id.ivDelete);
                 View viewCategoryBar = itemView.findViewById(R.id.viewCategoryBar);
 
                 if (tvItemTitle != null) tvItemTitle.setText(item.title);
@@ -406,17 +494,25 @@ public class MainActivity extends AppCompatActivity {
                 if (viewCategoryBar != null && item.categoryColor != null) {
                     String colorUpper = item.categoryColor.toUpperCase();
                     int colorResId;
+                    int lightColorResId;
+
                     switch (colorUpper) {
-                        case "RED": colorResId = R.color.cat_red_dark; break;
-                        case "ORANGE": colorResId = R.color.cat_orange_dark; break;
-                        case "YELLOW": colorResId = R.color.cat_yellow_dark; break;
-                        case "GREEN": colorResId = R.color.cat_green_dark; break;
-                        case "BLUE": colorResId = R.color.cat_blue_dark; break;
-                        case "PURPLE": colorResId = R.color.cat_purple_dark; break;
-                        case "PINK": colorResId = R.color.cat_pink_dark; break;
-                        default: colorResId = R.color.cat_grey_dark; break;
+                        case "RED": colorResId = R.color.cat_red_dark; lightColorResId = R.color.cat_red_light; break;
+                        case "ORANGE": colorResId = R.color.cat_orange_dark; lightColorResId = R.color.cat_orange_light; break;
+                        case "YELLOW": colorResId = R.color.cat_yellow_dark; lightColorResId = R.color.cat_yellow_light; break;
+                        case "GREEN": colorResId = R.color.cat_green_dark; lightColorResId = R.color.cat_green_light; break;
+                        case "BLUE": colorResId = R.color.cat_blue_dark; lightColorResId = R.color.cat_blue_light; break;
+                        case "PURPLE": colorResId = R.color.cat_purple_dark; lightColorResId = R.color.cat_purple_light; break;
+                        case "PINK": colorResId = R.color.cat_pink_dark; lightColorResId = R.color.cat_pink_light; break;
+                        default: colorResId = R.color.cat_grey_dark; lightColorResId = R.color.cat_grey_light; break;
                     }
                     viewCategoryBar.setBackgroundColor(ContextCompat.getColor(MainActivity.this, colorResId));
+
+                    if (rootScheduleItem != null && rootScheduleItem.getBackground() != null) {
+                        Drawable wrapped = DrawableCompat.wrap(rootScheduleItem.getBackground().mutate());
+                        DrawableCompat.setTint(wrapped, ContextCompat.getColor(MainActivity.this, lightColorResId));
+                        rootScheduleItem.setBackground(wrapped);
+                    }
                 }
 
                 if (item.isCompleted) {
@@ -452,7 +548,6 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
 
-                // 🌟 삭제 버튼 클릭 리스너 탑재!
                 if (ivDelete != null) {
                     ivDelete.setOnClickListener(v -> {
                         new AlertDialog.Builder(MainActivity.this)
@@ -467,16 +562,15 @@ public class MainActivity extends AppCompatActivity {
                                                 .delete()
                                                 .addOnSuccessListener(aVoid -> {
                                                     Toast.makeText(MainActivity.this, "일정이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
-                                                    layoutScheduleList.removeView(itemView); // 화면에서 해당 줄 즉시 삭제
+                                                    layoutScheduleList.removeView(itemView);
                                                     todaySchedules.remove(item);
 
-                                                    // 일정이 0개가 되면 자동으로 입력 폼 띄우기
                                                     if (todaySchedules.isEmpty()) {
                                                         layoutScheduleList.setVisibility(View.GONE);
                                                         if (layoutInputForm != null) layoutInputForm.setVisibility(View.VISIBLE);
                                                         if (btnAddSchedule != null) btnAddSchedule.setVisibility(View.GONE);
                                                     }
-                                                    loadSchedulesFromFirebase(); // 달력 칩 새로고침
+                                                    loadSchedulesFromFirebase();
                                                 });
                                     }
                                 })
@@ -498,7 +592,6 @@ public class MainActivity extends AppCompatActivity {
                     if (etMemo != null) etMemo.setText(item.memo);
                     if (btnSave != null) btnSave.setText("수정하기");
                 });
-
                 layoutScheduleList.addView(itemView);
             }
         }
@@ -513,15 +606,37 @@ public class MainActivity extends AppCompatActivity {
                         layoutCategoryChips.removeAllViews();
                         List<CategoryItem> serverCategories = new ArrayList<>();
 
+                        List<CategoryItem> fixedCategories = new ArrayList<>();
+                        CategoryItem todoCat = new CategoryItem();
+                        todoCat.setId("FIXED_TODO");
+                        todoCat.setName("할 일");
+                        todoCat.setColorCode("BLUE");
+                        fixedCategories.add(todoCat);
+
+                        CategoryItem importantCat = new CategoryItem();
+                        importantCat.setId("FIXED_IMPORTANT");
+                        importantCat.setName("중요");
+                        importantCat.setColorCode("RED");
+                        fixedCategories.add(importantCat);
+
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                             CategoryItem cat = doc.toObject(CategoryItem.class);
                             cat.setId(doc.getId());
+
+                            if (cat.getName() != null &&
+                                    (cat.getName().equals("할 일") || cat.getName().equals("중요"))) {
+                                continue;
+                            }
                             serverCategories.add(cat);
                         }
 
                         Collections.sort(serverCategories, (c1, c2) -> Integer.compare(c1.getIndex(), c2.getIndex()));
 
-                        for (CategoryItem cat : serverCategories) {
+                        List<CategoryItem> finalCategories = new ArrayList<>();
+                        finalCategories.addAll(fixedCategories);
+                        finalCategories.addAll(serverCategories);
+
+                        for (CategoryItem cat : finalCategories) {
                             View chipView = getLayoutInflater().inflate(R.layout.item_dialog_category_chip, layoutCategoryChips, false);
                             LinearLayout layoutChipRoot = chipView.findViewById(R.id.layoutChipRoot);
                             View viewChipColorBar = chipView.findViewById(R.id.viewChipColorBar);
@@ -543,14 +658,19 @@ public class MainActivity extends AppCompatActivity {
                                 default: darkRes = R.color.cat_grey_dark; lightRes = R.color.cat_grey_light; break;
                             }
 
-                            if (viewChipColorBar != null) viewChipColorBar.setBackgroundColor(ContextCompat.getColor(this, darkRes));
+                            if (viewChipColorBar != null) {
+                                viewChipColorBar.setBackgroundColor(ContextCompat.getColor(this, darkRes));
+                            }
+
                             if (layoutChipRoot != null && layoutChipRoot.getBackground() != null) {
                                 Drawable wrapped = DrawableCompat.wrap(layoutChipRoot.getBackground().mutate());
                                 DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, lightRes));
                                 layoutChipRoot.setBackground(wrapped);
                             }
 
-                            if (imgChipCheck != null) imgChipCheck.setImageResource(R.drawable.circle_white);
+                            if (imgChipCheck != null) {
+                                imgChipCheck.setImageResource(R.drawable.circle_white);
+                            }
 
                             if (layoutChipRoot != null) {
                                 layoutChipRoot.setOnClickListener(v -> {
@@ -753,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String findDiaryContent(String date) {
-        SharedPreferences prefs = getSharedPreferences(DIARY_PREF_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(getDiaryPrefName(), MODE_PRIVATE);
         String json = prefs.getString(KEY_DIARY_LIST, "[]");
 
         try {

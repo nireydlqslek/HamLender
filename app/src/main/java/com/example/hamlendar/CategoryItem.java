@@ -4,7 +4,7 @@ public class CategoryItem {
     private String id;
     private String name;
     private String colorCode;
-    private int index; // 🌟 순서 정렬을 위한 인덱스 필드 추가
+    private int index;
 
     public CategoryItem() {} // 파이어베이스용 기본 생성자
 
@@ -20,7 +20,6 @@ public class CategoryItem {
     public String getColorCode() { return colorCode; }
     public void setColorCode(String colorCode) { this.colorCode = colorCode; }
 
-    // 🌟 getter / setter 추가
     public int getIndex() { return index; }
     public void setIndex(int index) { this.index = index; }
 }
